@@ -139,3 +139,4 @@ C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Api\obj\Debug\n
 C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Api\obj\Debug\net8.0\BlazingQuiz.Api.pdb
 C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Api\obj\Debug\net8.0\BlazingQuiz.Api.genruntimeconfig.cache
 C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Api\obj\Debug\net8.0\ref\BlazingQuiz.Api.dll
+C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Api\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
