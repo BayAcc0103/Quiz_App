@@ -1,3 +1,8 @@
+using BlazingQuiz.Api.Data;
+using BlazingQuiz.Api.Data.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +10,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddDbContext<QuizContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("QuizApp");
+    options.UseSqlServer(connectionString);
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -1,0 +1,45 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Mobile\\obj\\Debug\\net8.0-maccatalyst\\maccatalyst-x64\\scopedcss\\bundle\\BlazingQuiz.Mobile.styles.css",
+      "PackagePath": "staticwebassets\\BlazingQuiz.Mobile.styles.css"
+    },
+    {
+      "Id": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Mobile\\wwwroot\\css\\app.css",
+      "PackagePath": "staticwebassets\\css\\app.css"
+    },
+    {
+      "Id": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Mobile\\wwwroot\\css\\bootstrap\\bootstrap.min.css",
+      "PackagePath": "staticwebassets\\css\\bootstrap\\bootstrap.min.css"
+    },
+    {
+      "Id": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Mobile\\wwwroot\\css\\bootstrap\\bootstrap.min.css.map",
+      "PackagePath": "staticwebassets\\css\\bootstrap\\bootstrap.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Mobile\\wwwroot\\favicon.png",
+      "PackagePath": "staticwebassets\\favicon.png"
+    },
+    {
+      "Id": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Mobile\\wwwroot\\index.html",
+      "PackagePath": "staticwebassets\\index.html"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0-maccatalyst\\maccatalyst-x64\\staticwebassets\\msbuild.BlazingQuiz.Mobile.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0-maccatalyst\\maccatalyst-x64\\staticwebassets\\msbuild.build.BlazingQuiz.Mobile.props",
+      "PackagePath": "build\\BlazingQuiz.Mobile.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0-maccatalyst\\maccatalyst-x64\\staticwebassets\\msbuild.buildMultiTargeting.BlazingQuiz.Mobile.props",
+      "PackagePath": "buildMultiTargeting\\BlazingQuiz.Mobile.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0-maccatalyst\\maccatalyst-x64\\staticwebassets\\msbuild.buildTransitive.BlazingQuiz.Mobile.props",
+      "PackagePath": "buildTransitive\\BlazingQuiz.Mobile.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

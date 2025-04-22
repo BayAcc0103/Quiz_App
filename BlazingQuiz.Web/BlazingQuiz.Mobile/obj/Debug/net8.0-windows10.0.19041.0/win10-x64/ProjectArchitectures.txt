@@ -1,0 +1,1 @@
+C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Mobile\BlazingQuiz.Mobile.csproj;x64
