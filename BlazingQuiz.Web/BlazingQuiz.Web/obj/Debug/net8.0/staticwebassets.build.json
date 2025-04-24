@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "S3+PQP/57JujYltS0p5Q3+BvfF1Z3jGhkr8jszM9pE8=",
+  "Hash": "VbpWReQBB5HBQ34PXnBbjn6HH26JQ21QhYWyyjJKtr4=",
   "Source": "BlazingQuiz.Web",
   "BasePath": "/",
   "Mode": "Root",
@@ -433,6 +433,25 @@
       "CopyToOutputDirectory": "PreserveNewest",
       "CopyToPublishDirectory": "Never",
       "OriginalItemSpec": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Web\\obj\\Debug\\net8.0\\webcil\\Microsoft.AspNetCore.Authorization.wasm"
+    },
+    {
+      "Identity": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Web\\bin\\Debug\\net8.0\\wwwroot\\_framework\\Microsoft.AspNetCore.Components.Authorization.wasm",
+      "SourceId": "BlazingQuiz.Web",
+      "SourceType": "Computed",
+      "ContentRoot": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Web\\bin\\Debug\\net8.0\\wwwroot\\",
+      "BasePath": "/",
+      "RelativePath": "_framework/Microsoft.AspNetCore.Components.Authorization.wasm",
+      "AssetKind": "Build",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "WasmResource",
+      "AssetTraitValue": "runtime",
+      "CopyToOutputDirectory": "PreserveNewest",
+      "CopyToPublishDirectory": "Never",
+      "OriginalItemSpec": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Web\\obj\\Debug\\net8.0\\webcil\\Microsoft.AspNetCore.Components.Authorization.wasm"
     },
     {
       "Identity": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Web\\bin\\Debug\\net8.0\\wwwroot\\_framework\\Microsoft.AspNetCore.Components.Forms.wasm",
@@ -5734,6 +5753,25 @@
       "CopyToOutputDirectory": "PreserveNewest",
       "CopyToPublishDirectory": "Never",
       "OriginalItemSpec": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Web\\bin\\Debug\\net8.0\\wwwroot\\_framework\\System.Reflection.Extensions.wasm"
+    },
+    {
+      "Identity": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Web\\obj\\Debug\\net8.0\\compressed\\d6rdkhwpi3.gz",
+      "SourceId": "BlazingQuiz.Web",
+      "SourceType": "Computed",
+      "ContentRoot": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Web\\bin\\Debug\\net8.0\\wwwroot\\",
+      "BasePath": "/",
+      "RelativePath": "_framework/Microsoft.AspNetCore.Components.Authorization.wasm.gz",
+      "AssetKind": "Build",
+      "AssetMode": "All",
+      "AssetRole": "Alternative",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Web\\bin\\Debug\\net8.0\\wwwroot\\_framework\\Microsoft.AspNetCore.Components.Authorization.wasm",
+      "AssetTraitName": "Content-Encoding",
+      "AssetTraitValue": "gzip",
+      "CopyToOutputDirectory": "PreserveNewest",
+      "CopyToPublishDirectory": "Never",
+      "OriginalItemSpec": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Web\\bin\\Debug\\net8.0\\wwwroot\\_framework\\Microsoft.AspNetCore.Components.Authorization.wasm"
     },
     {
       "Identity": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Web\\obj\\Debug\\net8.0\\compressed\\d97sf6nrus.gz",

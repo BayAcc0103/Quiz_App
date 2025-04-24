@@ -1079,3 +1079,8 @@ C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Web\obj\Debug\n
 C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Web\obj\Debug\net8.0\compressed\ek5yzdkguv.gz
 C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Web\obj\Debug\net8.0\compressed\anr9d2ipni.gz
 C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Web\obj\Debug\net8.0\compressed\lh0goku5xb.gz
+C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Web\bin\Debug\net8.0\wwwroot\_framework\Microsoft.AspNetCore.Components.Authorization.wasm
+C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Web\bin\Debug\net8.0\wwwroot\_framework\Microsoft.AspNetCore.Components.Authorization.wasm.gz
+C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Web\bin\Debug\net8.0\Microsoft.AspNetCore.Components.Authorization.dll
+C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Web\obj\Debug\net8.0\webcil\Microsoft.AspNetCore.Components.Authorization.wasm
+C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Web\obj\Debug\net8.0\compressed\d6rdkhwpi3.gz
