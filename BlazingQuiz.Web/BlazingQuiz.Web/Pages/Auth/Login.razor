@@ -1,6 +1,7 @@
 ﻿@page "/auth/login"
 @layout EmptyLayout
-
+@inject NavigationManager NavigationManager
+@inject IAuthApi AuthApi
 <div class="container">
     <div class="row vh-100">
         <div class="col-sm-4 mx-auto my-auto border shadow-lg">
@@ -20,6 +21,12 @@
                     <InputText type="password" class="form-control" @bind-Value="_model.Password" />
                     <ValidationMessage For="() => _model.Password"/>
                 </div>
+                @if(_errorMessage != null)
+                {
+                    <div class="mb-3 bg-danger text-white p-2">
+                        <p>@_errorMessage</p>
+                    </div>
+                }
                 <div class="mb-3">
                     @if (!_isBusy)
                     {
@@ -38,10 +45,30 @@
 @code {
     private LoginDto _model = new();
     private bool _isBusy;
+    private string? _errorMessage;
     private async Task LoginAsync()
     {
+        _errorMessage = null;
         _isBusy = true;
-        await Task.Delay(2000);
-        _isBusy = false;
+        try
+        {
+            var authResponse = await AuthApi.LoginAsync(_model);
+            if (authResponse.HasError)
+            {
+                _errorMessage = authResponse.ErrorMessage;
+                return;
+            }
+            //Set the token in the local storage
+            //Implement Auth State Provider
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isBusy = false;
+        }   
     }
 }
