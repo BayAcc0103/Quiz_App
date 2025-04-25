@@ -55,6 +55,14 @@ namespace BlazingQuiz.Web.Auth
                 }
                 await SetLoginAsync(user);
             }
+            catch (Exception ex)
+            {
+                // TO DO: Fix this error
+                // SetLoginAsync from this InitializeAsync method throws;
+                // Collection was modified; enumeration has changed on the NotifyAuthenticationStateChanged
+                // in the SetLoginAsync method.
+                
+            }
             finally
             {
                 IsInitializing = false;

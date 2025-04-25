@@ -10,7 +10,7 @@
                 <h1 class="h3">Login | Blazing Quiz</h1>
             </div>
 
-            <AuthorizeView>
+@*             <AuthorizeView>
                 <Authorizing>
                     <p>Authorizing...</p>
                 </Authorizing>
@@ -20,7 +20,7 @@
                 <Authorized>
                     <p>Authorized: @context.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Name)?.Value</p>
                 </Authorized>
-            </AuthorizeView>
+            </AuthorizeView> *@
             <hr />
             <EditForm Model="_model" OnValidSubmit="LoginAsync">
                 <DataAnnotationsValidator/>
@@ -59,6 +59,14 @@
     private LoginDto _model = new();
     private bool _isBusy;
     private string? _errorMessage;
+
+    protected override void OnInitialized()
+    {
+        if(QuizAuthStateProvider.IsLoggedIn)
+        {
+            NavigationManager.NavigateTo("/", replace: true); // Redirect to home if already logged in
+        }
+    }
     private async Task LoginAsync()
     {
         _errorMessage = null;
