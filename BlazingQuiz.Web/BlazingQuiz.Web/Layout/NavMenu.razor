@@ -23,6 +23,11 @@
             <Authorized>
                 <AuthorizeView Roles="@(nameof(UserRole.Admin))" Context="adminContext">
                     <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="admin/manage-categories">
+                            <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Manage Categories
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
                         <NavLink class="nav-link" href="admin/manage-quizes">
                             <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Manage Quizes
                         </NavLink>

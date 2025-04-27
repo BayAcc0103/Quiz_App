@@ -40,6 +40,7 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = symmetricKey,
     };
 });
+builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(p =>
@@ -51,7 +52,8 @@ builder.Services.AddCors(options =>
          .AllowAnyHeader();
     });
 });
-builder.Services.AddTransient<AuthService>();
+builder.Services.AddTransient<AuthService>()
+                .AddTransient<CategoryService>();
 var app = builder.Build();
 
 #if DEBUG
@@ -69,9 +71,12 @@ app.UseHttpsRedirection();
 
 app.UseCors();
 
-app.UseAuthentication();
+app.UseAuthentication()
+    .UseAuthorization();
 
-app.MapAuthEndpoints();
+app.MapAuthEndpoints()
+   .MapCategoryEndpoints();
+
 
 app.Run();
 
