@@ -53,7 +53,8 @@ builder.Services.AddCors(options =>
     });
 });
 builder.Services.AddTransient<AuthService>()
-                .AddTransient<CategoryService>();
+                .AddTransient<CategoryService>()
+                .AddTransient<QuizService>();
 var app = builder.Build();
 
 #if DEBUG
