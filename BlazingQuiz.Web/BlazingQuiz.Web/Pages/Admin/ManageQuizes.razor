@@ -1,5 +1,6 @@
 ﻿@page "/admin/manage-quizes"
 
+@using BlazingQuiz.Shared.Components.Components
 @inject IQuizApi QuizApi
 @inject ICategoryApi CategoryApi
 
@@ -26,7 +27,7 @@
                         <th>Number of Questions</th>
                         <th>Time (in minutes)</th>
                         <th></th>
-                    </tr
+                    </tr>
                 </thead>
                 <tbody>
                     @if(_filteredQuizes.Length == 0)
@@ -46,7 +47,7 @@
                                 <td>@q.TimeInMinutes minutes</td>
                                 <td>
                                     <div class="d-flex justify-content-around">
-                                        <button type="button" class="btn btn-sm btn-info">View Questions</button>
+                                        <button type="button" class="btn btn-sm btn-info" @onclick="() => ViewQuestionsAsync(q)">View Questions</button>
                                         <button type="button" class="btn btn-sm btn-primary">Edit</button>
                                     </div>
                                 </td>
@@ -59,11 +60,32 @@
     </div>
 </div>
 
+@if (_showQuestionsModal)
+{
+    <Modal Title="Questions" 
+           Size="ModalSize.ExtraLarge"
+           ActionButtonText="Ok" 
+           OnActionButtonClick="() => _showQuestionsModal = false"
+           OnCancelClick="() => _showQuestionsModal = false">
+           @foreach(var q in _viewQuestions)
+           {
+           <div class="mb-2 shadow p-2">
+                @q.Text
+           </div>
+           }
+    </Modal>
+}
+
 @code {
     private QuizListDto[] _quizes = [];
     private QuizListDto[] _filteredQuizes = [];
+
     private CategoryDto[] _categories = [];
     private int _selectedCategory;
+
+    private QuestionDto[] _viewQuestions = [];
+    private bool _showQuestionsModal;
+
     protected override async Task OnInitializedAsync()
     {
         var quizesTask = QuizApi.GetQuizesAsync();
@@ -77,5 +99,14 @@
             _filteredQuizes = _quizes;
         else
             _filteredQuizes = _quizes.Where(q => q.CategoryId == _selectedCategory).ToArray();
+    }
+    private async Task ViewQuestionsAsync(QuizListDto q)
+    {
+        //Fetch the questions from the API
+        _viewQuestions = await QuizApi.GetQuizQuestionsAsync(q.Id);
+
+        _viewQuestions = [.. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .._viewQuestions];
+
+        _showQuestionsModal = true;
     }
 }

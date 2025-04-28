@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "BlazingQuiz.Web",
   "resources": {
-    "hash": "sha256-VjVo8CBrHzACIFfmoB4cOzj1t1KEvhSq3TMSAR1PWEM=",
+    "hash": "sha256-ctStk68LQtUI1JVweM9ch6CRmFj5A4KW18yVmAlmdFo=",
     "jsModuleNative": {
       "dotnet.native.8.0.1.ydhq44z4sd.js": "sha256-SGOlISx+3G4kkvpC9Uq3qoPGsnjxGmW61QBev0lyI5U="
     },
@@ -215,14 +215,14 @@
       "mscorlib.wasm": "sha256-EpWTfh4m/hEcXRFYMCR9YeYHwdUJgcm1laBaxWfq2S4=",
       "netstandard.wasm": "sha256-2kH24/YfHmU3B4eYRyRmiwebYROM4+B9eDWKvMnUdP8=",
       "System.Private.CoreLib.wasm": "sha256-CsySKiP7HYY1pS8LTDE60EkqiX5oHb3WoEZHDNd1yK0=",
-      "BlazingQuiz.Shared.Components.wasm": "sha256-WRAZdOYjUH3v/P2qgryAGp34s7lwbpprTHRKzr5TNoQ=",
-      "BlazingQuiz.Shared.wasm": "sha256-bpcpmaRpTyBYZbHSC/jzGZZllJH1ruU1HLGF3m8rsos=",
-      "BlazingQuiz.Web.wasm": "sha256-msZAW3PP9/JcH3AsDr6+Ug2QLFR1i4HPyZMh9trhj/s="
+      "BlazingQuiz.Shared.Components.wasm": "sha256-pNkiB9GnuPPP0aBCOFlc0Xsvo//PHalLP18PXV6oquo=",
+      "BlazingQuiz.Shared.wasm": "sha256-ro7jy3xz4qDycIXOyJjqqPkV+7LV/Y8+y5WEq7Zh9SI=",
+      "BlazingQuiz.Web.wasm": "sha256-KcVZpkezgEkiJu7aqxpdcBLJeiY+RZUFXfrAbeOjoLI="
     },
     "pdb": {
-      "BlazingQuiz.Shared.Components.pdb": "sha256-8VNt/3iBf++N9BsPs8GFEl9b2JQE6+/x22exPq5O5F4=",
-      "BlazingQuiz.Shared.pdb": "sha256-5we9uLbtYS1jquaoz6l/6FGOp9rU2bTgSGY2JAYoJQo=",
-      "BlazingQuiz.Web.pdb": "sha256-D98Z3IKPtw4Vxd+pYivNpz/gPDQM91jcm5v2tZTrP34="
+      "BlazingQuiz.Shared.Components.pdb": "sha256-aS2NuouFqDD5SJg3REhEa5d43HNFg+GOtJIpZsrEXR8=",
+      "BlazingQuiz.Shared.pdb": "sha256-NAJyTVxngD3jr43V5mHIOalOCN1OrGzubYb2PoS/UKA=",
+      "BlazingQuiz.Web.pdb": "sha256-jQVnFg9A7p1/bW7Fjq5PUzB1mlyYgvSFwNxzWtvyilA="
     }
   },
   "cacheBootResources": true,
