@@ -1,11 +1,12 @@
 ﻿@page "/admin/add-quiz"
+@page "/admin/edit-quiz/{quizId:guid?}"
 
 @inject NavigationManager NavigationManager
 @inject IQuizApi QuizApi
 @inject ICategoryApi CategoryApi
 @inject IJSRuntime JsRuntime
 
-<h1>Add a Quiz</h1>
+<h1>@(IsEditCase ? "Update Quiz" : "Add a Quiz")</h1>
 <hr/>
 
 <EditForm Model="_quiz" OnValidSubmit="SaveQuizAsync">
@@ -95,16 +96,47 @@
     </div>
 </EditForm>
 @code {
+    [Parameter]
+    public Guid? QuizId { get; set; }
+
+    private bool IsEditCase => QuizId.HasValue && QuizId.Value != Guid.Empty;
+
     private QuizSaveDto _quiz = new();
 
     private CategoryDto[] _categories = [];
 
     protected override async Task OnInitializedAsync()
     {
-        var question = GetDefaultEmptyQuestion();
-        _quiz.Questions = [question];
+        if (IsEditCase)
+        {
+            //Fetch _quiz from API
+            var quiz = await QuizApi.GetQuizToEditAsync(QuizId!.Value);
+            if (quiz == null)
+            {
+                await ShowAlertAsync("Quiz not found.");
+                NavigationManager.NavigateTo("/admin/manage-quizes");
+                return;
+            }
+            _quiz = quiz;
+        }
+        else
+        {
+            var question = GetDefaultEmptyQuestion();
+            _quiz.Questions = [question];
+        }
         _categories = await CategoryApi.GetCategoriesAsync();
     }
+
+    protected override void OnParametersSet()
+    {
+        if(!QuizId.HasValue && _quiz.Id != Guid.Empty)
+        {
+            //We are in EditMode, and we clicked on Add new Quiz on the left nav menu
+            _quiz = new();
+            _quiz.Questions = [GetDefaultEmptyQuestion()];
+        }
+    }
+
     private QuestionDto GetDefaultEmptyQuestion() =>  new QuestionDto
         {
             Options = [new(), new()]
