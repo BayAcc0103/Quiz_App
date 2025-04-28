@@ -1,6 +1,81 @@
 ﻿@page "/admin/manage-quizes"
-<h3>ManageQuizes</h3>
+
+@inject IQuizApi QuizApi
+@inject ICategoryApi CategoryApi
+
+<div class="container">
+    <h1>Manage Quizes</h1>
+    <hr/>
+    <div class="row">
+        <div class="col-sm-3 ms-auto">
+            <label class="form-label">Select Category</label>
+            <select class="form-control" @bind="_selectedCategory" @bind:after="OnSelectedCategoryChanged">
+                <option value="0">Select Category</option>
+                @foreach (var category in _categories)
+                {
+                    <option value="@category.Id">@category.Name</option>
+                }
+            </select>
+        </div>
+        <div class="row">
+            <table class="table table-striped table-hover">
+                <thead>
+                   <tr>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Number of Questions</th>
+                        <th>Time (in minutes)</th>
+                        <th></th>
+                    </tr
+                </thead>
+                <tbody>
+                    @if(_filteredQuizes.Length == 0)
+                    {
+                        <tr>
+                            <td colspan="5" class="text-danger">No quizes found</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach(var q in _filteredQuizes)
+                        {
+                            <tr>
+                                <td>@q.Name</td>
+                                <td>@q.CategoryName</td>
+                                <td>@q.TotalQuestions questions</td>
+                                <td>@q.TimeInMinutes minutes</td>
+                                <td>
+                                    <div class="d-flex justify-content-around">
+                                        <button type="button" class="btn btn-sm btn-info">View Questions</button>
+                                        <button type="button" class="btn btn-sm btn-primary">Edit</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 @code {
-
+    private QuizListDto[] _quizes = [];
+    private QuizListDto[] _filteredQuizes = [];
+    private CategoryDto[] _categories = [];
+    private int _selectedCategory;
+    protected override async Task OnInitializedAsync()
+    {
+        var quizesTask = QuizApi.GetQuizesAsync();
+        _categories = await CategoryApi.GetCategoriesAsync();
+        _quizes = await quizesTask;
+        _filteredQuizes = _quizes;
+    }
+    private void OnSelectedCategoryChanged()
+    {
+        if(_selectedCategory == 0)
+            _filteredQuizes = _quizes;
+        else
+            _filteredQuizes = _quizes.Where(q => q.CategoryId == _selectedCategory).ToArray();
+    }
 }

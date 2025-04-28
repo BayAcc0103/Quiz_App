@@ -1,12 +1,14 @@
 ﻿@page "/admin/add-quiz"
 
+@inject NavigationManager NavigationManager
 @inject IQuizApi QuizApi
 @inject ICategoryApi CategoryApi
+@inject IJSRuntime JsRuntime
 
 <h1>Add a Quiz</h1>
 <hr/>
 
-<EditForm Model="_quiz">
+<EditForm Model="_quiz" OnValidSubmit="SaveQuizAsync">
 <DataAnnotationsValidator />
     <div class="row">
         <div class="col-sm-3">
@@ -25,21 +27,21 @@
         <div class="col-sm-3">
             <div class="mb-3">
                 <label class="form-label">Name</label>
-                <InputSelect @bind-Value="_quiz.Name" class="form-control"></InputSelect>
+                <InputText @bind-Value="_quiz.Name" class="form-control"></InputText>
                 <ValidationMessage For="() => _quiz.Name" />
             </div>
         </div>
         <div class="col-sm-3">
             <div class="mb-3">
                 <label class="form-label">Total Questions</label>
-                <InputSelect @bind-Value="_quiz.TotalQuestions" class="form-control"></InputSelect>
+                <InputNumber @bind-Value="_quiz.TotalQuestions" class="form-control"></InputNumber>
                 <ValidationMessage For="() => _quiz.TotalQuestions" />
             </div>
         </div>
         <div class="col-sm-3">
             <div class="mb-3">
                 <label class="form-label">Time (in minutes)</label>
-                <InputSelect @bind-Value="_quiz.TimeInMinutes" class="form-control"></InputSelect>
+                <InputNumber @bind-Value="_quiz.TimeInMinutes" class="form-control"></InputNumber>
                 <ValidationMessage For="() => _quiz.TimeInMinutes" />
             </div>
         </div>
@@ -87,6 +89,9 @@
                 </div>
             </div>
         </div>
+
+        <hr/>
+        <button type="submit" class="btn btn-success">Save Quiz</button>
     </div>
 </EditForm>
 @code {
@@ -104,7 +109,7 @@
         {
             Options = [new(), new()]
         };
-    
+
     private void SetOptionAsCorrectAnswer(QuestionDto q, OptionDto o)
     {
         foreach (var option in q.Options)
@@ -113,4 +118,38 @@
         }
         o.IsCorrect = true;
     }
+    private async Task SaveQuizAsync()
+    {
+        var errorMessage = _quiz.Validate();
+        if (!string.IsNullOrEmpty(errorMessage))
+        {
+            await ShowAlertAsync(errorMessage);
+            return;
+        }
+        var response = await QuizApi.SaveQuizAsync(_quiz);
+        if (!response.IsSuccess)
+        {
+            await ShowAlertAsync(response.ErrorMessage);
+            return;
+        }
+        NavigationManager.NavigateTo("/admin/manage-quizes");
+        // if (_quiz.TotalQuestions != _quiz.Questions.Count)
+        // {
+        //     await ShowAlertAsync("Total Questions must be equal to the number of questions added.");
+        //     return;
+        // }
+        // if(_quiz.Questions.Any(q => string.IsNullOrWhiteSpace(q.Text)))
+        // {
+        //     await ShowAlertAsync("Question text is required.");
+        //     return;
+        // }
+        // if (_quiz.Questions.Any(q => q.Options.Count == 0))
+        // {
+        //     await ShowAlertAsync("Option are required for questions.");
+        //     return;
+        // }
+    }
+    private async Task ShowAlertAsync(string message, string title = "Error") => 
+        await JsRuntime.InvokeVoidAsync("alert", $"{title}\n{message}");
+        
 }

@@ -20,19 +20,26 @@ namespace BlazingQuiz.Shared.DTOs
         public int TimeInMinutes { get; set; }
         public bool IsActive { get; set; }
         public List<QuestionDto> Questions { get; set; } = [];
-    }
-    public class OptionDto
-    {
-        public int Id { get; set; }
-        [Required, MaxLength(500)]
-        public string Text { get; set; }
-        public bool IsCorrect { get; set; }
-    }
-    public class QuestionDto
-    {
-        public int Id { get; set; }
-        [Required, MaxLength(500)]
-        public string Text { get; set; }
-        public List<OptionDto> Options { get; set; } = [];
+
+        public string? Validate() 
+        {
+            if (TotalQuestions != Questions.Count)
+            {
+                return "Total Questions must be equal to the number of questions added.";
+            }
+            if (Questions.Any(q => string.IsNullOrWhiteSpace(q.Text)))
+            {
+                return "Question text is required.";
+            }
+            if (Questions.Any(q => q.Options.Count < 2))
+            {
+                return "At-least 2 option are required for each questions.";
+            }
+            if (Questions.Any(q => !q.Options.Any(o => o.IsCorrect)))
+            {
+                return "All options should have correct answer marked";
+            }
+            return null;
+        }
     }
 }

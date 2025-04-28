@@ -37,6 +37,7 @@ namespace BlazingQuiz.Api.Services
                     IsActive = dto.IsActive,
                     Questions = questions
                 };
+                _context.Quizzes.Add(quiz);
             }
             else
             {
@@ -66,5 +67,29 @@ namespace BlazingQuiz.Api.Services
                 return QuizApiResponse.Failure(ex.Message);
             }
         }
+
+        public async Task<QuizListDto[]> GetQuizesAsync()
+        {
+            //TODO: Implement paging and server side filter (if required)
+            return await _context.Quizzes.Select(q => new QuizListDto
+            {
+                Id = q.Id,
+                Name = q.Name,
+                CategoryName = q.Category.Name,
+                TotalQuestions = q.TotalQuestions,
+                TimeInMinutes = q.TimeInMinutes,
+                IsActive = q.IsActive,
+                CategoryId = q.CategoryId
+            })
+            .ToArrayAsync();
+        }
+        public async Task<QuestionDto[]> GetQuizQuestionsAsync(Guid quizId) =>
+            await _context.Questions.Where(q => q.QuizId == quizId)
+                .Select(q => new QuestionDto
+                {
+                    Id = q.Id,
+                    Text = q.Text
+                })
+                .ToArrayAsync();
     }
 }
