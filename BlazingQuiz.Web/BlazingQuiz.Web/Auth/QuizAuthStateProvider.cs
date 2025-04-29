@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using System.Security.Claims;
 using System.Text.Json;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Components;
 
 namespace BlazingQuiz.Web.Auth
 {
@@ -12,10 +14,12 @@ namespace BlazingQuiz.Web.Auth
         private const string UserDataKey = "udata";
         private Task<AuthenticationState> _authStateTask;
         private readonly IJSRuntime _jSRuntime;
+        private readonly NavigationManager _navigationManager;
 
-        public QuizAuthStateProvider(IJSRuntime jSRuntime)
+        public QuizAuthStateProvider(IJSRuntime jSRuntime, NavigationManager navigationManager)
         {
             _jSRuntime = jSRuntime;
+            _navigationManager = navigationManager;
             SetAuthStateTask();
         }
         public override Task<AuthenticationState> GetAuthenticationStateAsync() => 
@@ -42,15 +46,24 @@ namespace BlazingQuiz.Web.Auth
             try
             {
                 var udata = await _jSRuntime.InvokeAsync<string?>("localStorage.getItem", UserDataKey);
-                if (string.IsNullOrEmpty(udata))
+                if (string.IsNullOrWhiteSpace(udata))
                 {
                     // User data/state is not there in the browser's storage 
+                    RedirectToLoginPage();
                     return;
                 }
                 var user = LoggedInUser.LoadFrom(udata);
                 if (user == null || user.Id == 0)
                 {
                     // User data/state is not valid
+                    RedirectToLoginPage();
+                    return;
+                }
+                // Check if JWT token is still valid (not expired) 
+                if (!IsTokenValid(user.Token))
+                {
+                    // Token is expired
+                    RedirectToLoginPage();
                     return;
                 }
                 await SetLoginAsync(user);
@@ -67,6 +80,32 @@ namespace BlazingQuiz.Web.Auth
             {
                 IsInitializing = false;
             }
+        }
+
+        private void RedirectToLoginPage()
+        {
+            _navigationManager.NavigateTo("auth/login");
+        }
+        private static bool IsTokenValid(string token)
+        {
+            if(string.IsNullOrWhiteSpace(token))
+            {
+                return false;
+            }
+            var jwtHandler = new JwtSecurityTokenHandler();
+            if(!jwtHandler.CanReadToken(token)) // invalid format token
+            {
+                return false;
+            }
+            var jwt = jwtHandler.ReadJwtToken(token);
+            var expClaim = jwt.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Exp);
+            if (expClaim == null)
+            {
+                return false; // no exp claim, token is invalid
+            }
+            var expTime = long.Parse(expClaim.Value);
+            var expDateTimeUtc = DateTimeOffset.FromUnixTimeSeconds(expTime).UtcDateTime;
+            return expDateTimeUtc < DateTime.UtcNow;
         }
         private void SetAuthStateTask() { 
             if (IsLoggedIn)

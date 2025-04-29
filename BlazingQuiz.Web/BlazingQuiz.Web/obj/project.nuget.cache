@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "fpVZZTA7dw4D3j2kI1ssCyKRcmNzLuGZMBVlVXphrwe4j/axZa6RN8JYi1qEJ0mGE0DcTiigGEDITfTUT5VZnA==",
+  "dgSpecHash": "U1VtIZJQ4AoU2n+mY7tYBDWpjM1aWptqbYRoLeFQFVx6sl96zKsRKg4I14Rtk1B3dZoho30wIncJBlSuPYR2fA==",
   "success": true,
   "projectFilePath": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Web\\BlazingQuiz.Web.csproj",
   "expectedPackageFiles": [
@@ -31,6 +31,10 @@
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.extensions.options\\8.0.2\\microsoft.extensions.options.8.0.2.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.extensions.options.configurationextensions\\8.0.0\\microsoft.extensions.options.configurationextensions.8.0.0.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.extensions.primitives\\8.0.0\\microsoft.extensions.primitives.8.0.0.nupkg.sha512",
+    "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.identitymodel.abstractions\\7.1.2\\microsoft.identitymodel.abstractions.7.1.2.nupkg.sha512",
+    "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.identitymodel.jsonwebtokens\\7.1.2\\microsoft.identitymodel.jsonwebtokens.7.1.2.nupkg.sha512",
+    "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.identitymodel.logging\\7.1.2\\microsoft.identitymodel.logging.7.1.2.nupkg.sha512",
+    "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.identitymodel.tokens\\7.1.2\\microsoft.identitymodel.tokens.7.1.2.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.jsinterop\\8.0.1\\microsoft.jsinterop.8.0.1.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.jsinterop.webassembly\\8.0.1\\microsoft.jsinterop.webassembly.8.0.1.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.net.illink.tasks\\8.0.1\\microsoft.net.illink.tasks.8.0.1.nupkg.sha512",
@@ -38,6 +42,7 @@
     "C:\\Users\\lehuy\\.nuget\\packages\\refit\\7.2.1\\refit.7.2.1.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\refit.httpclientfactory\\7.2.1\\refit.httpclientfactory.7.2.1.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\system.diagnostics.diagnosticsource\\8.0.0\\system.diagnostics.diagnosticsource.8.0.0.nupkg.sha512",
+    "C:\\Users\\lehuy\\.nuget\\packages\\system.identitymodel.tokens.jwt\\7.1.2\\system.identitymodel.tokens.jwt.7.1.2.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\system.io.pipelines\\8.0.0\\system.io.pipelines.8.0.0.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\system.text.encodings.web\\8.0.0\\system.text.encodings.web.8.0.0.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\system.text.json\\8.0.0\\system.text.json.8.0.0.nupkg.sha512",

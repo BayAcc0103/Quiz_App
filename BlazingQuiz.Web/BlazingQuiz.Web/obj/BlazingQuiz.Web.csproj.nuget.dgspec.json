@@ -210,6 +210,10 @@
             "Refit.HttpClientFactory": {
               "target": "Package",
               "version": "[7.2.1, )"
+            },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[7.1.2, )"
             }
           },
           "imports": [
