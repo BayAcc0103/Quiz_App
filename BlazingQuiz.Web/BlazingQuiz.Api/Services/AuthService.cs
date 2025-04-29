@@ -31,6 +31,11 @@ namespace BlazingQuiz.Api.Services
                 //Invalid username
                 return new AuthResponseDto(default, "Invalid username");
             }
+            if(!user.IsApproved)
+            {
+                //User is not approved yet
+                return new AuthResponseDto(default, "User is not approved yet");
+            }
             var passwordResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
             if (passwordResult == PasswordVerificationResult.Failed)
             {
@@ -41,6 +46,32 @@ namespace BlazingQuiz.Api.Services
             var jwt = GenerateJwtToken(user);
             var loggedInUser = new LoggedInUser(user.Id, user.Name, user.Role, jwt);
             return new AuthResponseDto(loggedInUser);
+        }
+        public async Task<QuizApiResponse> RegisterAsync(RegisterDto dto)
+        {
+            if(await _context.Users.AnyAsync(u => u.Email == dto.Email))
+            {
+                return QuizApiResponse.Failure("Email already exists.Try logging in");
+            }
+            var user = new User
+            {
+                Name = dto.Name,
+                Email = dto.Email,
+                Phone = dto.Phone,
+                Role = nameof(UserRole.Student),
+                IsApproved = false
+            };
+            user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
+            _context.Users.Add(user);
+            try 
+            {                
+                await _context.SaveChangesAsync();
+                return QuizApiResponse.Success();
+            }
+            catch (Exception ex)
+            {
+                return QuizApiResponse.Failure(ex.Message);
+            }
         }
         private string GenerateJwtToken (User user)
         {
