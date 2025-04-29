@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "U1VtIZJQ4AoU2n+mY7tYBDWpjM1aWptqbYRoLeFQFVx6sl96zKsRKg4I14Rtk1B3dZoho30wIncJBlSuPYR2fA==",
+  "dgSpecHash": "FI///Huge9bdx9jIOFp3Yas5COqmHWUCGSTTZjcIeJmMBTlOVyTx9gf3XZ46LRY5/Br4jdMoZi1WzM7ln6iUuw==",
   "success": true,
   "projectFilePath": "C:\\Users\\lehuy\\source\\repos\\Quiz_App\\BlazingQuiz.Web\\BlazingQuiz.Web\\BlazingQuiz.Web.csproj",
   "expectedPackageFiles": [
@@ -8,8 +8,9 @@
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.aspnetcore.components\\8.0.8\\microsoft.aspnetcore.components.8.0.8.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.aspnetcore.components.analyzers\\8.0.8\\microsoft.aspnetcore.components.analyzers.8.0.8.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.aspnetcore.components.authorization\\8.0.8\\microsoft.aspnetcore.components.authorization.8.0.8.nupkg.sha512",
-    "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.aspnetcore.components.forms\\8.0.1\\microsoft.aspnetcore.components.forms.8.0.1.nupkg.sha512",
-    "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.aspnetcore.components.web\\8.0.1\\microsoft.aspnetcore.components.web.8.0.1.nupkg.sha512",
+    "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.aspnetcore.components.forms\\8.0.8\\microsoft.aspnetcore.components.forms.8.0.8.nupkg.sha512",
+    "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.aspnetcore.components.quickgrid\\8.0.8\\microsoft.aspnetcore.components.quickgrid.8.0.8.nupkg.sha512",
+    "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.aspnetcore.components.web\\8.0.8\\microsoft.aspnetcore.components.web.8.0.8.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.aspnetcore.components.webassembly\\8.0.1\\microsoft.aspnetcore.components.webassembly.8.0.1.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.aspnetcore.components.webassembly.devserver\\8.0.1\\microsoft.aspnetcore.components.webassembly.devserver.8.0.1.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.aspnetcore.metadata\\8.0.8\\microsoft.aspnetcore.metadata.8.0.8.nupkg.sha512",
@@ -35,7 +36,7 @@
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.identitymodel.jsonwebtokens\\7.1.2\\microsoft.identitymodel.jsonwebtokens.7.1.2.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.identitymodel.logging\\7.1.2\\microsoft.identitymodel.logging.7.1.2.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.identitymodel.tokens\\7.1.2\\microsoft.identitymodel.tokens.7.1.2.nupkg.sha512",
-    "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.jsinterop\\8.0.1\\microsoft.jsinterop.8.0.1.nupkg.sha512",
+    "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.jsinterop\\8.0.8\\microsoft.jsinterop.8.0.8.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.jsinterop.webassembly\\8.0.1\\microsoft.jsinterop.webassembly.8.0.1.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.net.illink.tasks\\8.0.1\\microsoft.net.illink.tasks.8.0.1.nupkg.sha512",
     "C:\\Users\\lehuy\\.nuget\\packages\\microsoft.net.sdk.webassembly.pack\\8.0.1\\microsoft.net.sdk.webassembly.pack.8.0.1.nupkg.sha512",
