@@ -1,6 +1,7 @@
 ﻿@page "/admin/manage-categories"
 
 @inject ICategoryApi CategoryApi
+@inject IAppState AppState
 
 <div class="container">
     <h1>Manage Categories</h1>
@@ -89,7 +90,10 @@
     protected override async Task OnInitializedAsync() => await LoadCategoriesAsync();
     private async Task LoadCategoriesAsync()
     {
+        AppState.ShowLoader("Loading categories...");
+        await Task.Delay(2500); // Simulate loading delay
         _categories = await CategoryApi.GetCategoriesAsync();
+        AppState.HideLoader();
     }
     private void OnEditCategory(CategoryDto category)
     {
@@ -99,6 +103,8 @@
     {
         try
         {
+            AppState.ShowLoader("Saving categories...");
+            await Task.Delay(2500); // Simulate loading delay
             _isBusy = true;
             var response = await CategoryApi.SaveCategoryAsync(_category);
             if (!response.IsSuccess)
@@ -118,6 +124,7 @@
         }
         finally
         {
+            AppState.HideLoader();
             _isBusy = false;
         }
     }

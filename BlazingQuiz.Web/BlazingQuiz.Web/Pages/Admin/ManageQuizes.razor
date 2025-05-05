@@ -3,6 +3,7 @@
 @using BlazingQuiz.Shared.Components.Components
 @inject IQuizApi QuizApi
 @inject ICategoryApi CategoryApi
+@inject IAppState AppState
 
 <div class="container">
     <h1>Manage Quizes</h1>
@@ -88,10 +89,22 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var quizesTask = QuizApi.GetQuizesAsync();
-        _categories = await CategoryApi.GetCategoriesAsync();
-        _quizes = await quizesTask;
-        _filteredQuizes = _quizes;
+        AppState.ShowLoader("Loading quizes and categories");
+        try
+        {
+            var quizesTask = QuizApi.GetQuizesAsync();
+            _categories = await CategoryApi.GetCategoriesAsync();
+            _quizes = await quizesTask;
+            _filteredQuizes = _quizes;
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
     }
     private void OnSelectedCategoryChanged()
     {
@@ -103,9 +116,11 @@
     private async Task ViewQuestionsAsync(QuizListDto q)
     {
         //Fetch the questions from the API
+        AppState.ShowLoader("Loading questions...");
         _viewQuestions = await QuizApi.GetQuizQuestionsAsync(q.Id);
+        AppState.HideLoader();
 
-        _viewQuestions = [.. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .._viewQuestions];
+        //_viewQuestions = [.. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .._viewQuestions];
 
         _showQuestionsModal = true;
     }

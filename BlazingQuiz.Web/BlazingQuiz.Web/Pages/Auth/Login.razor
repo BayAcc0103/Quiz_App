@@ -2,7 +2,9 @@
 @layout EmptyLayout
 @inject NavigationManager NavigationManager
 @inject IAuthApi AuthApi
+@inject IAppState AppState
 @inject QuizAuthStateProvider QuizAuthStateProvider
+
 <div class="container">
     <div class="row vh-100">
         <div class="col-sm-4 mx-auto my-auto border shadow-lg">
@@ -74,6 +76,7 @@
         _isBusy = true;
         try
         {
+            AppState.ShowLoader("Logging in...");
             var authResponse = await AuthApi.LoginAsync(_model);
             if (authResponse.HasError)
             {
@@ -94,6 +97,7 @@
         finally
         {
             _isBusy = false;
+            AppState.HideLoader();
         }   
     }
 }

@@ -4,6 +4,7 @@
 @inject NavigationManager NavigationManager
 @inject IAuthApi AuthApi
 @inject QuizAuthStateProvider QuizAuthStateProvider
+@inject IAppState AppState
 <div class="container">
     <div class="row vh-100">
         <div class="col-sm-4 mx-auto my-auto border shadow-lg">
@@ -93,6 +94,7 @@
         _isBusy = true;
         try
         {
+            AppState.ShowLoader("Registering...");
             var apiResponse = await AuthApi.RegisterAsync(_model);
             if (!apiResponse.IsSuccess)
             {
@@ -108,12 +110,14 @@
         finally
         {
             _isBusy = false;
+            AppState.HideLoader();
         }   
     }
     private void OnModalClose()
     {
         _model = new();
         NavigationManager.NavigateTo("auth/login"); // Redirect to login page after successful registration
+
     }
 
 }

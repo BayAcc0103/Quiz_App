@@ -105,7 +105,7 @@ namespace BlazingQuiz.Web.Auth
             }
             var expTime = long.Parse(expClaim.Value);
             var expDateTimeUtc = DateTimeOffset.FromUnixTimeSeconds(expTime).UtcDateTime;
-            return expDateTimeUtc < DateTime.UtcNow;
+            return expDateTimeUtc > DateTime.UtcNow;
         }
         private void SetAuthStateTask() { 
             if (IsLoggedIn)

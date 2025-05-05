@@ -5,6 +5,7 @@
 @inject IQuizApi QuizApi
 @inject ICategoryApi CategoryApi
 @inject IJSRuntime JsRuntime
+@inject IAppState AppState
 
 <h1>@(IsEditCase ? "Update Quiz" : "Add a Quiz")</h1>
 <hr/>
@@ -94,6 +95,8 @@
         <button type="submit" class="btn btn-success">Save Quiz</button>
     </div>
 </EditForm>
+
+
 @code {
     [Parameter]
     public Guid? QuizId { get; set; }
@@ -109,7 +112,9 @@
         if (IsEditCase)
         {
             //Fetch _quiz from API
+            AppState.ShowLoader("Loading Quiz");
             var quiz = await QuizApi.GetQuizToEditAsync(QuizId!.Value);
+            AppState.HideLoader();
             if (quiz == null)
             {
                 await ShowAlertAsync("Quiz not found.");
@@ -123,7 +128,9 @@
             var question = GetDefaultEmptyQuestion();
             _quiz.Questions = [question];
         }
+        AppState.ShowLoader("Loading categories");
         _categories = await CategoryApi.GetCategoriesAsync();
+        AppState.HideLoader();
     }
 
     protected override void OnParametersSet()
@@ -157,7 +164,9 @@
             await ShowAlertAsync(errorMessage);
             return;
         }
+        AppState.ShowLoader("Saving quiz");
         var response = await QuizApi.SaveQuizAsync(_quiz);
+        AppState.HideLoader();
         if (!response.IsSuccess)
         {
             await ShowAlertAsync(response.ErrorMessage);
