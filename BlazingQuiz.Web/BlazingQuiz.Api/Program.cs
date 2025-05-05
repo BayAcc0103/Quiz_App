@@ -55,7 +55,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddTransient<AuthService>()
                 .AddTransient<CategoryService>()
                 .AddTransient<QuizService>()
-                .AddTransient<UserService>();
+                .AddTransient<UserService>()
+                .AddTransient<StudentQuizService>();
 var app = builder.Build();
 
 #if DEBUG
@@ -79,7 +80,8 @@ app.UseAuthentication()
 app.MapAuthEndpoints()
    .MapCategoryEndpoints()
    .MapQuizEndpoints()
-   .MapUserEndpoints();
+   .MapUserEndpoints()
+   .MapStudentQuizEndpoints();
 
 
 app.Run();
