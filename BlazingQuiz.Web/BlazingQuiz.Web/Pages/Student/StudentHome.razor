@@ -74,7 +74,7 @@
 @if(_startingQuiz != null)
 {
     var title = $"Starting Quiz: {_startingQuiz.Name}?";
-    <Modal Title="@title" OnCancelClick="() => _startingQuiz = null" OnActionButtonClick="StartQuiz">
+    <Modal Title="@title" OnCancelClick="() => _startingQuiz = null" OnActionButtonClick="StartQuizAsync">
         <p class="m-0 p-3">
             Are you sure you want to start the quiz?<br/>
             You will not able to pause the quiz
@@ -116,9 +116,30 @@
         AppState.HideLoader();
     }
 
-    private void StartQuiz()
+    private async Task StartQuizAsync()
     {
-        QuizState.SetQuiz(_startingQuiz);
-        NavigationManager.NavigateTo("student/quiz");     
+        AppState.ShowLoader("Preparing the quizes...");
+        try
+        {
+            QuizApiResponse<int> response = await StudentQuizApi.StartQuizAsync(_startingQuiz.Id);
+            if (!response.IsSuccess)
+            {
+                //Show error alert
+                return;
+            }
+            int studentQuizId = response.Data;
+
+            QuizState.StartQuiz(_startingQuiz, studentQuizId);
+            NavigationManager.NavigateTo("student/quiz");
+        }
+        catch
+        {
+            throw;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+   
     }
 }
