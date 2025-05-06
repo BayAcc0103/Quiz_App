@@ -185,5 +185,28 @@ namespace BlazingQuiz.Api.Services
                 return QuizApiResponse.Failure(ex.Message);
             }
         }
+
+        public async Task<PageResult<StudentQuizDto>> GetStudentQuizesAsync(int studentId, int startIndex, int pageSize) 
+        {
+            var query = _context.StudentQuizzes.Where(q => q.StudentId == studentId);
+            var count = await query.CountAsync();
+            var quizes = await query.OrderByDescending(q => q.StartedOn)
+                .Skip(startIndex)
+                .Take(pageSize)
+                .Select(q => new StudentQuizDto
+                {
+                    Id = q.Id,
+                    QuizId = q.QuizId,
+                    QuizName = q.Quiz.Name,
+                    CategoryName = q.Quiz.Category.Name,
+                    StartedOn = q.StartedOn,
+                    CompletedOn = q.CompletedOn,
+                    Status = q.Status,
+                    Total = q.Total,
+                })
+                .ToArrayAsync();
+            return new PageResult<StudentQuizDto>(quizes, count);
+
+        }
     }
 }

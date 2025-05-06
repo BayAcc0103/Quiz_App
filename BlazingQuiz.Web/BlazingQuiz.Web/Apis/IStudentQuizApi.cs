@@ -9,6 +9,9 @@ namespace BlazingQuiz.Web.Apis
         [Get("/api/student/available-quizes")]
         Task<QuizListDto[]> GetActiveQuizesAsync(int categoryId);
 
+        [Get("/api/student/my-quizes")]
+        Task<PageResult<StudentQuizDto>> GetStudentQuizesAsync(int startIndex, int pageSize);
+
         [Post("/api/student/quiz/{quizId}/start")]
         Task<QuizApiResponse<int>> StartQuizAsync(Guid quizId);
 

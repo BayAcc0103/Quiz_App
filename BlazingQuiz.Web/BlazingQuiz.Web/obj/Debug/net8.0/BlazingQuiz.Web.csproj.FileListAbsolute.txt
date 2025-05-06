@@ -1114,3 +1114,4 @@ C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Web\bin\Debug\n
 C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Web\bin\Debug\net8.0\Microsoft.AspNetCore.Components.QuickGrid.dll
 C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Web\obj\Debug\net8.0\webcil\Microsoft.AspNetCore.Components.QuickGrid.wasm
 C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Web\obj\Debug\net8.0\compressed\guwqqssnil.gz
+C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Web\obj\Debug\net8.0\scopedcss\Layout\QuizPageLayout.razor.rz.scp.css

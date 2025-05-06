@@ -18,6 +18,9 @@ namespace BlazingQuiz.Api.Endpoints
             group.MapGet("/available-quizes", async (int categoryId, StudentQuizService quizService) =>
                 Results.Ok(await quizService.GetActiveQuizesAsync(categoryId)));
 
+            group.MapGet("/my-quizes", async (int startIndex, int pageSize, StudentQuizService quizService, ClaimsPrincipal principal) =>
+                Results.Ok(await quizService.GetStudentQuizesAsync(principal.GetStudentId(), startIndex, pageSize)));
+
             var quizGroup = group.MapGroup("/quiz");
             quizGroup.MapPost("/{quizId:guid}/start", async (Guid quizId, ClaimsPrincipal principal, StudentQuizService quizService) =>
                 Results.Ok(await quizService.StartQuizAsync(principal.GetStudentId(), quizId)));
