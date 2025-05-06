@@ -19,4 +19,12 @@
     <ProjectReference Include="..\BlazingQuiz.Shared\BlazingQuiz.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <UpToDateCheckInput Remove="components\QuizTimer.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="components\QuizTimer.razor" />
+  </ItemGroup>
+
 </Project>
