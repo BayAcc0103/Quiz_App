@@ -16,11 +16,22 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
+
+var connectionString = builder.Configuration.GetConnectionString("QuizApp");
 builder.Services.AddDbContext<QuizContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("QuizApp");
+    options.UseSqlServer(connectionString);
+}, optionsLifetime:ServiceLifetime.Singleton);
+builder.Services.AddDbContextFactory<QuizContext>(options =>
+{
     options.UseSqlServer(connectionString);
 });
+
+//builder.Services.AddSingleton<Func<QuizContext>>(sp => () =>
+//{
+//    var scope = sp.CreateScope();
+//    return scope.ServiceProvider.GetRequiredService<QuizContext>();
+//});
 
 builder.Services.AddAuthentication(options =>
 {
@@ -55,7 +66,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddTransient<AuthService>()
                 .AddTransient<CategoryService>()
                 .AddTransient<QuizService>()
-                .AddTransient<UserService>()
+                .AddTransient<AdminService>()
                 .AddTransient<StudentQuizService>();
 var app = builder.Build();
 
@@ -80,7 +91,7 @@ app.UseAuthentication()
 app.MapAuthEndpoints()
    .MapCategoryEndpoints()
    .MapQuizEndpoints()
-   .MapUserEndpoints()
+   .MapAdminEndpoints()
    .MapStudentQuizEndpoints();
 
 

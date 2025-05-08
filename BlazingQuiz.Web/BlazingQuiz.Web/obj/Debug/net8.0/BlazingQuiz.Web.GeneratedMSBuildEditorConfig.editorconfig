@@ -31,6 +31,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XEVtcHR5TGF5b3V0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/lehuy/source/repos/Quiz_App/BlazingQuiz.Web/BlazingQuiz.Web/Pages/Admin/AdminHome.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cQWRtaW5Ib21lLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/lehuy/source/repos/Quiz_App/BlazingQuiz.Web/BlazingQuiz.Web/Pages/Admin/ManageCategories.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cTWFuYWdlQ2F0ZWdvcmllcy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 

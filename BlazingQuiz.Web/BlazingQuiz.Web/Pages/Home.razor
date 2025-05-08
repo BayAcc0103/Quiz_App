@@ -1,23 +1,28 @@
 ﻿@page "/"
 @using System.Security.Claims
+@using BlazingQuiz.Shared
 @using Microsoft.AspNetCore.Authorization
 
 @attribute [Authorize]
-@inject QuizAuthStateProvider QuizAuthStateProvider
+@* @inject QuizAuthStateProvider QuizAuthStateProvider
 <PageTitle>Home</PageTitle>
 <h1>Hello, @QuizAuthStateProvider.User?.Name</h1>
-
-Welcome to your new app.
-
+ *@
 <AuthorizeView>
-    <Authorizing>
+@*     <Authorizing>
         <p>Authorizing...</p>
     </Authorizing>
     <NotAuthorized>
         <p>Not Authorized</p>
-    </NotAuthorized>
+    </NotAuthorized> *@
     <Authorized>
-        <p>Authorized: @context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value</p>
+@*         <p>Authorized: @context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value</p> *@
+        <AuthorizeView Roles="@nameof(UserRole.Student)" Context="studentContext">
+            <RedirectToHome Url="student/home"/>
+        </AuthorizeView>
+        <AuthorizeView Roles="@nameof(UserRole.Admin)" Context="adminContext">
+            <RedirectToHome Url="admin/home"/>
+        </AuthorizeView>
     </Authorized>
 </AuthorizeView>
 
