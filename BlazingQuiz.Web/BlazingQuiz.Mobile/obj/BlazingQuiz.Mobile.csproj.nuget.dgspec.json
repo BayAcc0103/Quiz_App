@@ -110,6 +110,10 @@
               "target": "Package",
               "version": "[8.0.1, )",
               "autoReferenced": true
+            },
+            "Refit.HttpClientFactory": {
+              "target": "Package",
+              "version": "[7.2.1, )"
             }
           },
           "imports": [
@@ -157,6 +161,10 @@
               "target": "Package",
               "version": "[8.0.1, )",
               "autoReferenced": true
+            },
+            "Refit.HttpClientFactory": {
+              "target": "Package",
+              "version": "[7.2.1, )"
             }
           },
           "imports": [
@@ -204,6 +212,10 @@
               "target": "Package",
               "version": "[8.0.1, )",
               "autoReferenced": true
+            },
+            "Refit.HttpClientFactory": {
+              "target": "Package",
+              "version": "[7.2.1, )"
             }
           },
           "imports": [
@@ -246,6 +258,10 @@
             "Microsoft.Maui.Controls.Compatibility": {
               "target": "Package",
               "version": "[8.0.3, )"
+            },
+            "Refit.HttpClientFactory": {
+              "target": "Package",
+              "version": "[7.2.1, )"
             }
           },
           "imports": [
@@ -345,9 +361,21 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Microsoft.AspNetCore.Components.Authorization": {
+              "target": "Package",
+              "version": "[8.0.8, )"
+            },
             "Microsoft.AspNetCore.Components.Web": {
               "target": "Package",
               "version": "[8.0.1, )"
+            },
+            "Refit.HttpClientFactory": {
+              "target": "Package",
+              "version": "[7.2.1, )"
+            },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[7.1.2, )"
             }
           },
           "imports": [

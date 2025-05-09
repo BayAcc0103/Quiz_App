@@ -2,6 +2,7 @@ using BlazingQuiz.Shared;
 using BlazingQuiz.Web;
 using BlazingQuiz.Web.Apis;
 using BlazingQuiz.Web.Auth;
+using BlazingQuiz.Web.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -17,7 +18,8 @@ builder.Services.AddSingleton<AuthenticationStateProvider>(sp => sp.GetRequiredS
 builder.Services.AddAuthorizationCore();
 
 builder.Services.AddSingleton<IAppState, AppState>()
-    .AddSingleton<QuizState>();
+    .AddSingleton<QuizState>()
+    .AddSingleton<IStorageService, StorageService>();
 
 ConfigureRefit(builder.Services);
 

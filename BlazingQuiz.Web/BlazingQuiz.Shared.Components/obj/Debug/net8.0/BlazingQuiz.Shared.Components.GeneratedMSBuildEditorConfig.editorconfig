@@ -1,4 +1,5 @@
 is_global = true
+build_property.RefitInternalNamespace = BlazingQuiz.Shared.Components
 build_property.TargetFramework = net8.0
 build_property.TargetPlatformMinVersion = 
 build_property.UsingMicrosoftNETSdkWeb = 
@@ -28,6 +29,18 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/lehuy/source/repos/Quiz_App/BlazingQuiz.Web/BlazingQuiz.Shared.Components/Components/RedirectToHome.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSZWRpcmVjdFRvSG9tZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lehuy/source/repos/Quiz_App/BlazingQuiz.Web/BlazingQuiz.Shared.Components/Layout/EmptyLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XEVtcHR5TGF5b3V0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lehuy/source/repos/Quiz_App/BlazingQuiz.Web/BlazingQuiz.Shared.Components/Pages/Auth/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXV0aFxMb2dpbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lehuy/source/repos/Quiz_App/BlazingQuiz.Web/BlazingQuiz.Shared.Components/Pages/Auth/Register.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXV0aFxSZWdpc3Rlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/lehuy/source/repos/Quiz_App/BlazingQuiz.Web/BlazingQuiz.Shared.Components/_Imports.razor]
