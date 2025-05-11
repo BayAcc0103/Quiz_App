@@ -26,3 +26,4 @@ C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Shared.Componen
 C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Shared.Components\obj\Debug\net8.0\BlazingQuiz.Shared.Components.pdb
 C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Shared.Components\obj\Debug\net8.0\ref\BlazingQuiz.Shared.Components.dll
 C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Shared.Components\obj\Debug\net8.0\scopedcss\Components\Loader.razor.rz.scp.css
+C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Shared.Components\obj\Debug\net8.0\scopedcss\Layout\QuizPageLayout.razor.rz.scp.css

@@ -9,7 +9,11 @@ main[b-h5cv00ax20] {
 }
 
 .sidebar[b-h5cv00ax20] {
-    background-color: #052767;
+    background-color: var(--app-color);
+}
+
+.top-row[b-h5cv00ax20]{
+    height: 3.5rem;
 }
 
 @media (min-width: 641px) {

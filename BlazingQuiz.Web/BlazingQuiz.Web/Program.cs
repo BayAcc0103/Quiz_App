@@ -19,7 +19,8 @@ builder.Services.AddAuthorizationCore();
 
 builder.Services.AddSingleton<IAppState, AppState>()
     .AddSingleton<QuizState>()
-    .AddSingleton<IStorageService, StorageService>();
+    .AddSingleton<IStorageService, StorageService>()
+    .AddSingleton<IPlatform, WebPlatform>();
 
 ConfigureRefit(builder.Services);
 

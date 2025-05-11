@@ -1,0 +1,10 @@
+﻿@inject NavigationManager NavigationManager
+@inject QuizAuthStateProvider QuizAuthStateProvider
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await App.Current.MainPage.DisplayAlert("Admin Restriction", "This page is restricted to admin users only.", "OK");
+        await QuizAuthStateProvider.SetLogoutAsync();
+        NavigationManager.NavigateTo("auth/login");     
+    }
+}

@@ -41,7 +41,9 @@ namespace BlazingQuiz.Mobile
             builder.Services.AddAuthorizationCore();
 
             builder.Services.AddSingleton<IStorageService, StorageService>()
-                .AddSingleton<IAppState, AppState>();
+                .AddSingleton<QuizState>()
+                .AddSingleton<IAppState, AppState>()
+                .AddSingleton<IPlatform, MobilePlatform>();
 
             ConfigureRefit(builder.Services);
             return builder.Build();
@@ -61,7 +63,7 @@ namespace BlazingQuiz.Mobile
                 .ConfigureHttpClient(SetHttpClient);
 
             services.AddRefitClient<IAdminApi>(GetRefitSettings)
-            .ConfigureHttpClient(SetHttpClient);
+                .ConfigureHttpClient(SetHttpClient);
 
             services.AddRefitClient<IStudentQuizApi>(GetRefitSettings)
                 .ConfigureHttpClient(SetHttpClient);

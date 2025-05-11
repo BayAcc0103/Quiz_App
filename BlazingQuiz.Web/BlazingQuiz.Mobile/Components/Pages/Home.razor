@@ -1,19 +1,43 @@
 ﻿@page "/"
-@using BlazingQuiz.Shared.Components.Auth
+@using System.Security.Claims
+@using BlazingQuiz.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@layout BlazingQuiz.Mobile.Components.Layout.MobileEmptyLayout
 @inject QuizAuthStateProvider QuizAuthStateProvider
 @inject NavigationManager NavigationManager
 
-<h1>Hello, world!</h1>
 
-Welcome to your new app.
+@attribute [Authorize]
+@* @inject QuizAuthStateProvider QuizAuthStateProvider
+<PageTitle>Home</PageTitle>
+<h1>Hello, @QuizAuthStateProvider.User?.Name</h1>
+ *@
+<AuthorizeView>
+@*     <Authorizing>
+        <p>Authorizing...</p>
+    </Authorizing>
+    <NotAuthorized>
+        <p>Not Authorized</p>
+    </NotAuthorized> *@
+    <Authorized>
+@*         <p>Authorized: @context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value</p> *@
+        <AuthorizeView Roles="@nameof(UserRole.Student)" Context="studentContext">
+            <RedirectToHome Url="student/home"/>
+        </AuthorizeView>
+        <AuthorizeView Roles="@nameof(UserRole.Admin)" Context="adminContext">
+            <AdminRestrict/>
+        </AuthorizeView>
+    </Authorized>
+</AuthorizeView>
 
-@code {
+@code{
     protected override async Task OnInitializedAsync()
     {
         var isSuccess = await QuizAuthStateProvider.InitializeAsync(redirectToLogin: false);
         if (!isSuccess)
         {
-            // Redirect to login page
             NavigationManager.NavigateTo("auth/login", replace: true);
             return;
         }
