@@ -6,6 +6,15 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Logging;
 using Refit;
 
+
+#if ANDROID
+using Xamarin.Android.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+#elif IOS
+using Security;
+#endif
+
 namespace BlazingQuiz.Mobile
 {
     public static class MauiProgram
@@ -37,10 +46,12 @@ namespace BlazingQuiz.Mobile
             ConfigureRefit(builder.Services);
             return builder.Build();
         }
+        private static readonly string ApiBaseUrl = DeviceInfo.Platform == DevicePlatform.Android
+                                                    ? "https://10.0.2.2:7048"
+                                                    : "https://localhost:7048";
         static void ConfigureRefit(IServiceCollection services)
         {
-            const string ApiBaseUrl = "https://localhost:7048";
-            services.AddRefitClient<IAuthApi>()
+            services.AddRefitClient<IAuthApi>(GetRefitSettings)
                 .ConfigureHttpClient(SetHttpClient);
 
             services.AddRefitClient<ICategoryApi>(GetRefitSettings)
@@ -62,7 +73,25 @@ namespace BlazingQuiz.Mobile
                 var authStateProvider = sp.GetRequiredService<QuizAuthStateProvider>();
                 return new RefitSettings
                 {
-                    AuthorizationHeaderValueGetter = (_, __) => Task.FromResult(authStateProvider.User?.Token ?? "")
+                    AuthorizationHeaderValueGetter = (_, __) => Task.FromResult(authStateProvider.User?.Token ?? ""),
+                    HttpMessageHandlerFactory = () =>
+                    {
+#if ANDROID
+                        var androidMessageHandler = new AndroidClientHandler()
+                        {
+                            ServerCertificateCustomValidationCallback =
+                            (HttpRequestMessage request, X509Certificate2? certificate2, X509Chain? chain, SslPolicyErrors sslPolicyErrors) =>
+                                certificate2?.Issuer == "CN=localhost" || sslPolicyErrors == SslPolicyErrors.None
+                        };
+                        return androidMessageHandler;
+#elif IOS
+                        var nsUrlSessionHandler = new NSUrlSessionHandler();
+                        nsUrlSessionHandler.TrustOverrideForUrl = (NSUrlSessionHandler sender, string url, SecTrust trust) =>
+                            url.StartsWith("https://localhost");
+                            return nsUrlSessionHandler;
+#endif
+                        return null;
+                    }
                 };
             }
         }

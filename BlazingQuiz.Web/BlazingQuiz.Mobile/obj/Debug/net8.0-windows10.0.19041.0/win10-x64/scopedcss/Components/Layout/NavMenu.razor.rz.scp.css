@@ -1,3 +1,7 @@
+.offcanvas-start[b-ote9kibdum]{
+    width: 75%;
+}
+
 .navbar-toggler[b-ote9kibdum] {
     appearance: none;
     cursor: pointer;
@@ -14,11 +18,6 @@
     .navbar-toggler:checked[b-ote9kibdum] {
         background-color: rgba(255, 255, 255, 0.5);
     }
-
-.top-row[b-ote9kibdum] {
-    height: 3.5rem;
-    background-color: rgba(0,0,0,0.4);
-}
 
 .navbar-brand[b-ote9kibdum] {
     font-size: 1.1rem;

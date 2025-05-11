@@ -1,32 +1,85 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">BlazingQuiz.Mobile</a>
-    </div>
-</div>
+﻿@inject QuizAuthStateProvider QuizAuthStateProvider
+@inject NavigationManager NavigationManager
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+@* <div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="w-100 d-flex align-items-center">
+                    <button type="button" class="btn btn-default btn-sm" @onclick="ToggleMenu">=</button>
+                    <div class="mx-auto">
+                    <div class="d-flex justify-content-center">
+                        <a class="navbar-brand" href="">BlazingQuiz</a>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> *@
+
+@* <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            <NavLink class="nav-link" href="student/home" Match="NavLinkMatch.All">
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </NavLink>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="auth/login" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Login
+            <NavLink class="nav-link" href="student/my-quizes">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> My quizes
             </NavLink>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
+            <a role="button" class="nav-link" @onclick="LogoutAsync">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Logout
+            </a>
         </div>
     </nav>
+</div> *@
+<div class="offcanvas offcanvas-start show" tabindex="-1" id="offcanvasWithBackdrop" aria-labelledby="offcanvasWithBackdropLabel" style="visibility: visible;" aria-modal="true" role="dialog">
+    <div class="offcanvas-header">
+        @* <h5 class="offcanvas-title" id="offcanvasWithBackdropLabel">Offcanvas with backdrop</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close" @onclick="OnMenuClosed"></button> *@
+
+        <div class="flyout-header">
+            <h2 class="fw-bold h1">BlazingQuiz</h2>
+        </div>
+    </div>
+    <div class="offcanvas-body">
+        <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="student/home" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="student/my-quizes">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> My quizes
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <a role="button" class="nav-link" @onclick="LogoutAsync">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Logout
+            </a>
+        </div>
+        </nav>
+    </div>
+    <div class="flyout-footer">
+        <label class="m-0 p-0">Test</label>
+    </div>
+
 </div>
+<div class="offcanvas-backdrop fade show" @onclick="OnMenuClosed"></div>
+@code{
+    [Parameter]
+    public EventCallback OnMenuClosed{get; set;}
+
+    private async Task LogoutAsync()
+    {
+        await QuizAuthStateProvider.SetLogoutAsync();
+        NavigationManager.NavigateTo("/auth/login", replace: true);
+    }
+}

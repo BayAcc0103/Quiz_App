@@ -1,6 +1,9 @@
-﻿html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+﻿:root{
+    --app-color: #052767;
 }
+/*html, body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}*/
 
 a, .btn-link {
     color: #006bb7;

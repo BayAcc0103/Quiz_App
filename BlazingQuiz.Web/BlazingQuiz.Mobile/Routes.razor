@@ -1,7 +1,9 @@
-﻿<Router AppAssembly="@typeof(MauiProgram).Assembly">
+﻿<Router AppAssembly="@typeof(MauiProgram).Assembly" AdditionalAssemblies="new [] {typeof(BlazingQuiz.Shared.Components.Auth.QuizAuthStateProvider).Assembly}">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(Components.Layout.MainLayout)" />
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
 </Router>
 @* AdditionalAssemblies="new [] {typeof(BlazingQuiz.Shared.Components.Auth.QuizAuthStateProvider).Assembly}" *@
+
+<Loader/>
