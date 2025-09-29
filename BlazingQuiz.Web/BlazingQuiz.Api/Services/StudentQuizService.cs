@@ -100,6 +100,7 @@ namespace BlazingQuiz.Api.Services
                 {
                     QuestionId = nextQuestion.Id,
                     StudentQuizId = studentQuizId,
+                    OptionId = 0 // Initialize with a default value, will be updated on save
                 };
                 _context.StudentQuizQuestions.Add(studentQuizQuestion);
                 await _context.SaveChangesAsync();
@@ -123,6 +124,17 @@ namespace BlazingQuiz.Api.Services
             {
                 return QuizApiResponse.Failure("Invalid request");
             }
+
+            var studentQuizQuestion = await _context.StudentQuizQuestions.AsTracking()
+                .FirstOrDefaultAsync(sqq => sqq.StudentQuizId == dto.StudentQuizId && sqq.QuestionId == dto.QuestionId);
+
+            if (studentQuizQuestion == null)
+            {
+                return QuizApiResponse.Failure("Student quiz question not found.");
+            }
+
+            studentQuizQuestion.OptionId = dto.OptionId;
+
             var isSelectedOptionCorrect = await _context.Options
                 .Where(o => o.QuestionId == dto.QuestionId && o.Id == dto.OptionId)
                 .Select(o => o.IsCorrect)
@@ -130,14 +142,14 @@ namespace BlazingQuiz.Api.Services
             if (isSelectedOptionCorrect)
             {
                 studentQuiz.Total++;
-                try
-                {
-                    await _context.SaveChangesAsync();
-                }
-                catch (Exception ex)
-                {
-                    return QuizApiResponse.Failure(ex.Message);
-                }
+            }
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                return QuizApiResponse.Failure(ex.Message);
             }
             return QuizApiResponse.Success();
         }
@@ -207,6 +219,50 @@ namespace BlazingQuiz.Api.Services
                 .ToArrayAsync();
             return new PageResult<StudentQuizDto>(quizes, count);
 
+        }
+
+        public async Task<QuizApiResponse<QuizResultDto>> GetQuizResultAsync(int studentQuizId, int studentId)
+        {
+            var studentQuiz = await _context.StudentQuizzes
+                .Include(sq => sq.Quiz)
+                    .ThenInclude(q => q.Questions)
+                        .ThenInclude(q => q.Options)
+                .Include(sq => sq.StudentQuizQuestions)
+                .FirstOrDefaultAsync(sq => sq.Id == studentQuizId);
+
+            if (studentQuiz == null)
+            {
+                return QuizApiResponse<QuizResultDto>.Failure("Student quiz not found.");
+            }
+
+            if (studentQuiz.StudentId != studentId)
+            {
+                return QuizApiResponse<QuizResultDto>.Failure("Invalid request.");
+            }
+
+            var quizResult = new QuizResultDto
+            {
+                Id = studentQuiz.Id,
+                QuizName = studentQuiz.Quiz.Name,
+                TotalQuestions = studentQuiz.Quiz.Questions.Count,
+                CorrectAnswers = studentQuiz.Total,
+                IncorrectAnswers = studentQuiz.Quiz.Questions.Count - studentQuiz.Total,
+                Questions = studentQuiz.Quiz.Questions.Select(q => new QuizResultQuestionDto
+                {
+                    Id = q.Id,
+                    Text = q.Text,
+                    Options = q.Options.Select(o => new QuizResultOptionDto
+                    {
+                        Id = o.Id,
+                        Text = o.Text
+                    }).ToList(),
+                    SelectedOptionId = studentQuiz.StudentQuizQuestions
+                        .FirstOrDefault(sqq => sqq.QuestionId == q.Id)?.OptionId ?? 0,
+                    CorrectOptionId = q.Options.FirstOrDefault(o => o.IsCorrect)?.Id ?? 0
+                }).ToList()
+            };
+
+            return QuizApiResponse<QuizResultDto>.Success(quizResult);
         }
     }
 }

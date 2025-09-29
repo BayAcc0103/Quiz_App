@@ -49,6 +49,7 @@
                                 <td>
                                     <div class="d-flex justify-content-around">
                                         <button type="button" class="btn btn-sm btn-info" @onclick="() => ViewQuestionsAsync(q)">View Questions</button>
+                                        <a href="admin/quizes/{@q.Id}/view-students" class="btn btn-sm btn-success">View Attempts</a>
                                         <a href="admin/edit-quiz/@q.Id" type="button" class="btn btn-sm btn-primary">Edit</a>
                                     </div>
                                 </td>
@@ -97,9 +98,9 @@
             _quizes = await quizesTask;
             _filteredQuizes = _quizes;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            throw;
+            AppState.ShowError(ex.Message);
         }
         finally
         {

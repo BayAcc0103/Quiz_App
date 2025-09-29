@@ -61,5 +61,52 @@ namespace BlazingQuiz.Api.Services
                 await context.SaveChangesAsync();
             }
         }
+
+        public async Task<AdminQuizStudentListDto> GetQuizStudentsAsync(Guid quizId, int startIndex, int pageSize, bool fetchQuizInfo)
+        {
+            var result = new AdminQuizStudentListDto();
+            using var context = _contextFactory.CreateDbContext();
+
+            if (fetchQuizInfo)
+            {
+                var quizInfo = await context.Quizzes
+                    .Where(q => q.Id == quizId)
+                    .Select(q => new { QuizName = q.Name, CategoryName = q.Category.Name })
+                    .FirstOrDefaultAsync();
+
+                if(quizInfo == null)
+                {
+                    result.Students = new PageResult<AdminQuizStudentDto>([], 0);
+                    return result;
+                }
+                    
+
+                result.QuizName = quizInfo.QuizName;
+                result.CategoryName = quizInfo.CategoryName;
+            }
+
+            var query = context.StudentQuizzes
+                    .Where(q => q.QuizId == quizId);
+
+            var count = await query.CountAsync();
+
+            var students = await query
+                .OrderByDescending(s => s.StartedOn)
+                .Skip(startIndex)
+                .Take(pageSize)
+                .Select(q => new AdminQuizStudentDto
+                {
+                    Name = q.Student.Name,
+                    StartedOn = DateTime.Now,
+                    CompletedOn = DateTime.Now,
+                    Status = q.Status,
+                    Total = q.Total
+                })
+                .ToArrayAsync();
+
+            var pageResult = new PageResult<AdminQuizStudentDto>(students, count);
+            result.Students = pageResult;
+            return result;
+        }
     }
 }

@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "4GWCAYPIo17q9Q2+j0LzuZHN465NbFzhsEVhA4QvkWI=",
+  "Hash": "u8nRBc+6x1AjuH96ettLvz1GVvibao4Ks/Qp3xjimo8=",
   "Source": "BlazingQuiz.Mobile",
   "BasePath": "/",
   "Mode": "Root",
@@ -11,10 +11,10 @@
       "Version": 2,
       "Source": "BlazingQuiz.Shared.Components",
       "GetPublishAssetsTargets": "ComputeReferencedStaticWebAssetsPublishManifest;GetCurrentProjectPublishStaticWebAssetItems",
-      "AdditionalPublishProperties": "Configuration=Debug;Platform=AnyCPU",
+      "AdditionalPublishProperties": "",
       "AdditionalPublishPropertiesToRemove": "TargetFramework;RuntimeIdentifier;SelfContained",
       "GetBuildAssetsTargets": "GetCurrentProjectBuildStaticWebAssetItems",
-      "AdditionalBuildProperties": "Configuration=Debug;Platform=AnyCPU",
+      "AdditionalBuildProperties": "",
       "AdditionalBuildPropertiesToRemove": "TargetFramework;RuntimeIdentifier;SelfContained"
     }
   ],

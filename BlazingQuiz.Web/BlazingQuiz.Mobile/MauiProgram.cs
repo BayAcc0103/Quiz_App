@@ -48,11 +48,19 @@ namespace BlazingQuiz.Mobile
             ConfigureRefit(builder.Services);
             return builder.Build();
         }
-        private static readonly string ApiBaseUrl = DeviceInfo.Platform == DevicePlatform.Android
-                                                    ? "https://10.0.2.2:7048"
-                                                    : "https://localhost:7048";
+
         static void ConfigureRefit(IServiceCollection services)
         {
+            var apiBaseUrl = "https://localhost:7048";
+            if(DeviceInfo.DeviceType == DeviceType.Physical || DeviceInfo.Platform == DevicePlatform.iOS)
+            {
+                apiBaseUrl = "https://k3v52k87-7048.asse.devtunnels.ms";
+            }
+            else if(DeviceInfo.Platform == DevicePlatform.Android)
+                {
+                    apiBaseUrl = "https://10.0.2.2:7048";
+                }
+
             services.AddRefitClient<IAuthApi>(GetRefitSettings)
                 .ConfigureHttpClient(SetHttpClient);
 
@@ -68,8 +76,8 @@ namespace BlazingQuiz.Mobile
             services.AddRefitClient<IStudentQuizApi>(GetRefitSettings)
                 .ConfigureHttpClient(SetHttpClient);
 
-            static void SetHttpClient(HttpClient httpClient) =>
-                httpClient.BaseAddress = new Uri(ApiBaseUrl);
+            void SetHttpClient(HttpClient httpClient) =>
+                httpClient.BaseAddress = new Uri(apiBaseUrl);
             static RefitSettings GetRefitSettings(IServiceProvider sp)
             {
                 var authStateProvider = sp.GetRequiredService<QuizAuthStateProvider>();

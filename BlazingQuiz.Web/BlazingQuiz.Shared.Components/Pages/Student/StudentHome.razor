@@ -101,7 +101,7 @@
         }
         catch (Exception ex)
         {
-            throw;
+            AppState.ShowError(ex.Message);
         }
         finally
         {
@@ -132,9 +132,9 @@
             QuizState.StartQuiz(_startingQuiz, studentQuizId);
             NavigationManager.NavigateTo("student/quiz");
         }
-        catch
+        catch (Exception ex)
         {
-            throw;
+            AppState.ShowError(ex.Message);
         }
         finally
         {

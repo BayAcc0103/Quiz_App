@@ -163,6 +163,9 @@ namespace BlazingQuiz.Api.Data.Migrations
                     b.Property<int>("QuestionId")
                         .HasColumnType("int");
 
+                    b.Property<int>("OptionId")
+                        .HasColumnType("int");
+
                     b.HasKey("StudentQuizId", "QuestionId");
 
                     b.HasIndex("QuestionId");
@@ -216,7 +219,7 @@ namespace BlazingQuiz.Api.Data.Migrations
                             Email = "admin@gmail.com",
                             IsApproved = true,
                             Name = "Admin",
-                            PasswordHash = "AQAAAAIAAYagAAAAEMOPIDUxdY/9zyZ/PbDhQMwwcsELf3bniWC3XCTrwujd63+h3ZH7FgqwArEatCws/A==",
+                            PasswordHash = "AQAAAAIAAYagAAAAENS58w0qOO5ZitC8UhbawVcDn4nXM43K8tge+SHSvmkYdn5OSuZFb0J3LZZWWkDz3Q==",
                             Phone = "0123456789",
                             Role = "Admin"
                         });

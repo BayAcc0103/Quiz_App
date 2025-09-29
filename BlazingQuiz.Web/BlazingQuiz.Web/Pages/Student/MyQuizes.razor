@@ -27,6 +27,12 @@
             }
         </TemplateColumn>
         <PropertyColumn Property="q => q.Total" Class="text-center"/>
+        <TemplateColumn Title="Result">
+            @if (context.Status == "Completed")
+            {
+                <a href="/student/quiz-result/@context.Id" class="btn btn-sm btn-primary">Result</a>
+            }
+        </TemplateColumn>
     </QuickGrid>
     <Paginator State="_paginationState" />
 </div>

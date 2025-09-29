@@ -1,0 +1,85 @@
+﻿@page "/admin/quizes/{quizId:guid}/view-students"
+
+@inject IAdminApi AdminApi
+@inject IAppState AppState
+
+<h3>Quíztudents</h3>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex gap-3">
+                <h3 class="fw-bold">Quiz: @_quizName</h3>
+                <h3 class="fw-bold">Category: @_categoryName</h3>
+            </div>
+        </div>
+        <hr/>
+        <div class="col-sm-12">
+            <QuickGrid ItemsProvider="_studentsProvider" Pagination="_paginationState" Class="table table-striped table-hover">
+                <PropertyColumn Property="s => s.Name" Title="Student Name"/>
+                <PropertyColumn Property="s => s.StartedOn" Title="Started" Format="MM-dd-yyyy hh:mm" />
+                <TemplateColumn Title="Completed">
+                    @if (context.CompletedOn.HasValue)
+                    {
+                        <span>@context.CompletedOn.Value.ToString("dd MM yyyy hh:mm")</span>
+                    }
+                    else
+                    {
+                        if (context.Status == "Exited")
+                        {
+                            <span>Quiz Exited</span>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    }
+                </TemplateColumn>
+                <PropertyColumn Property="s => s.Status" />
+                <PropertyColumn Property="s => s.Total" />
+            </QuickGrid>
+            <Paginator State="_paginationState" />
+        </div>
+
+    </div>
+</div>
+
+@code {
+    private const int DefaultPageSize = 15;
+    [Parameter]
+    public Guid QuizId { get; set; }
+    private GridItemsProvider<AdminQuizStudentDto> _studentsProvider;
+    private string? _quizName;
+    private string? _categoryName;
+    private bool _fetchQuizInfo = true;
+
+    private PaginationState _paginationState = new() {ItemsPerPage = DefaultPageSize};
+
+    protected override void OnInitialized()
+    {
+        _studentsProvider = async request =>
+        {
+            AppState.ShowLoader("Loading students");
+            try
+            {
+                var result = await AdminApi.GetQuizStudentsAsync(QuizId, request.StartIndex, request.Count ?? DefaultPageSize, _fetchQuizInfo);
+                if (_fetchQuizInfo)
+                {
+                    _fetchQuizInfo = false;
+                    _quizName = result.QuizName;
+                    _categoryName = result.CategoryName;
+                    InvokeAsync(StateHasChanged);
+                }                  
+                return GridItemsProviderResult.From(result.Students.Records, result.Students.TotalCount);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+            finally
+            {
+                AppState.HideLoader();
+            }
+        };
+    }
+}

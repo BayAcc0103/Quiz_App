@@ -19,6 +19,10 @@ build_property.GenerateRazorMetadataSourceChecksumAttributes =
 build_property.MSBuildProjectDirectory = C:\Users\lehuy\source\repos\Quiz_App\BlazingQuiz.Web\BlazingQuiz.Shared.Components
 build_property._RazorSourceGeneratorDebug = 
 
+[C:/Users/lehuy/source/repos/Quiz_App/BlazingQuiz.Web/BlazingQuiz.Shared.Components/Components/ErrorAlert.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xFcnJvckFsZXJ0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/lehuy/source/repos/Quiz_App/BlazingQuiz.Web/BlazingQuiz.Shared.Components/Components/Modal.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xNb2RhbC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
@@ -49,6 +53,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/lehuy/source/repos/Quiz_App/BlazingQuiz.Web/BlazingQuiz.Shared.Components/Pages/Student/Quiz.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU3R1ZGVudFxRdWl6LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lehuy/source/repos/Quiz_App/BlazingQuiz.Web/BlazingQuiz.Shared.Components/Pages/Student/QuizResult.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU3R1ZGVudFxRdWl6UmVzdWx0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/lehuy/source/repos/Quiz_App/BlazingQuiz.Web/BlazingQuiz.Shared.Components/Pages/Student/StudentHome.razor]

@@ -1,4 +1,5 @@
 @implements IDisposable 
+@inject IAppState AppState
 @* <label> 01:59/15:00 </label> *@
 <label class="fw-bold">
     <span class="@_textColorClass">@_currentDisplayTime</span>/@_totalDisplayTime
@@ -47,6 +48,7 @@
             }
             catch (Exception ex)
             {
+                AppState.ShowError(ex.Message);
             }
             finally
             {

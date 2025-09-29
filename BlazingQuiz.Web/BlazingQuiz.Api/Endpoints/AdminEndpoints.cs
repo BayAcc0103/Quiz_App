@@ -7,11 +7,17 @@ namespace BlazingQuiz.Api.Endpoints
     {
         public static IEndpointRouteBuilder MapAdminEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapGet("/api/admin/home-data", async (AdminService userService) =>
-                Results.Ok(await userService.GetAdminHomeDataAsync()))
+            var adminGroup = app.MapGroup("/api/admin")
                 .RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin)));
 
-            var group = app.MapGroup("/api/users").RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin)));
+            adminGroup.MapGet("/home-data", async (AdminService userService) =>
+                Results.Ok(await userService.GetAdminHomeDataAsync()));
+
+            adminGroup.MapGet("/quizes/{quizId:guid}/students", async (Guid quizId, int startIndex, int pageSize, bool fetchQuizInfo, AdminService userService) =>
+                Results.Ok(await userService.GetQuizStudentsAsync(quizId, startIndex, pageSize, fetchQuizInfo)));
+
+
+            var group = adminGroup.MapGroup("/users");
 
             group.MapGet("", async (UserApprovedFilter approveType, int startIndex, int pageSize, AdminService userService) =>
             {

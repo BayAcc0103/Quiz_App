@@ -12,5 +12,8 @@ namespace BlazingQuiz.Shared
         void ShowLoader(string loaderText);
         void HideLoader();
         event Action? OnToggleLoader;
+
+        event Action<string>? OnShowError;
+        void ShowError(string errorText);
     }
 }

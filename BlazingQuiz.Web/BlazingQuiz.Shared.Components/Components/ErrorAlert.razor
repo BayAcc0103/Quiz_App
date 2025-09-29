@@ -1,0 +1,19 @@
+﻿@inject IAppState AppState
+
+@if (_errorMessage != null)
+{
+    <Modal Title="Error" OnActionButtonClick="() => _errorMessage = null" OnCancelClick="() => _errorMessage = null">
+        <p class="m-0 text-danger">@_errorMessage</p>
+    </Modal>   
+}
+@code {
+    private string? _errorMessage;
+    protected override void OnInitialized()
+    {
+        AppState.OnShowError += (string errorText) =>
+        {
+            _errorMessage = errorText;
+            InvokeAsync(StateHasChanged);
+        };
+    }
+}

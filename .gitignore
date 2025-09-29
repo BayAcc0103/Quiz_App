@@ -1,2 +1,6 @@
 /BlazingQuiz.Web/.vs
 /BlazingQuiz.Web/.vs
+/BlazingQuiz.Web/obj/Debug
+/BlazingQuiz.Web/vs
+
+/BlazingQuiz.Web/BlazingQuiz.Mobile/bin/Debug

@@ -1,13 +1,16 @@
 ﻿using BlazingQuiz.Shared.DTOs;
 using Refit;
 
-namespace BlazingQuiz.Web.Apis
+namespace BlazingQuiz.Shared.Components.Apis
 {
     [Headers("Authorization: Bearer")]
     public interface IStudentQuizApi
     {
         [Get("/api/student/available-quizes")]
         Task<QuizListDto[]> GetActiveQuizesAsync(int categoryId);
+
+        [Get("/api/student/quiz/{studentQuizId}/result")]
+        Task<QuizApiResponse<QuizResultDto>> GetQuizResultAsync(int studentQuizId);
 
         [Get("/api/student/my-quizes")]
         Task<PageResult<StudentQuizDto>> GetStudentQuizesAsync(int startIndex, int pageSize);

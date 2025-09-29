@@ -1,0 +1,119 @@
+@page "/student/quiz-result/{studentQuizId:int}"
+@using BlazingQuiz.Shared
+@using BlazingQuiz.Shared.DTOs
+@using BlazingQuiz.Shared.Components.Components
+@using BlazingQuiz.Web.Apis
+@inject IAppState AppState
+@inject IStudentQuizApi StudentQuizApi
+@inject NavigationManager NavigationManager
+
+<h3>Quiz Result</h3>
+
+@if (_quizResult == null)
+{
+    <Loader />
+}
+else
+{
+    <div class="container-fluid">
+        <div class="row mb-3">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>@_quizResult.QuizName</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>Total Questions: @_quizResult.TotalQuestions</p>
+                        <p class="text-success">Correct Answers: @_quizResult.CorrectAnswers</p>
+                        <p class="text-danger">Incorrect Answers: @_quizResult.IncorrectAnswers</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-12">
+                @foreach (var question in _quizResult.Questions)
+                {
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5>@question.Text</h5>
+                        </div>
+                        <div class="card-body">
+                            @foreach (var option in question.Options)
+                            {
+                                var isSelected = question.SelectedOptionId == option.Id;
+                                var isCorrect = question.CorrectOptionId == option.Id;
+
+                                var optionClass = "";
+                                if (isSelected && isCorrect)
+                                {
+                                    optionClass = "bg-success text-white";
+                                }
+                                else if (isSelected && !isCorrect)
+                                {
+                                    optionClass = "bg-danger text-white";
+                                }
+                                else if (isCorrect)
+                                {
+                                    optionClass = "bg-info text-white";
+                                }
+
+                                <div class="p-2 mb-2 @optionClass">
+                                    @option.Text
+                                    @if (isSelected && isCorrect)
+                                    {
+                                        <span class="float-end">Your Answer (Correct)</span>
+                                    }
+                                    else if (isSelected && !isCorrect)
+                                    {
+                                        <span class="float-end">Your Answer (Incorrect)</span>
+                                    }
+                                    else if (isCorrect)
+                                    {
+                                        <span class="float-end">Correct Answer</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int StudentQuizId { get; set; }
+
+    private QuizResultDto? _quizResult;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AppState.ShowLoader("Loading quiz result...");
+        try
+        {
+            var result = await StudentQuizApi.GetQuizResultAsync(StudentQuizId);
+            if (result.IsSuccess && result.Data != null)
+            {
+                _quizResult = result.Data;
+            }
+            else
+            {
+                // Handle error or redirect
+                NavigationManager.NavigateTo("/student/my-quizes", replace: true);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log exception or show error
+            Console.WriteLine($"Error loading quiz result: {ex.Message}");
+            NavigationManager.NavigateTo("/student/my-quizes", replace: true);
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+}
