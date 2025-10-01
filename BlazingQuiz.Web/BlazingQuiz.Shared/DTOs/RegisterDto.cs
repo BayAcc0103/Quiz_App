@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace BlazingQuiz.Shared.DTOs
 {
@@ -13,5 +14,7 @@ namespace BlazingQuiz.Shared.DTOs
 
         [Required, MaxLength(250)]
         public string Password { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public UserRole Role { get; set; } = UserRole.Student;
     }
 }

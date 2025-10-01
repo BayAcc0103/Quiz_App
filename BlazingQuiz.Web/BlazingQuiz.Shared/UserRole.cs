@@ -10,5 +10,6 @@ namespace BlazingQuiz.Shared
     {
         Admin,
         Student,
+        Teacher,
     }
 }

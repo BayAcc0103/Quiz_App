@@ -36,6 +36,11 @@ namespace BlazingQuiz.Api.Services
                 //User is not approved yet
                 return new AuthResponseDto(default, "User is not approved yet");
             }
+            if (user.Role != dto.Role.ToString())
+            {
+                // Role mismatch
+                return new AuthResponseDto(default, $"Login failed. User is not a {dto.Role}.");
+            }
             var passwordResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
             if (passwordResult == PasswordVerificationResult.Failed)
             {
@@ -58,7 +63,7 @@ namespace BlazingQuiz.Api.Services
                 Name = dto.Name,
                 Email = dto.Email,
                 Phone = dto.Phone,
-                Role = nameof(UserRole.Student),
+                Role = dto.Role.ToString(),
                 IsApproved = false
             };
             user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
@@ -70,6 +75,8 @@ namespace BlazingQuiz.Api.Services
             }
             catch (Exception ex)
             {
+                // Log the exception for debugging
+                Console.WriteLine($"Error during registration: {ex.Message}");
                 return QuizApiResponse.Failure(ex.Message);
             }
         }

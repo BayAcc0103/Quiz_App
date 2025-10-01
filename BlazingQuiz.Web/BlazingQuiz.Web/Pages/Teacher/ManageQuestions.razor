@@ -1,0 +1,12 @@
+@page "/teacher/manage-questions"
+@using BlazingQuiz.Shared
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = nameof(UserRole.Teacher))]
+
+<h3>Manage Questions</h3>
+
+<p>This page will allow teachers to manage questions.</p>
+
+@code {
+
+}

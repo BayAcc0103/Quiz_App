@@ -1,6 +1,43 @@
-/BlazingQuiz.Web/.vs
-/BlazingQuiz.Web/.vs
-/BlazingQuiz.Web/obj/Debug
-/BlazingQuiz.Web/vs
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.bak
+*.log
+*.pdb
+*.opendata
+*.VC.db
+*.VC.opendata
+*.sdf
+*.vshost.exe
+*.vshost.exe.config
+*.vshost.exe.manifest
+_ReSharper*/
+[Tt]humbs.db
+[Dd]esktop.ini
 
-/BlazingQuiz.Web/BlazingQuiz.Mobile/bin/Debug
+# Bỏ qua thư mục build .NET (recursive)
+**/bin/
+**/obj/
+
+# Bỏ qua các file log, cache
+*.log
+*.cache
+*.pdb
+
+# Bỏ qua file nén tạm thời
+*.zip
+*.gz
+
+# Bỏ qua build output cho WebAssembly
+wwwroot/_framework/
+
+# Bỏ qua build output cho Mobile
+*.apk
+*.aab
+*.app
+*.so
+*.dll
+
+# Các file khác
+*.DS_Store
