@@ -1,65 +1,96 @@
 ﻿@page "/admin/manage-categories"
 
 @inject ICategoryApi CategoryApi
+@inject CategoryImageService CategoryImageService
 @inject IAppState AppState
 
 <div class="container">
     <h1>Manage Categories</h1>
     <hr/>
     <div class="row">
-        <div class="col-sm-3">
+        <div class="col-sm-4">
             <EditForm Model="_category" OnValidSubmit="SaveCategoryAsync">
                 <DataAnnotationsValidator/>
                 <div class="card">
                     <div class="card-header">
                         <h4 class="m-0">Add/Edit Category</h4>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label">
-                                    Category Name
-                                </label>
-                                <InputText @bind-Value="_category.Name" class="form-control form-control-sm" placeholder="Enter category name" />
-                                <ValidationMessage For="() => _category.Name" />
-                            </div>
-                            @if(_errorMessage != null)
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Category Name
+                            </label>
+                            <InputText @bind-Value="_category.Name" class="form-control form-control-sm" placeholder="Enter category name" />
+                            <ValidationMessage For="() => _category.Name" />
+                        </div>
+
+                        <!-- Image Upload Section -->
+                        <div class="mb-3">
+                            <label class="form-label">Category Image</label>
+                            @if (!string.IsNullOrEmpty(_category.ImagePath))
                             {
-                                <div class="mb-3 border-danger border-1 d-flex justify-content-between gap-2">
-                                    <p class="m-0">@_errorMessage</p>
-                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => _errorMessage = null">X</button>
+                                <div class="mb-2">
+                                    <img src="@CategoryImageService.GetImageUrl(_category.ImagePath)" alt="Category Image" class="img-thumbnail" style="max-width: 150px; max-height: 150px;" />
+                                    <div class="mt-2">
+                                        <button type="button" class="btn btn-sm btn-danger" @onclick="RemoveImage">Remove Image</button>
+                                    </div>
                                 </div>
                             }
-                            <div class="card-footer d-flex justify-content-between align-items-center">
-                                @if(!_isBusy)
+                            <div class="input-group">
+                                <InputFile type="file" class="form-control" OnChange="OnImageFileChanged" accept="image/*" />
+                                @if (_uploadProgress > 0)
                                 {
-                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => _category = new()">Cancel</button>
-                                    <button type="submit" class="btn btn-sm btn-success">Save</button>
-                                }
-                                else
-                                {
-                                    <button type="button" class="btn btn-sm btn-secondary" disabled>Cancel</button>
-                                    <button type="submit" class="btn btn-sm btn-secondary" disabled>Saving...</button>
+                                    <div class="mt-2 w-100">
+                                        <div class="progress">
+                                            <div class="progress-bar" role="progressbar" style="width: @_uploadProgress%" 
+                                                 aria-valuenow="@_uploadProgress" aria-valuemin="0" aria-valuemax="100">
+                                                @_uploadProgress%
+                                            </div>
+                                        </div>
+                                    </div>
                                 }
                             </div>
                         </div>
-                    </div>
 
+                        @if(_errorMessage != null)
+                        {
+                            <div class="mb-3 border-danger border-1 d-flex justify-content-between gap-2">
+                                <p class="m-0">@_errorMessage</p>
+                                <button type="button" class="btn btn-sm btn-danger" @onclick="() => _errorMessage = null">X</button>
+                            </div>
+                        }
+
+                        <div class="card-footer d-flex justify-content-between align-items-center">
+                            @if(!_isBusy)
+                            {
+                                <button type="button" class="btn btn-sm btn-danger" @onclick="() => _category = new()">Cancel</button>
+                                <button type="submit" class="btn btn-sm btn-success">Save</button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-sm btn-secondary" disabled>Cancel</button>
+                                <button type="submit" class="btn btn-sm btn-secondary" disabled>Saving...</button>
+                            }
+                        </div>
+                    </div>
                 </div>
             </EditForm>
         </div>
-        <div class="col-sm-6 ms-auto">
+        <div class="col-sm-8">
             <table class="table table-striped table-hover">
                 <thead>
                     <tr>
                         <th>#</th>
                         <th>Id</th>
                         <th>Name</th>
+                        <th>Image</th>
                         <th></th>
                     </tr>
                 </thead>
                 @if(_categories.Length == 0)
                 {
                     <tr>
-                        <td colspan="4" class="text-center">
+                        <td colspan="5" class="text-center">
                             <p class="text-danger h5">No categories available</p>
                         </td>
                     </tr>
@@ -73,7 +104,19 @@
                             <td>@(number++)</td>
                             <td>@category.Id</td>
                             <td>@category.Name</td>
-                            <td><button type="button" class="btn btn-sm btn-primary" @onclick="() => OnEditCategory(category)">Edit</button></td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(category.ImagePath))
+                                {
+                                    <img src="@CategoryImageService.GetImageUrl(category.ImagePath)" alt="Category Image" class="img-thumbnail" style="max-width: 50px; max-height: 50px;" />
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No image</span>
+                                }
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-primary" @onclick="() => OnEditCategory(category)">Edit</button>
+                            </td>
                         </tr>
                     }
                 }
@@ -85,9 +128,13 @@
 @code {
     private CategoryDto[] _categories = [];
     private CategoryDto _category = new();
+    private IBrowserFile? _selectedImageFile;
     private bool _isBusy;
     private string? _errorMessage;
+    private int _uploadProgress = 0;
+
     protected override async Task OnInitializedAsync() => await LoadCategoriesAsync();
+
     private async Task LoadCategoriesAsync()
     {
         AppState.ShowLoader("Loading categories...");
@@ -95,16 +142,18 @@
         _categories = await CategoryApi.GetCategoriesAsync();
         AppState.HideLoader();
     }
+
     private void OnEditCategory(CategoryDto category)
     {
         _category = category;
+        _selectedImageFile = null; // Clear selected file when editing
     }
+
     private async Task SaveCategoryAsync()
     {
         try
         {
             AppState.ShowLoader("Saving categories...");
-            await Task.Delay(2500); // Simulate loading delay
             _isBusy = true;
             var response = await CategoryApi.SaveCategoryAsync(_category);
             if (!response.IsSuccess)
@@ -113,9 +162,18 @@
                 _errorMessage = response.ErrorMessage ?? "Unknown error in saving category";
                 return;
             }
+
+            var savedCategory = response.Data;
+
+            // If there's an image file selected, upload it after saving the category
+            if (_selectedImageFile != null && savedCategory.Id > 0)
+            {
+                await UploadImageForCategory(savedCategory.Id);
+            }
+
             // Reset the form
-            // Reload the categories
             _category = new();
+            _selectedImageFile = null;
             await LoadCategoriesAsync();
         }
         catch(Exception ex)
@@ -126,6 +184,99 @@
         {
             AppState.HideLoader();
             _isBusy = false;
+            _uploadProgress = 0;
+        }
+    }
+
+    private void OnImageFileChanged(InputFileChangeEventArgs e)
+    {
+        _selectedImageFile = e.File;
+    }
+
+    private async Task UploadImageForCategory(int categoryId)
+    {
+        if (_selectedImageFile == null) return;
+
+        try
+        {
+            _isBusy = true;
+            AppState.ShowLoader("Uploading image...");
+
+            // Simulate progress
+            _uploadProgress = 0;
+            for (int i = 0; i <= 10; i++)
+            {
+                await Task.Delay(50); // Small delay to simulate progress
+                _uploadProgress = i * 10;
+                StateHasChanged();
+            }
+
+            var result = await CategoryImageService.UploadCategoryImageAsync(categoryId, _selectedImageFile);
+            
+            if (result.IsSuccess)
+            {
+                // Update the current category with the new image path (we need to reload categories to get the updated image path)
+                var updatedCategories = await CategoryApi.GetCategoriesAsync();
+                var updatedCategory = updatedCategories.FirstOrDefault(c => c.Id == categoryId);
+                if (updatedCategory != null)
+                {
+                    _category.ImagePath = updatedCategory.ImagePath; // Get the actual path from the database
+                }
+            }
+            else
+            {
+                _errorMessage = result.ErrorMessage ?? "Failed to upload image.";
+            }
+
+            _uploadProgress = 0;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error uploading image: {ex.Message}";
+        }
+        finally
+        {
+            _isBusy = false;
+            AppState.HideLoader();
+            _selectedImageFile = null;
+        }
+    }
+
+    private async Task RemoveImage()
+    {
+        if (_category.Id <= 0 || string.IsNullOrEmpty(_category.ImagePath)) return;
+
+        try
+        {
+            _isBusy = true;
+            AppState.ShowLoader("Removing image...");
+
+            var result = await CategoryImageService.RemoveCategoryImageAsync(_category.Id);
+            
+            if (result.IsSuccess)
+            {
+                _category.ImagePath = null;
+                
+                // Update in the list as well
+                var categoryInList = _categories.FirstOrDefault(c => c.Id == _category.Id);
+                if (categoryInList != null)
+                {
+                    categoryInList.ImagePath = null;
+                }
+            }
+            else
+            {
+                _errorMessage = "Failed to remove image.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error removing image: {ex.Message}";
+        }
+        finally
+        {
+            _isBusy = false;
+            AppState.HideLoader();
         }
     }
 }

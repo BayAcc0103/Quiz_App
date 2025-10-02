@@ -1,5 +1,6 @@
 ﻿using BlazingQuiz.Mobile.Services;
 using BlazingQuiz.Shared;
+using BlazingQuiz.Shared.Components.Apis;
 using BlazingQuiz.Shared.Components.Auth;
 using BlazingQuiz.Web.Apis;
 using Microsoft.AspNetCore.Components.Authorization;

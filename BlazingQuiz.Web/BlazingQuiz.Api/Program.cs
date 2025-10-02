@@ -81,7 +81,8 @@ builder.Services.AddTransient<AuthService>()
                 .AddTransient<CategoryService>()
                 .AddTransient<QuizService>()
                 .AddTransient<AdminService>()
-                .AddTransient<StudentQuizService>();
+                .AddTransient<StudentQuizService>()
+                .AddTransient<IImageUploadService, ImageUploadService>();
 var app = builder.Build();
 
 #if DEBUG
@@ -97,6 +98,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Enable static files middleware to serve images from wwwroot
+app.UseStaticFiles();
+
 app.UseCors();
 
 app.UseAuthentication()
@@ -104,6 +108,7 @@ app.UseAuthentication()
 
 app.MapAuthEndpoints()
    .MapCategoryEndpoints()
+   .MapCategoryImageEndpoints()
    .MapQuizEndpoints()
    .MapAdminEndpoints()
    .MapStudentQuizEndpoints();

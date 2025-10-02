@@ -7,7 +7,7 @@ namespace BlazingQuiz.Web.Apis
     public interface ICategoryApi
     {
         [Post("/api/categories")]
-        Task<QuizApiResponse> SaveCategoryAsync(CategoryDto categoryDto);
+        Task<QuizApiResponse<CategoryDto>> SaveCategoryAsync(CategoryDto categoryDto);
         [Get("/api/categories")]
         Task<CategoryDto[]> GetCategoriesAsync();
     }
