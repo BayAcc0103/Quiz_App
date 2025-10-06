@@ -13,7 +13,7 @@ namespace BlazingQuiz.Api.Endpoints
                 Results.Ok(await categoryService.GetCategoriesAsync()));
             categoriesGroup.MapPost("", async (CategoryDto dto, CategoryService categoryService) =>
                 Results.Ok(await categoryService.SaveCategoryAsync(dto)))
-                .RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin)));
+                .RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
             return app;
         }
     }

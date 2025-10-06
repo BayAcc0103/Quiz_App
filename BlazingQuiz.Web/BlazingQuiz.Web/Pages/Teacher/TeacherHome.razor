@@ -1,0 +1,39 @@
+@page "/teacher/home"
+@using BlazingQuiz.Shared
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = nameof(UserRole.Teacher))]
+
+<div class="container">
+    <h1>Teacher Dashboard</h1>
+    <p>Welcome to your teacher dashboard. Here you can manage your questions, categories, and quizzes.</p>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Questions</h5>
+                    <p class="card-text">Create, edit, and organize questions for your quizzes.</p>
+                    <a href="/teacher/manage-questions" class="btn btn-primary">Go to Questions</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Categories</h5>
+                    <p class="card-text">Create and manage categories for organizing your quizzes.</p>
+                    <a href="/teacher/manage-categories" class="btn btn-primary">Go to Categories</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Quizzes</h5>
+                    <p class="card-text">Create, edit, and manage your quizzes.</p>
+                    <a href="/teacher/manage-quizzes" class="btn btn-primary">Go to Quizzes</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

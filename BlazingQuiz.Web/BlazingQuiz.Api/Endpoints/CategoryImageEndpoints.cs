@@ -11,7 +11,7 @@ namespace BlazingQuiz.Api.Endpoints
     {
         public static IEndpointRouteBuilder MapCategoryImageEndpoints(this IEndpointRouteBuilder app)
         {
-            var categoryImageGroup = app.MapGroup("/api/category-images").RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin)));
+            var categoryImageGroup = app.MapGroup("/api/category-images").RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
 
             // Endpoint to upload category image
             categoryImageGroup.MapPost("/upload/{categoryId:int}", async (

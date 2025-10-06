@@ -13,9 +13,14 @@ namespace BlazingQuiz.Api.Data.Entities
         public int TotalQuestions { get; set; }
         public int TimeInMinutes { get; set; }
         public bool IsActive { get; set; }
+        public int? CreatedBy { get; set; } // Teacher ID who created the quiz (nullable for existing quizzes)
 
         [ForeignKey(nameof(CategoryId))]
         public virtual Category Category { get; set; }
+        
+        [ForeignKey(nameof(CreatedBy))]
+        public virtual User? CreatedByUser { get; set; }
+        
         public virtual ICollection<Question> Questions { get; set; } = [];
     }
 }

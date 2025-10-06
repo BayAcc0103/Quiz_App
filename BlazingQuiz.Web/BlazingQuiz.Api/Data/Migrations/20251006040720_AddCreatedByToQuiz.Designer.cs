@@ -4,6 +4,7 @@ using BlazingQuiz.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazingQuiz.Api.Data.Migrations
 {
     [DbContext(typeof(QuizContext))]
-    partial class QuizContextModelSnapshot : ModelSnapshot
+    [Migration("20251006040720_AddCreatedByToQuiz")]
+    partial class AddCreatedByToQuiz
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -102,7 +105,7 @@ namespace BlazingQuiz.Api.Data.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("CreatedBy")
+                    b.Property<int>("CreatedBy")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
@@ -228,7 +231,7 @@ namespace BlazingQuiz.Api.Data.Migrations
                             Email = "admin@gmail.com",
                             IsApproved = true,
                             Name = "Admin",
-                            PasswordHash = "AQAAAAIAAYagAAAAEBWp3dGAQsbOFtlWds/uiDowTWU2C7m/P0HvQez7/yw3Rd/Ukl5RZUntlMkyefkqbg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEE+A+U866RFpSMiKMThr77Hir10CNId+tLAfcl2q3e4t62X04xrXw0ZkOLw1B/99w==",
                             Phone = "0123456789",
                             Role = "Admin"
                         });
@@ -266,7 +269,9 @@ namespace BlazingQuiz.Api.Data.Migrations
 
                     b.HasOne("BlazingQuiz.Api.Data.Entities.User", "CreatedByUser")
                         .WithMany()
-                        .HasForeignKey("CreatedBy");
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Category");
 
