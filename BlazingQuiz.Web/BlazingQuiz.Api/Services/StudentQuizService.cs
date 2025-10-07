@@ -26,7 +26,7 @@ namespace BlazingQuiz.Api.Services
                 {
                     CategoryId = q.CategoryId,
                     CategoryName = q.Category.Name,
-                    Name = q.Category.Name,
+                    Name = q.Name,
                     TimeInMinutes = q.TimeInMinutes,
                     TotalQuestions = q.Questions.Count,
                     Id = q.Id,

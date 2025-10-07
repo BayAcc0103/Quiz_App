@@ -56,7 +56,10 @@
             {
                 var random = Guid.NewGuid();
                 <li class="shadow p-3 mb-3">
-                    <textarea @bind="q.Text" class="form-control" row="3"></textarea>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <textarea @bind="q.Text" class="form-control" row="3"></textarea>
+                        <button type="button" class="btn btn-outline-danger ms-2" @onclick="() => DeleteQuestionAsync(q)" title="Delete Question">X</button>
+                    </div>
                     <h6>Options</h6>
                     <ol>
                         @foreach (var o in q.Options)
@@ -191,5 +194,19 @@
     }
     private async Task ShowAlertAsync(string message, string title = "Error") => 
         await JsRuntime.InvokeVoidAsync("alert", $"{title}\n{message}");
+    
+    private async Task<bool> ShowConfirmAsync(string message) => 
+        await JsRuntime.InvokeAsync<bool>("confirm", message);
+    
+    private async Task DeleteQuestionAsync(QuestionDto question)
+    {
+        bool confirmed = await ShowConfirmAsync("Are you sure you want to delete this question?");
+        if (confirmed)
+        {
+            _quiz.Questions.Remove(question);
+            // Update TotalQuestions to reflect the actual count
+            _quiz.TotalQuestions = _quiz.Questions.Count;
+        }
+    }
         
 }
