@@ -1,5 +1,5 @@
 ﻿@page "/admin/manage-categories"
-
+@using BlazingQuiz.Shared.Components.Components
 @inject ICategoryApi CategoryApi
 @inject CategoryImageService CategoryImageService
 @inject IAppState AppState
@@ -36,20 +36,14 @@
                                     </div>
                                 </div>
                             }
-                            <div class="input-group">
-                                <InputFile type="file" class="form-control" OnChange="OnImageFileChanged" accept="image/*" />
-                                @if (_uploadProgress > 0)
-                                {
-                                    <div class="mt-2 w-100">
-                                        <div class="progress">
-                                            <div class="progress-bar" role="progressbar" style="width: @_uploadProgress%" 
-                                                 aria-valuenow="@_uploadProgress" aria-valuemin="0" aria-valuemax="100">
-                                                @_uploadProgress%
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
+                            <FileUpload CurrentFile="@_selectedImageFile" 
+                                       OnFileChanged="OnImageFileChangedCustom"
+                                       MaxFileSize="52428800"
+                                       ShowProgress="true"
+                                       IsUploading="@_isUploading"
+                                       ProgressPercentage="@_uploadProgress"
+                                       UploadText="Drag & drop your image here"
+                                       UploadHint="or click to browse (JPG, PNG, GIF up to 50MB)" />
                         </div>
 
                         @if(_errorMessage != null)
@@ -130,6 +124,7 @@
     private CategoryDto _category = new();
     private IBrowserFile? _selectedImageFile;
     private bool _isBusy;
+    private bool _isUploading = false;
     private string? _errorMessage;
     private int _uploadProgress = 0;
 
@@ -188,9 +183,10 @@
         }
     }
 
-    private void OnImageFileChanged(InputFileChangeEventArgs e)
+    private async Task OnImageFileChangedCustom(IBrowserFile? file)
     {
-        _selectedImageFile = e.File;
+        _selectedImageFile = file;
+        StateHasChanged();
     }
 
     private async Task UploadImageForCategory(int categoryId)
@@ -200,13 +196,19 @@
         try
         {
             _isBusy = true;
+            _isUploading = true;
             AppState.ShowLoader("Uploading image...");
 
-            // Simulate progress
+            // Track progress during upload with a custom implementation
             _uploadProgress = 0;
+            StateHasChanged();
+
+            // For real progress tracking during file upload, we'd need to implement a more complex solution
+            // Since CategoryImageService doesn't currently support progress tracking, we'll simulate it
+            // In a real scenario, you'd implement progress tracking in the service
             for (int i = 0; i <= 10; i++)
             {
-                await Task.Delay(50); // Small delay to simulate progress
+                await Task.Delay(30); // Small delay to simulate progress
                 _uploadProgress = i * 10;
                 StateHasChanged();
             }
@@ -215,6 +217,9 @@
             
             if (result.IsSuccess)
             {
+                _uploadProgress = 100; // Set to 100% on success
+                StateHasChanged();
+                
                 // Update the current category with the new image path (we need to reload categories to get the updated image path)
                 var updatedCategories = await CategoryApi.GetCategoriesAsync();
                 var updatedCategory = updatedCategories.FirstOrDefault(c => c.Id == categoryId);
@@ -222,13 +227,14 @@
                 {
                     _category.ImagePath = updatedCategory.ImagePath; // Get the actual path from the database
                 }
+                
+                // Clear the selected file after successful upload
+                _selectedImageFile = null;
             }
             else
             {
                 _errorMessage = result.ErrorMessage ?? "Failed to upload image.";
             }
-
-            _uploadProgress = 0;
         }
         catch (Exception ex)
         {
@@ -237,8 +243,10 @@
         finally
         {
             _isBusy = false;
+            _isUploading = false;
+            _uploadProgress = 0; // Reset progress
             AppState.HideLoader();
-            _selectedImageFile = null;
+            StateHasChanged();
         }
     }
 

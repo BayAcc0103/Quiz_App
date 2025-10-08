@@ -1,0 +1,338 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components
+
+<div class="file-upload-component">
+    <div class="@GetUploadAreaClass()"
+         @ondragover="OnDragOver" 
+         @ondragleave="OnDragLeave" 
+         @ondrop="OnDrop"
+         @onclick="TriggerFileSelect">
+        <InputFile class="file-input"
+                   OnChange="OnFileSelected"
+                   accept="@AcceptedFileTypes"
+                   multiple="@AllowMultiple" />
+        
+        <div class="upload-content">
+            @if (CurrentFile != null && PreviewUrl != null)
+            {
+                <img src="@PreviewUrl" alt="Preview" class="preview-image" />
+            }
+            else
+            {
+                <div class="upload-icons">
+                    <i class="upload-icon">@UploadIcon</i>
+                    <i class="cloud-icon">@CloudIcon</i>
+                </div>
+                <p class="upload-text">@UploadText</p>
+                <p class="upload-hint">@UploadHint</p>
+            }
+        </div>
+        
+        @if (ShowFileSizeLimit && MaxFileSize > 0)
+        {
+            <small class="file-size-info">Max file size: @(MaxFileSize / (1024 * 1024))MB</small>
+        }
+    </div>
+    
+    @if (CurrentFile != null)
+    {
+        <div class="file-info">
+            <div class="file-details">
+                <span class="file-name">@CurrentFile.Name</span>
+                <span class="file-size">@FormatFileSize(CurrentFile.Size)</span>
+            </div>
+            @if (ShowRemoveButton)
+            {
+                <button type="button" class="remove-btn" @onclick="RemoveFile">
+                    <i class="remove-icon">✕</i>
+                </button>
+            }
+        </div>
+    }
+    
+    @if (ShowProgress && IsUploading)
+    {
+        <div class="progress-container">
+            <div class="progress-bar" style="width: @(ProgressPercentage)%"></div>
+            <span class="progress-text">@ProgressPercentage%</span>
+        </div>
+    }
+    
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="error-message">@ErrorMessage</div>
+    }
+</div>
+
+<style>
+    .file-upload-component {
+        width: 100%;
+    }
+    
+    .upload-area {
+        border: 2px dashed #ccc;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .upload-area.drag-over {
+        border-color: #007bff;
+        background-color: #f8f9ff;
+        transform: scale(1.02);
+    }
+    
+    .upload-area.has-file {
+        border-style: solid;
+        background-color: #f9f9f9;
+    }
+    
+    .file-input {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+    
+    .upload-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .upload-icons {
+        margin-bottom: 1rem;
+    }
+    
+    .upload-icon, .cloud-icon {
+        font-size: 2.5rem;
+        color: #6c757d;
+        margin: 0 0.5rem;
+    }
+    
+    .upload-text {
+        font-size: 1.1rem;
+        margin: 0.5rem 0;
+        color: #495057;
+    }
+    
+    .upload-hint {
+        margin: 0;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .file-size-info {
+        margin-top: 0.5rem;
+        color: #6c757d;
+        font-size: 0.8rem;
+    }
+    
+    .preview-image {
+        max-width: 100%;
+        max-height: 200px;
+        object-fit: contain;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+    }
+    
+    .file-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f8f9fa;
+        padding: 0.75rem;
+        border-radius: 4px;
+        margin-top: 0.5rem;
+        border: 1px solid #dee2e6;
+    }
+    
+    .file-details {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .file-name {
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    
+    .file-size {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .remove-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .remove-btn:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .remove-icon {
+        font-size: 1.2rem;
+        color: #dc3545;
+    }
+    
+    .progress-container {
+        margin-top: 1rem;
+        width: 100%;
+    }
+    
+    .progress-bar {
+        height: 8px;
+        background-color: #007bff;
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+    
+    .progress-text {
+        display: block;
+        text-align: center;
+        margin-top: 0.25rem;
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .error-message {
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        text-align: center;
+    }
+</style>
+
+@code {
+    private ElementReference fileUploadElement;
+    private string? PreviewUrl;
+    private bool isDragOver;
+
+    [Parameter] public IBrowserFile? CurrentFile { get; set; }
+    [Parameter] public EventCallback<IBrowserFile?> OnFileChanged { get; set; }
+    [Parameter] public string AcceptedFileTypes { get; set; } = "image/*";
+    [Parameter] public bool AllowMultiple { get; set; } = false;
+    [Parameter] public long MaxFileSize { get; set; } = 10 * 1024 * 1024; // 10MB default
+    [Parameter] public bool ShowFileSizeLimit { get; set; } = true;
+    [Parameter] public bool ShowRemoveButton { get; set; } = true;
+    [Parameter] public bool ShowProgress { get; set; } = false;
+    [Parameter] public string UploadText { get; set; } = "Click or drag file to upload";
+    [Parameter] public string UploadHint { get; set; } = "Supports JPG, PNG, GIF up to 10MB";
+    [Parameter] public string UploadIcon { get; set; } = "📁";
+    [Parameter] public string CloudIcon { get; set; } = "☁️";
+    [Parameter] public bool IsUploading { get; set; } = false;
+    [Parameter] public int ProgressPercentage { get; set; } = 0;
+
+    public string? ErrorMessage { get; private set; }
+
+    private void OnDragOver(DragEventArgs e)
+    {
+        isDragOver = true;
+    }
+
+    private void OnDragLeave(DragEventArgs e)
+    {
+        isDragOver = false;
+    }
+
+    private void OnDrop(DragEventArgs e)
+    {
+        isDragOver = false;
+        // In Blazor Server, drag/drop file access is limited, so we rely on the file input
+    }
+
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        if (e.File != null)
+        {
+            await ProcessFile(e.File);
+        }
+    }
+
+    private async Task ProcessFile(IBrowserFile file)
+    {
+        // Validate file size
+        if (file.Size > MaxFileSize)
+        {
+            ErrorMessage = $"File size exceeds maximum allowed size of {FormatFileSize(MaxFileSize)}";
+            StateHasChanged();
+            return;
+        }
+
+        // Clear previous error
+        ErrorMessage = null;
+
+        // Update current file
+        CurrentFile = file;
+
+        // Create preview if it's an image
+        if (file.ContentType.StartsWith("image/"))
+        {
+            var imagePreview = await file.RequestImageFileAsync(file.ContentType, 400, 400);
+            using var stream = imagePreview.OpenReadStream();
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            var base64 = Convert.ToBase64String(memoryStream.ToArray());
+            PreviewUrl = $"data:{file.ContentType};base64,{base64}";
+        }
+
+        // Notify parent component
+        await OnFileChanged.InvokeAsync(file);
+        StateHasChanged();
+    }
+
+    private void TriggerFileSelect()
+    {
+        // The file input click happens through the HTML structure
+    }
+
+    private async Task RemoveFile()
+    {
+        CurrentFile = null;
+        PreviewUrl = null;
+        ErrorMessage = null;
+        await OnFileChanged.InvokeAsync(null);
+        StateHasChanged();
+    }
+
+    private string GetUploadAreaClass()
+    {
+        var classes = new List<string> { "upload-area" };
+        if (isDragOver) classes.Add("drag-over");
+        if (CurrentFile != null) classes.Add("has-file");
+        return string.Join(" ", classes);
+    }
+
+    private static string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+}
