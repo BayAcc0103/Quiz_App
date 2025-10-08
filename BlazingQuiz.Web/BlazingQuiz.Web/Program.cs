@@ -29,6 +29,16 @@ builder.Services.AddHttpClient<CategoryImageService>(client =>
     client.BaseAddress = new Uri(ApiBaseUrl);
 });
 
+builder.Services.AddHttpClient<QuizImageService>(client =>
+{
+    client.BaseAddress = new Uri(ApiBaseUrl);
+});
+
+builder.Services.AddHttpClient<QuestionImageService>(client =>
+{
+    client.BaseAddress = new Uri(ApiBaseUrl);
+});
+
 ConfigureRefit(builder.Services);
 
 await builder.Build().RunAsync();

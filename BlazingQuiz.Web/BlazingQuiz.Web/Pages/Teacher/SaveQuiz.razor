@@ -10,6 +10,8 @@
 @inject ICategoryApi CategoryApi
 @inject IJSRuntime JsRuntime
 @inject IAppState AppState
+@inject QuizImageService QuizImageService
+@inject QuestionImageService QuestionImageService
 
 <h1>@(IsEditCase ? "Update Quiz" : "Add a Quiz")</h1>
 <hr/>
@@ -52,6 +54,28 @@
             </div>
         </div>
 
+        <div class="col-sm-12">
+            <!-- Image Upload Section -->
+            <div class="mb-3">
+                <label class="form-label">Quiz Image</label>
+                @if (!string.IsNullOrEmpty(_quiz.ImagePath))
+                {
+                    <div class="mb-2">
+                        <img src="@QuizImageService.GetImageUrl(_quiz.ImagePath)" alt="Quiz Image" class="img-thumbnail" style="max-width: 150px; max-height: 150px;" />
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-sm btn-danger" @onclick="RemoveImageAsync" title="Remove Image">Remove Image</button>
+                        </div>
+                    </div>
+                }
+                <FileUpload CurrentFile="_selectedImageFile" 
+                           OnFileChanged="OnImageFileChanged" 
+                           AcceptedFileTypes="image/*" 
+                           MaxFileSize="10 * 1024 * 1024"
+                           UploadText="Click or drag image here to upload"
+                           UploadHint="Supports JPG, PNG, GIF up to 10MB" />
+            </div>
+        </div>
+
         <hr/>
         <h4 class="">Questions</h4>
 
@@ -59,10 +83,30 @@
             @foreach(var q in _quiz.Questions)
             {
                 var random = Guid.NewGuid();
+                var questionIndex = _quiz.Questions.IndexOf(q);
                 <li class="shadow p-3 mb-3">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <textarea @bind="q.Text" class="form-control" row="3"></textarea>
                         <button type="button" class="btn btn-outline-danger ms-2" @onclick="() => DeleteQuestionAsync(q)" title="Delete Question">X</button>
+                    </div>
+                    <!-- Question Image Upload Section -->
+                    <div class="mb-3">
+                        <label class="form-label">Question Image</label>
+                        @if (!string.IsNullOrEmpty(q.ImagePath))
+                        {
+                            <div class="mb-2">
+                                <img src="@QuestionImageService.GetImageUrl(q.ImagePath)" alt="Question Image" class="img-thumbnail" style="max-width: 150px; max-height: 150px;" />
+                                <div class="mt-2">
+                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => RemoveQuestionImageAsync(q)" title="Remove Question Image">Remove Image</button>
+                                </div>
+                            </div>
+                        }
+                        <FileUpload CurrentFile="@GetQuestionImageFile(q)" 
+                                   OnFileChanged="@(file => OnQuestionImageFileChanged(q, file))" 
+                                   AcceptedFileTypes="image/*" 
+                                   MaxFileSize="10 * 1024 * 1024"
+                                   UploadText="Click or drag question image to upload"
+                                   UploadHint="Supports JPG, PNG, GIF up to 10MB" />
                     </div>
                     <h6>Options</h6>
                     <ol>
@@ -114,6 +158,9 @@
 
     private CategoryDto[] _categories = [];
 
+    private IBrowserFile? _selectedImageFile;
+    private int _imageUploadProgress;
+
     protected override async Task OnInitializedAsync()
     {
         if (IsEditCase)
@@ -163,6 +210,7 @@
         }
         o.IsCorrect = true;
     }
+
     private async Task SaveQuizAsync()
     {
         var errorMessage = _quiz.Validate();
@@ -171,16 +219,122 @@
             await ShowAlertAsync(errorMessage);
             return;
         }
+
         AppState.ShowLoader("Saving quiz");
         var response = await QuizApi.SaveQuizAsync(_quiz);
         AppState.HideLoader();
+        
         if (!response.IsSuccess)
         {
             await ShowAlertAsync(response.ErrorMessage);
             return;
         }
+
+        // If we have a new image to upload, do it after saving the quiz
+        if (_selectedImageFile != null && _quiz.Id != Guid.Empty)
+        {
+            AppState.ShowLoader("Uploading quiz image...");
+            try
+            {
+                // Since QuizImageService doesn't currently support progress tracking, we'll simulate it
+                for (int i = 0; i <= 100; i += 10)
+                {
+                    _imageUploadProgress = i;
+                    StateHasChanged();
+                    await Task.Delay(50); // Simulate progress
+                }
+
+                var result = await QuizImageService.UploadQuizImageAsync(_quiz.Id, _selectedImageFile);
+                
+                if (result.IsSuccess)
+                {
+                    // Update the current quiz with the new image path (we need to reload quiz to get the updated image path)
+                    var updatedQuiz = await QuizApi.GetQuizToEditAsync(_quiz.Id);
+                    if (updatedQuiz != null)
+                    {
+                        _quiz.ImagePath = updatedQuiz.ImagePath; // Get the actual path from the database
+                    }
+                }
+                else
+                {
+                    await ShowAlertAsync($"Failed to upload quiz image: {result.ErrorMessage}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await ShowAlertAsync($"Failed to upload quiz image: {ex.Message}");
+            }
+            finally
+            {
+                AppState.HideLoader();
+                _imageUploadProgress = 0;
+                _selectedImageFile = null;
+            }
+        }
+
+        // Handle question images upload after the quiz is saved
+        if (_quiz.Id != Guid.Empty)
+        {
+            AppState.ShowLoader("Uploading question images...");
+            try
+            {
+                // Reload the quiz to get the actual question IDs after saving
+                var updatedQuiz = await QuizApi.GetQuizToEditAsync(_quiz.Id);
+                if (updatedQuiz != null)
+                {
+                    foreach (var question in updatedQuiz.Questions)
+                    {
+                        // Find the corresponding question in the original list to get its image file
+                        var originalQuestion = _quiz.Questions.FirstOrDefault(q => 
+                            q.Text == question.Text && 
+                            (q.Id == question.Id || q.Id == 0) // Match by ID if available, or by text if it's new
+                        );
+                        
+                        if (originalQuestion != null && _questionImageFiles.ContainsKey(originalQuestion) && _questionImageFiles[originalQuestion] != null)
+                        {
+                            var questionImageFile = _questionImageFiles[originalQuestion];
+                            
+                            // Upload the image for this question if there's an image file
+                            if (questionImageFile != null)
+                            {
+                                var result = await QuestionImageService.UploadQuestionImageAsync(question.Id, questionImageFile);
+                                if (!result.IsSuccess)
+                                {
+                                    await ShowAlertAsync($"Failed to upload image for question '{question.Text}': {result.ErrorMessage}");
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Now reload the quiz again to get the updated image paths
+                    var quizWithImages = await QuizApi.GetQuizToEditAsync(_quiz.Id);
+                    if (quizWithImages != null)
+                    {
+                        // Update the current quiz with the image paths
+                        foreach (var question in _quiz.Questions)
+                        {
+                            var updatedQuestion = quizWithImages.Questions.FirstOrDefault(q => q.Id == question.Id);
+                            if (updatedQuestion != null)
+                            {
+                                question.ImagePath = updatedQuestion.ImagePath;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await ShowAlertAsync($"Failed to upload question images: {ex.Message}");
+            }
+            finally
+            {
+                AppState.HideLoader();
+            }
+        }
+
         NavigationManager.NavigateTo("/teacher/manage-quizzes");
     }
+
     private async Task ShowAlertAsync(string message, string title = "Error") => 
         await JsRuntime.InvokeVoidAsync("alert", $"{title}\n{message}");
     
@@ -197,5 +351,51 @@
             _quiz.TotalQuestions = _quiz.Questions.Count;
         }
     }
-        
+
+    private async Task RemoveImageAsync()
+    {
+        if (_quiz.Id == Guid.Empty || string.IsNullOrEmpty(_quiz.ImagePath)) return;
+
+        var result = await QuizImageService.RemoveQuizImageAsync(_quiz.Id);
+        if (result.IsSuccess)
+        {
+            _quiz.ImagePath = null;
+        }
+    }
+
+    // Dictionary to keep track of image files for each question
+    private Dictionary<QuestionDto, IBrowserFile?> _questionImageFiles = new Dictionary<QuestionDto, IBrowserFile?>();
+
+    private IBrowserFile? GetQuestionImageFile(QuestionDto question)
+    {
+        if (!_questionImageFiles.ContainsKey(question))
+        {
+            _questionImageFiles[question] = null;
+        }
+        return _questionImageFiles[question];
+    }
+
+    private async Task OnQuestionImageFileChanged(QuestionDto question, IBrowserFile? file)
+    {
+        _questionImageFiles[question] = file;
+        StateHasChanged();
+    }
+
+    private async Task RemoveQuestionImageAsync(QuestionDto question)
+    {
+        if (question.Id == 0 || string.IsNullOrEmpty(question.ImagePath)) return;
+
+        var result = await QuestionImageService.RemoveQuestionImageAsync(question.Id);
+        if (result.IsSuccess)
+        {
+            question.ImagePath = null;
+        }
+    }
+
+    private async Task OnImageFileChanged(IBrowserFile? file)
+    {
+        _selectedImageFile = file;
+        StateHasChanged();
+    }
+    
 }

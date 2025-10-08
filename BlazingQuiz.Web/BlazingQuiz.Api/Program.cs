@@ -110,6 +110,8 @@ app.MapAuthEndpoints()
    .MapCategoryEndpoints()
    .MapCategoryImageEndpoints()
    .MapQuizEndpoints()
+   .MapQuizImageEndpoints()
+   .MapQuestionImageEndpoints()
    .MapAdminEndpoints()
    .MapStudentQuizEndpoints();
 

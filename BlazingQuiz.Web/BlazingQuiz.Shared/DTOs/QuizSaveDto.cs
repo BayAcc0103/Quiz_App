@@ -19,6 +19,7 @@ namespace BlazingQuiz.Shared.DTOs
         [Range(1, 120, ErrorMessage = "Please provide valid time in minutes")]
         public int TimeInMinutes { get; set; }
         public bool IsActive { get; set; }
+        public string? ImagePath { get; set; }
         public List<QuestionDto> Questions { get; set; } = [];
 
         public string? Validate() 

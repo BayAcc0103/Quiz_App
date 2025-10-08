@@ -36,6 +36,7 @@ namespace BlazingQuiz.Api.Services
                     TimeInMinutes = dto.TimeInMinutes,
                     IsActive = dto.IsActive,
                     CreatedBy = userId, // Set the creator ID
+                    ImagePath = dto.ImagePath, // Set the image path
                     Questions = questions
                 };
                 _context.Quizzes.Add(quiz);
@@ -61,6 +62,7 @@ namespace BlazingQuiz.Api.Services
                 dbQuiz.TotalQuestions = dto.TotalQuestions;
                 dbQuiz.TimeInMinutes = dto.TimeInMinutes;
                 dbQuiz.IsActive = dto.IsActive;
+                dbQuiz.ImagePath = dto.ImagePath; // Set the image path
                 dbQuiz.Questions = questions;
             }
 
@@ -95,7 +97,8 @@ namespace BlazingQuiz.Api.Services
                 TotalQuestions = q.TotalQuestions,
                 TimeInMinutes = q.TimeInMinutes,
                 IsActive = q.IsActive,
-                CategoryId = q.CategoryId
+                CategoryId = q.CategoryId,
+                ImagePath = q.ImagePath
             })
             .ToArrayAsync();
         }
@@ -105,7 +108,8 @@ namespace BlazingQuiz.Api.Services
                 .Select(q => new QuestionDto
                 {
                     Id = q.Id,
-                    Text = q.Text
+                    Text = q.Text,
+                    ImagePath = q.ImagePath
                 })
                 .ToArrayAsync();
 
@@ -127,10 +131,12 @@ namespace BlazingQuiz.Api.Services
                 TotalQuestions = qz.TotalQuestions,
                 TimeInMinutes = qz.TimeInMinutes,
                 IsActive = qz.IsActive,
+                ImagePath = qz.ImagePath,
                 Questions = qz.Questions.Select(q => new QuestionDto
                 {
                     Id = q.Id,
                     Text = q.Text,
+                    ImagePath = q.ImagePath,
                     Options = q.Options.Select(o => new OptionDto
                     {
                         Id = o.Id,

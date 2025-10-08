@@ -16,5 +16,6 @@ namespace BlazingQuiz.Shared.DTOs
         public int TotalQuestions { get; set; }
         public int TimeInMinutes { get; set; }
         public bool IsActive { get; set; }
+        public string? ImagePath { get; set; }
     }
 }

@@ -1,10 +1,12 @@
 ﻿@page "/student/home"
 
+@using BlazingQuiz.Shared
 @inject IAppState AppState  
 @inject ICategoryApi CategoryApi
 @inject IStudentQuizApi StudentQuizApi
 @inject NavigationManager NavigationManager
 @inject QuizState QuizState
+@inject QuizImageService QuizImageService
 
 <div class="container">
     <div class="row">
@@ -35,6 +37,12 @@
                 <div class="col-sm-4">
                     <div class="box bg-white p-3">
                         <h5 class="fw-bold">@q.Name</h5>
+                        @if (!string.IsNullOrEmpty(q.ImagePath))
+                        {
+                            <div class="text-center my-3">
+                                <img src="@QuizImageService.GetImageUrl(q.ImagePath)" alt="@q.Name" class="img-fluid rounded" style="max-height: 150px; object-fit: cover;" />
+                            </div>
+                        }
                         <hr />
                         <table class="table">
                             <tr>

@@ -30,6 +30,7 @@ namespace BlazingQuiz.Api.Services
                     TimeInMinutes = q.TimeInMinutes,
                     TotalQuestions = q.Questions.Count,
                     Id = q.Id,
+                    ImagePath = q.ImagePath,
                 })
                 .ToArrayAsync();
             return quizzes;
@@ -82,6 +83,7 @@ namespace BlazingQuiz.Api.Services
                 {
                     Id = q.Id,
                     Text = q.Text,
+                    ImagePath = q.ImagePath,
                     Options = q.Options.Select(o => new OptionDto
                     {
                         Id = o.Id,
