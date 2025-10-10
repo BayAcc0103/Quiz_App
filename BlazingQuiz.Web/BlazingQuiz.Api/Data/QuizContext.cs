@@ -21,6 +21,7 @@ namespace BlazingQuiz.Api.Data
         public DbSet<StudentQuiz> StudentQuizzes { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<StudentQuizQuestion> StudentQuizQuestions { get; set; }
+        public DbSet<QuizBookmark> QuizBookmarks { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

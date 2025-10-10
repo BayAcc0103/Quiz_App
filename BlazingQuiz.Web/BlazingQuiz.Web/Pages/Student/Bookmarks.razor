@@ -1,0 +1,191 @@
+@page "/student/bookmarks"
+@using BlazingQuiz.Shared
+@inject IBookmarkApi BookmarkApi
+@inject IStudentQuizApi StudentQuizApi
+@inject NavigationManager NavigationManager
+@inject QuizState QuizState
+@inject QuizImageService QuizImageService
+@inject QuizAuthStateProvider QuizAuthStateProvider
+@inject IAppState AppState
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12">
+            <h3 class="mb-4">Bookmarked Quizzes</h3>
+            
+            @if (_isLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else if (_bookmarks.Count == 0)
+            {
+                <div class="col-sm-12 text-center">
+                    <h5 class="text-muted">You haven't bookmarked any quizzes yet.</h5>
+                    <p>Go to the <a href="/student/home">Quiz Home</a> page to find quizzes to bookmark.</p>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var bookmark in _bookmarks)
+                    {
+                        <div class="col-sm-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">@bookmark.QuizName</h5>
+                                    <p class="card-text">
+                                        <span class="badge bg-secondary">@bookmark.CategoryName</span>
+                                    </p>
+                                    <p class="card-text small text-muted">
+                                        Bookmarked on: @bookmark.BookmarkedOn.ToString("MMM dd, yyyy")
+                                    </p>
+                                    <div class="d-grid gap-2 d-md-block">
+                                        <button type="button" class="btn btn-sm btn-warning me-2" 
+                                                @onclick="() => StartQuizAsync(bookmark.QuizId, bookmark.QuizName)">
+                                            Start Quiz
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger" 
+                                                @onclick="() => RemoveBookmarkAsync(bookmark.QuizId)">
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if(_startingQuiz != null)
+{
+    var title = $"Starting Quiz: {_startingQuiz.Name}?";
+    <Modal Title="@title" OnCancelClick="() => _startingQuiz = null" OnActionButtonClick="ConfirmStartQuizAsync">
+        <p class="m-0 p-3">
+            Are you sure you want to start the quiz?<br/>
+            You will not able to pause the quiz
+        </p>
+    </Modal>
+}
+
+@inject IStudentQuizApi StudentQuizApi
+
+@code {
+    private List<QuizBookmarkDto> _bookmarks = new();
+    private bool _isLoading = false;
+    private QuizListDto? _startingQuiz;
+    private Guid _quizIdToStart;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!QuizAuthStateProvider.IsLoggedIn)
+        {
+            NavigationManager.NavigateTo("auth/login");
+            return;
+        }
+        
+        await LoadBookmarksAsync();
+    }
+
+    private async Task LoadBookmarksAsync()
+    {
+        _isLoading = true;
+        var result = await BookmarkApi.GetBookmarksAsync(QuizAuthStateProvider.User.Id);
+        if (result.IsSuccess)
+        {
+            _bookmarks = result.Data;
+        }
+        _isLoading = false;
+    }
+
+    private async Task RemoveBookmarkAsync(Guid quizId)
+    {
+        var result = await BookmarkApi.RemoveBookmarkAsync(QuizAuthStateProvider.User.Id, quizId);
+        if (result.IsSuccess)
+        {
+            _bookmarks.RemoveAll(b => b.QuizId == quizId);
+            StateHasChanged(); // Refresh UI after removal
+        }
+    }
+
+    private async Task StartQuizAsync(Guid quizId, string quizName)
+    {
+        // We need to get the full QuizListDto by fetching from the server
+        // For this, we'll temporarily store the quiz ID and show a confirmation modal
+        _quizIdToStart = quizId;
+        
+        // We need to fetch the quiz details to store in QuizState
+        AppState.ShowLoader("Loading quiz details...");
+        try
+        {
+            // Get the quiz from the list of all active quizzes
+            var allQuizzes = await StudentQuizApi.GetActiveQuizesAsync(0); // 0 means all categories
+            var quiz = allQuizzes.FirstOrDefault(q => q.Id == quizId);
+            if (quiz != null)
+            {
+                _startingQuiz = quiz;
+            }
+            else
+            {
+                // Quiz might not be active anymore
+                _startingQuiz = new QuizListDto
+                {
+                    Id = quizId,
+                    Name = quizName
+                };
+            }
+        }
+        catch
+        {
+            throw;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private async Task ConfirmStartQuizAsync()
+    {
+        if (_startingQuiz == null)
+        {
+            return;
+        }
+
+        AppState.ShowLoader("Preparing the quiz...");
+        try
+        {
+            QuizApiResponse<int> response = await StudentQuizApi.StartQuizAsync(_startingQuiz.Id);
+            if (response.IsSuccess)
+            {
+                int studentQuizId = response.Data;
+                QuizState.StartQuiz(_startingQuiz, studentQuizId);
+                NavigationManager.NavigateTo("student/quiz");
+            }
+            else
+            {
+                // Handle error (show message to user)
+                Console.WriteLine($"Error starting quiz: {response.ErrorMessage}");
+            }
+        }
+        catch
+        {
+            throw;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+    
+    private async Task RefreshBookmarksAsync()
+    {
+        await LoadBookmarksAsync();
+    }
+}

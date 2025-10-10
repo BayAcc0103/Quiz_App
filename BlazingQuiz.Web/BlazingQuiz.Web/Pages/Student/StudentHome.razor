@@ -4,9 +4,11 @@
 @inject IAppState AppState  
 @inject ICategoryApi CategoryApi
 @inject IStudentQuizApi StudentQuizApi
+@inject IBookmarkApi BookmarkApi
 @inject NavigationManager NavigationManager
 @inject QuizState QuizState
 @inject QuizImageService QuizImageService
+@inject QuizAuthStateProvider QuizAuthStateProvider
 
 <div class="container">
     <div class="row">
@@ -71,7 +73,14 @@
                             </tr>
                         </table>
                         <hr />
-                        <button type="button" class="btn btn-sm btn-warning" @onclick="() => _startingQuiz = q">Start Quiz</button>
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-sm btn-warning" @onclick="() => _startingQuiz = q">Start Quiz</button>
+                            <button type="button" class="btn btn-sm @(IsBookmarked(q.Id) ? "btn-success" : "btn-outline-success")" 
+                                    @onclick="() => ToggleBookmarkAsync(q)" 
+                                    title="@(IsBookmarked(q.Id) ? "Remove bookmark" : "Add to bookmarks")">
+                                @(IsBookmarked(q.Id) ? "★" : "☆")
+                            </button>
+                        </div>
                     </div>
                 </div>
             }
@@ -96,6 +105,8 @@
     private int _selectedCategoryId;
     private bool _isLoading;
     private QuizListDto? _startingQuiz;
+    private Dictionary<Guid, bool> _bookmarkedQuizes = new();
+
     protected override async Task OnInitializedAsync()
     {
         AppState.ShowLoader("Loading categories and quizes...");
@@ -106,6 +117,9 @@
             //Load/Fetch quizes
             _quizes = await StudentQuizApi.GetActiveQuizesAsync(_selectedCategoryId);
             _categories = await categoriesTask;
+            
+            // Load bookmark status for each quiz
+            await LoadBookmarkStatusAsync();
         }
         catch (Exception ex)
         {
@@ -117,10 +131,12 @@
             _isLoading = false;
         }
     }
+    
     private async Task OnSelectedCategoryChanged()
     {
         AppState.ShowLoader("Loading quizes...");
         _quizes = await StudentQuizApi.GetActiveQuizesAsync(_selectedCategoryId);
+        await LoadBookmarkStatusAsync();
         AppState.HideLoader();
     }
 
@@ -149,5 +165,66 @@
             AppState.HideLoader();
         }
    
+    }
+    
+    private async Task LoadBookmarkStatusAsync()
+    {
+        if (!QuizAuthStateProvider.IsLoggedIn)
+        {
+            return;
+        }
+        
+        _bookmarkedQuizes.Clear();
+        foreach (var quiz in _quizes)
+        {
+            var result = await BookmarkApi.IsBookmarkedAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = result.Data;
+            }
+        }
+    }
+    
+    private async Task ToggleBookmarkAsync(QuizListDto quiz)
+    {
+        if (!QuizAuthStateProvider.IsLoggedIn)
+        {
+            NavigationManager.NavigateTo("auth/login");
+            return;
+        }
+
+        var isBookmarked = _bookmarkedQuizes.ContainsKey(quiz.Id) && _bookmarkedQuizes[quiz.Id];
+        
+        if (isBookmarked)
+        {
+            // Remove bookmark
+            var result = await BookmarkApi.RemoveBookmarkAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = false;
+            }
+        }
+        else
+        {
+            // Add bookmark
+            var bookmarkDto = new QuizBookmarkDto
+            {
+                UserId = QuizAuthStateProvider.User.Id,
+                QuizId = quiz.Id,
+                QuizName = quiz.Name,
+                CategoryName = quiz.CategoryName
+            };
+            
+            var result = await BookmarkApi.AddBookmarkAsync(bookmarkDto);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = true;
+            }
+        }
+    }
+    
+    private bool IsBookmarked(Guid quizId)
+    {
+        return _bookmarkedQuizes.ContainsKey(quizId) && _bookmarkedQuizes[quizId];
     }
 }

@@ -82,6 +82,7 @@ builder.Services.AddTransient<AuthService>()
                 .AddTransient<QuizService>()
                 .AddTransient<AdminService>()
                 .AddTransient<StudentQuizService>()
+                .AddTransient<BookmarkService>()
                 .AddTransient<IImageUploadService, ImageUploadService>();
 var app = builder.Build();
 
@@ -113,7 +114,8 @@ app.MapAuthEndpoints()
    .MapQuizImageEndpoints()
    .MapQuestionImageEndpoints()
    .MapAdminEndpoints()
-   .MapStudentQuizEndpoints();
+   .MapStudentQuizEndpoints()
+   .MapBookmarkEndpoints();
 
 
 app.Run();

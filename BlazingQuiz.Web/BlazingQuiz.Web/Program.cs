@@ -60,6 +60,9 @@ static void ConfigureRefit(IServiceCollection services)
     services.AddRefitClient<IStudentQuizApi>(GetRefitSettings)
         .ConfigureHttpClient(SetHttpClient);
 
+    services.AddRefitClient<IBookmarkApi>(GetRefitSettings)
+        .ConfigureHttpClient(SetHttpClient);
+
     static void SetHttpClient(HttpClient httpClient) =>
         httpClient.BaseAddress = new Uri(ApiBaseUrl);
     static RefitSettings GetRefitSettings(IServiceProvider sp)
