@@ -8,6 +8,7 @@ namespace BlazingQuiz.Shared
 
         public event Action? OnToggleLoader;
         public event Action<string>? OnShowError;
+        public event Action<string, AlertType>? OnShowAlert;
 
         public void HideLoader()
         {
@@ -17,6 +18,9 @@ namespace BlazingQuiz.Shared
 
         public void ShowError(string errorText) => 
             OnShowError?.Invoke(errorText);
+
+        public void ShowAlert(string message, AlertType alertType) => 
+            OnShowAlert?.Invoke(message, alertType);
 
         public void ShowLoader(string loaderText)
         {

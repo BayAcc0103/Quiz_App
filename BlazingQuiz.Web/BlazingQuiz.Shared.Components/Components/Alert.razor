@@ -1,0 +1,54 @@
+@inject IAppState AppState
+
+@if (_alertMessage != null)
+{
+    <Modal Title="@_title" OnActionButtonClick="CloseAlert" OnCancelClick="CloseAlert">
+        <div class="alert @_alertClass m-0" role="alert">
+            <p class="m-0">@_alertMessage</p>
+        </div>
+    </Modal>   
+}
+
+@code {
+    private string? _alertMessage;
+    private string _alertClass = "alert-danger";
+    private string _title = "Alert";
+    
+    protected override void OnInitialized()
+    {
+        AppState.OnShowAlert += ShowAlert;
+    }
+
+    private void ShowAlert(string message, AlertType alertType)
+    {
+        _alertMessage = message;
+        
+        switch (alertType)
+        {
+            case AlertType.Success:
+                _alertClass = "alert-success";
+                _title = "Success";
+                break;
+            case AlertType.Error:
+                _alertClass = "alert-danger";
+                _title = "Error";
+                break;
+            case AlertType.Warning:
+                _alertClass = "alert-warning";
+                _title = "Warning";
+                break;
+            case AlertType.Info:
+                _alertClass = "alert-info";
+                _title = "Info";
+                break;
+        }
+        
+        InvokeAsync(StateHasChanged);
+    }
+    
+    private void CloseAlert()
+    {
+        _alertMessage = null;
+        InvokeAsync(StateHasChanged);
+    }
+}

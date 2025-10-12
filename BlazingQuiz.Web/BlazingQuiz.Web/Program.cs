@@ -45,7 +45,7 @@ await builder.Build().RunAsync();
 
 static void ConfigureRefit(IServiceCollection services)
 {
-    services.AddRefitClient<IAuthApi>()
+    services.AddRefitClient<IAuthApi>(GetRefitSettings)
         .ConfigureHttpClient(SetHttpClient);
 
     services.AddRefitClient<ICategoryApi>(GetRefitSettings)

@@ -15,5 +15,8 @@ namespace BlazingQuiz.Shared
 
         event Action<string>? OnShowError;
         void ShowError(string errorText);
+        
+        event Action<string, AlertType>? OnShowAlert;
+        void ShowAlert(string message, AlertType alertType);
     }
 }
