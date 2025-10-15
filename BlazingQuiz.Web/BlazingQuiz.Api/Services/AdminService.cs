@@ -46,7 +46,7 @@ namespace BlazingQuiz.Api.Services
             var users = await query.OrderByDescending(u => u.Id)
                 .Skip(startIndex)
                 .Take(pageSize)
-                .Select(u => new UserDto(u.Id, u.Name, u.Email, u.Phone, u.IsApproved))
+                .Select(u => new UserDto(u.Id, u.Name, u.Email, u.Phone, u.IsApproved, u.AvatarPath))
                 .ToArrayAsync();
             return new PageResult<UserDto>(users, total);
         }

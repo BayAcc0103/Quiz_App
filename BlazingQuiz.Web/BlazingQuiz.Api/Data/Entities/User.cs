@@ -1,4 +1,4 @@
-﻿using BlazingQuiz.Shared;
+using BlazingQuiz.Shared;
 using System.ComponentModel.DataAnnotations;
 
 namespace BlazingQuiz.Api.Data.Entities
@@ -18,5 +18,7 @@ namespace BlazingQuiz.Api.Data.Entities
         [MaxLength(15)]
         public string Role { get; set; } = nameof(UserRole.Student);// UserRole enum
         public bool IsApproved { get; set; }
+        [MaxLength(255)]
+        public string? AvatarPath { get; set; }
     }
 }

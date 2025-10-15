@@ -15,14 +15,16 @@ namespace BlazingQuiz.Shared.DTOs
         public string Email { get; set; }
         public string Phone { get; set; }
         public bool IsApproved { get; set; }
+        public string? AvatarPath { get; set; }
 
-        public UserDto(int id, string name, string email, string phone, bool isApproved)
+        public UserDto(int id, string name, string email, string phone, bool isApproved, string? avatarPath = null)
         {
             Id = id;
             Name = name;
             Email = email;
             Phone = phone;
             IsApproved = isApproved;
+            AvatarPath = avatarPath;
         }
     }
 

@@ -27,7 +27,7 @@ namespace BlazingQuiz.Api.Endpoints
                     return Results.NotFound();
                 }
                 
-                var userDto = new UserDto(dbUser.Id, dbUser.Name, dbUser.Email, dbUser.Phone, dbUser.IsApproved);
+                var userDto = new UserDto(dbUser.Id, dbUser.Name, dbUser.Email, dbUser.Phone, dbUser.IsApproved, dbUser.AvatarPath);
                 return Results.Ok(userDto);
             });
 

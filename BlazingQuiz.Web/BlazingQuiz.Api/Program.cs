@@ -116,6 +116,7 @@ app.MapAuthEndpoints()
    .MapAdminEndpoints()
    .MapStudentQuizEndpoints()
    .MapBookmarkEndpoints();
+app.MapUserAvatarEndpoints();
 
 
 app.Run();

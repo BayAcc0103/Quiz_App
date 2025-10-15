@@ -3,6 +3,7 @@
 @using BlazingQuiz.Shared.DTOs
 @using BlazingQuiz.Web.Apis
 @inject IAuthApi AuthApi
+@inject UserAvatarService UserAvatarService
 @inject IAppState AppState
 @inject QuizAuthStateProvider QuizAuthStateProvider
 @inject NavigationManager NavigationManager
@@ -33,6 +34,52 @@
                     {
                         <EditForm Model="_userDto" OnValidSubmit="UpdateProfileAsync">
                             <DataAnnotationsValidator />
+                            
+                            <!-- Avatar Section -->
+                            <div class="mb-4">
+                                <label class="form-label">Profile Avatar</label>
+                                @if (!string.IsNullOrEmpty(_userDto.AvatarPath))
+                                {
+                                    <div class="mb-2">
+                                        @if (!string.IsNullOrEmpty(_userDto.AvatarPath))
+                                        {
+                                            <img src="@UserAvatarService.GetImageUrl(_userDto.AvatarPath)" 
+                                                 alt="Avatar" 
+                                                 class="rounded-circle" 
+                                                 style="width: 150px; height: 150px; object-fit: cover; border: 2px solid #dee2e6;" />
+                                        }
+                                        else
+                                        {
+                                            <img src="@UserAvatarService.GetImageUrl("images/user-avatars/default-avatar.svg")" 
+                                                 alt="Avatar" 
+                                                 class="rounded-circle" 
+                                                 style="width: 150px; height: 150px; object-fit: cover; border: 2px solid #dee2e6;" />
+                                        }
+                                        <div class="mt-2">
+                                            <button type="button" class="btn btn-sm btn-danger" @onclick="RemoveAvatarAsync">Remove Avatar</button>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="mb-2">
+                                        <img src="@UserAvatarService.GetImageUrl("images/user-avatars/default-avatar.svg")" 
+                                             alt="Default Avatar" 
+                                             class="rounded-circle" 
+                                             style="width: 150px; height: 150px; object-fit: cover; border: 2px solid #dee2e6;" />
+                                    </div>
+                                }
+                                <FileUpload CurrentFile="@_selectedAvatarFile" 
+                                           OnFileChanged="OnAvatarFileChanged"
+                                           MaxFileSize="5242880"
+                                           ShowProgress="true"
+                                           IsUploading="@_isUploading"
+                                           ProgressPercentage="@_uploadProgress"
+                                           UploadText="Drag & drop your avatar here"
+                                           UploadHint="or click to browse (JPG, PNG, GIF up to 5MB)" />
+                            </div>
+                            
+                            <!-- Profile Form -->
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="name" class="form-label">Name</label>
@@ -79,12 +126,15 @@
 </div>
 
 @code {
-    private UserDto _userDto = new UserDto(0, "", "", "", false);
+    private UserDto _userDto = new UserDto(0, "", "", "", false, null);
     private bool _isLoading = true;
+    private bool _isUploading = false;
+    private int _uploadProgress = 0;
     private string? _error;
     private string _role = "";
     private string _status = "";
     private string _userId = "";
+    private IBrowserFile? _selectedAvatarFile;
 
     protected override async Task OnInitializedAsync()
     {
@@ -131,9 +181,120 @@
         }
     }
 
+    private async Task OnAvatarFileChanged(IBrowserFile? file)
+    {
+        _selectedAvatarFile = file;
+        
+        // If a file is selected, automatically upload it
+        if (file != null)
+        {
+            await UploadAvatarAsync(file);
+        }
+    }
+
+    private async Task UploadAvatarAsync(IBrowserFile file)
+    {
+        if (file == null) return;
+
+        if (file.Size > 5 * 1024 * 1024) // 5MB limit
+        {
+            AppState.ShowAlert("File size must be less than 5MB", AlertType.Error);
+            return;
+        }
+
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+        var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+        if (!allowedExtensions.Contains(extension))
+        {
+            AppState.ShowAlert("Only image files (JPG, PNG, GIF, WebP) are allowed", AlertType.Error);
+            return;
+        }
+
+        try
+        {
+            _isUploading = true;
+            
+            // Simulate progress tracking
+            _uploadProgress = 0;
+            StateHasChanged();
+            
+            for (int i = 0; i <= 10; i++)
+            {
+                await Task.Delay(30); // Small delay to simulate progress
+                _uploadProgress = i * 10;
+                StateHasChanged();
+            }
+
+            var result = await UserAvatarService.UploadAvatarAsync(file);
+            
+            if (result.IsSuccess)
+            {
+                _uploadProgress = 100; // Set to 100% on success
+                StateHasChanged();
+                
+                // Reload profile to get the new avatar
+                await LoadProfileAsync();
+                AppState.ShowAlert("Avatar uploaded successfully!", AlertType.Success);
+                
+                // Clear the selected file after successful upload
+                _selectedAvatarFile = null;
+            }
+            else
+            {
+                AppState.ShowAlert($"Failed to upload avatar: {result.ErrorMessage}", AlertType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowAlert($"Error uploading avatar: {ex.Message}", AlertType.Error);
+        }
+        finally
+        {
+            _isUploading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RemoveAvatarAsync()
+    {
+        try
+        {
+            var result = await UserAvatarService.RemoveAvatarAsync();
+            if (result.IsSuccess)
+            {
+                // Reload profile to update avatar display
+                await LoadProfileAsync();
+                AppState.ShowAlert("Avatar removed successfully!", AlertType.Success);
+            }
+            else
+            {
+                AppState.ShowAlert($"Failed to remove avatar: {result.ErrorMessage}", AlertType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowAlert($"Error removing avatar: {ex.Message}", AlertType.Error);
+        }
+    }
+
     private void ChangePassword()
     {
         // Navigate to change password page
         NavigationManager.NavigateTo("/teacher/changepassword");
     }
 }
+
+<style>
+    .avatar-container {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .avatar-container img {
+        transition: transform 0.3s ease;
+    }
+    
+    .avatar-container:hover img {
+        transform: scale(1.05);
+    }
+</style>

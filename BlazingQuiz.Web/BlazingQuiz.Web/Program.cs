@@ -39,6 +39,11 @@ builder.Services.AddHttpClient<QuestionImageService>(client =>
     client.BaseAddress = new Uri(ApiBaseUrl);
 });
 
+builder.Services.AddHttpClient<UserAvatarService>(client =>
+{
+    client.BaseAddress = new Uri(ApiBaseUrl);
+});
+
 ConfigureRefit(builder.Services);
 
 await builder.Build().RunAsync();
@@ -61,6 +66,9 @@ static void ConfigureRefit(IServiceCollection services)
         .ConfigureHttpClient(SetHttpClient);
 
     services.AddRefitClient<IBookmarkApi>(GetRefitSettings)
+        .ConfigureHttpClient(SetHttpClient);
+
+    services.AddRefitClient<IUserAvatarApi>(GetRefitSettings)
         .ConfigureHttpClient(SetHttpClient);
 
     static void SetHttpClient(HttpClient httpClient) =>
