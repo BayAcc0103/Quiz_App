@@ -5,6 +5,7 @@
         public int StudentQuizId { get; set; }
         public int QuestionId { get; set; }
         public int OptionId { get; set; }
+        public string? TextAnswer { get; set; }
 
         public virtual StudentQuiz StudentQuiz { get; set; }
 

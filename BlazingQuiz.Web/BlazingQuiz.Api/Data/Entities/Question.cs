@@ -10,6 +10,8 @@ namespace BlazingQuiz.Api.Data.Entities
         [MaxLength(500)]
         public string Text { get; set; }
         public string? ImagePath { get; set; } // Path to the question image
+        public bool IsTextAnswer { get; set; } = false; // True if it's a text input question
+        public string? TextAnswer { get; set; } // The correct text answer for text input questions
         public Guid QuizId { get; set; }
         [ForeignKey(nameof(QuizId))]
         public virtual Quiz Quiz { get; set; }

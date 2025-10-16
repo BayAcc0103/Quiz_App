@@ -36,6 +36,9 @@
                 <hr />
         </div>
         <div class="quiz-body flex-grow-1">
+            @if (!_question.IsTextAnswer)
+            {
+                <!-- Multiple Choice Options -->
                 @foreach (var o in _question.Options)
                 {
                     <div class="d-flex gap-2 p-3 mb-3 bg-white option-box" @onclick="() => _selectedOptionId = o.Id">
@@ -45,6 +48,16 @@
                         <label for="rdo_@o.Id" class="d-block">@o.Text</label>
                     </div>
                 }
+            }
+            else
+            {
+                <!-- Text Input Field -->
+                <div class="mb-3">
+                    <label for="textAnswer_@_question.Id" class="form-label">Your Answer:</label>
+                    <input type="text" class="form-control" id="textAnswer_@_question.Id" 
+                           placeholder="Enter your answer" @bind="_textAnswer" />
+                </div>
+            }
         </div>
         <div class="quiz-footer">
                 @if (_errorMessage != null)
@@ -99,6 +112,7 @@
 @code {
     private QuestionDto _question = new();
     private int _selectedOptionId;
+    private string? _textAnswer;
     private List<QuestionDto> _questions = [];
     private bool IsLastQuestion => _questions.Count == QuizState.Quiz.TotalQuestions;
     private string? _errorMessage;
@@ -180,36 +194,75 @@
     private async Task<bool> SaveQuestionResponseAsync()
     {
         _errorMessage = null;
-        if (_selectedOptionId == 0)
+        
+        if (_question.IsTextAnswer)
         {
-            //Show error alert
-            _errorMessage = "Please select an option";
-            return false;
-        }
-
-        AppState.ShowLoader("Saving your response...");
-        try
-        {
-            StudentQuizQuestionResponseDto dto = new(QuizState.StudentQuizId, _question.Id, _selectedOptionId);
-            QuizApiResponse result = await StudentQuizApi.SaveQuestionResponseAsync(QuizState.StudentQuizId, dto);
-            if (!result.IsSuccess)
+            // For text answer questions, validate that an answer was provided
+            if (string.IsNullOrWhiteSpace(_textAnswer))
             {
-                //Show error alert
-                _errorMessage = result.ErrorMessage;
+                _errorMessage = "Please enter an answer";
                 return false;
             }
-            _selectedOptionId = 0;
-            return true;
+            
+            AppState.ShowLoader("Saving your response...");
+            try
+            {
+                StudentQuizQuestionResponseDto dto = new(QuizState.StudentQuizId, _question.Id, 0, _textAnswer); // Pass 0 for optionId and actual text answer
+                QuizApiResponse result = await StudentQuizApi.SaveQuestionResponseAsync(QuizState.StudentQuizId, dto);
+                if (!result.IsSuccess)
+                {
+                    //Show error alert
+                    _errorMessage = result.ErrorMessage;
+                    return false;
+                }
+                _textAnswer = null; // Clear the answer after saving
+                return true;
+            }
+            catch (Exception ex)
+            {
+                //Show error alert
+                _errorMessage = ex.Message;
+                return false;
+            }
+            finally
+            {
+                AppState.HideLoader();
+            }
         }
-        catch (Exception ex)
+        else
         {
-            //Show error alert
-            _errorMessage = ex.Message;
-            return false;
-        }
-        finally
-        {
-            AppState.HideLoader();
+            // For multiple choice questions, validate that an option was selected
+            if (_selectedOptionId == 0)
+            {
+                //Show error alert
+                _errorMessage = "Please select an option";
+                return false;
+            }
+
+            AppState.ShowLoader("Saving your response...");
+            try
+            {
+                StudentQuizQuestionResponseDto dto = new(QuizState.StudentQuizId, _question.Id, _selectedOptionId);
+                QuizApiResponse result = await StudentQuizApi.SaveQuestionResponseAsync(QuizState.StudentQuizId, dto);
+                if (!result.IsSuccess)
+                {
+                    //Show error alert
+                    _errorMessage = result.ErrorMessage;
+                    return false;
+                }
+                _selectedOptionId = 0;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                //Show error alert
+                _errorMessage = ex.Message;
+                return false;
+            }
+            finally
+            {
+                AppState.HideLoader();
+            }
         }
     }
 

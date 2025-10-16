@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace BlazingQuiz.Shared.DTOs
 {
-    public record StudentQuizQuestionResponseDto(int StudentQuizId, int QuestionId, int OptionId);
+    public record StudentQuizQuestionResponseDto(int StudentQuizId, int QuestionId, int OptionId, string? TextAnswer = null);
 }

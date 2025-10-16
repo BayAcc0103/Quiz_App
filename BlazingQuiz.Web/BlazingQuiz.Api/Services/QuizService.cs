@@ -19,6 +19,9 @@ namespace BlazingQuiz.Api.Services
             {
                 Id = q.Id,
                 Text = q.Text,
+                ImagePath = q.ImagePath,
+                IsTextAnswer = q.IsTextAnswer,
+                TextAnswer = q.TextAnswer,
                 Options = q.Options.Select(o => new Option
                 {
                     Id = o.Id,
@@ -109,7 +112,15 @@ namespace BlazingQuiz.Api.Services
                 {
                     Id = q.Id,
                     Text = q.Text,
-                    ImagePath = q.ImagePath
+                    ImagePath = q.ImagePath,
+                    IsTextAnswer = q.IsTextAnswer,
+                    TextAnswer = q.TextAnswer,
+                    Options = q.Options.Select(o => new OptionDto
+                    {
+                        Id = o.Id,
+                        Text = o.Text,
+                        IsCorrect = o.IsCorrect
+                    }).ToList()
                 })
                 .ToArrayAsync();
 
@@ -137,6 +148,8 @@ namespace BlazingQuiz.Api.Services
                     Id = q.Id,
                     Text = q.Text,
                     ImagePath = q.ImagePath,
+                    IsTextAnswer = q.IsTextAnswer,
+                    TextAnswer = q.TextAnswer,
                     Options = q.Options.Select(o => new OptionDto
                     {
                         Id = o.Id,

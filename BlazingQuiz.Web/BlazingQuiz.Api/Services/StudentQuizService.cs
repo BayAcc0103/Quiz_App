@@ -84,6 +84,8 @@ namespace BlazingQuiz.Api.Services
                     Id = q.Id,
                     Text = q.Text,
                     ImagePath = q.ImagePath,
+                    IsTextAnswer = q.IsTextAnswer,
+                    TextAnswer = q.IsTextAnswer ? q.TextAnswer : null, // Only include text answer if it's a text answer question
                     Options = q.Options.Select(o => new OptionDto
                     {
                         Id = o.Id,
@@ -116,14 +118,18 @@ namespace BlazingQuiz.Api.Services
 
         public async Task<QuizApiResponse> SaveQuestionResponseAsync(StudentQuizQuestionResponseDto dto, int studentId)
         {
+            Console.WriteLine($"SaveQuestionResponseAsync called - StudentQuizId: {dto.StudentQuizId}, QuestionId: {dto.QuestionId}, OptionId: {dto.OptionId}, TextAnswer: '{dto.TextAnswer}'");
+            
             var studentQuiz = await _context.StudentQuizzes.AsTracking()
                .FirstOrDefaultAsync(s => s.Id == dto.StudentQuizId);
             if (studentQuiz == null)
             {
+                Console.WriteLine("Student quiz not found");
                 return QuizApiResponse.Failure("Student quiz not found");
             }
             if (studentQuiz.StudentId != studentId)
             {
+                Console.WriteLine("Invalid request - student ID mismatch");
                 return QuizApiResponse.Failure("Invalid request");
             }
 
@@ -132,19 +138,88 @@ namespace BlazingQuiz.Api.Services
 
             if (studentQuizQuestion == null)
             {
+                Console.WriteLine("Student quiz question not found");
                 return QuizApiResponse.Failure("Student quiz question not found.");
             }
 
-            studentQuizQuestion.OptionId = dto.OptionId;
-
-            var isSelectedOptionCorrect = await _context.Options
-                .Where(o => o.QuestionId == dto.QuestionId && o.Id == dto.OptionId)
-                .Select(o => o.IsCorrect)
-                .FirstOrDefaultAsync();
-            if (isSelectedOptionCorrect)
+            // Handle text answer questions vs multiple choice questions
+            // Check if this is a text answer question based on the DTO or based on the question type in DB
+            var isTextAnswerFromDto = dto.TextAnswer != null; // Even if empty string, this indicates it's a text answer question
+            var isTextAnswerFromDb = false;
+            
+            // If not determined from DTO, check the question in DB
+            if (!isTextAnswerFromDto)
             {
-                studentQuiz.Total++;
+                var question = await _context.Questions
+                    .Where(q => q.Id == dto.QuestionId)
+                    .Select(q => new { q.IsTextAnswer })
+                    .FirstOrDefaultAsync();
+                
+                isTextAnswerFromDb = question?.IsTextAnswer == true;
+                Console.WriteLine($"Checking question type from DB - IsTextAnswer: {isTextAnswerFromDb}");
             }
+            
+            Console.WriteLine($"Is text answer question - From DTO: {isTextAnswerFromDto}, From DB: {isTextAnswerFromDb}");
+
+            if (isTextAnswerFromDto || isTextAnswerFromDb)
+            {
+                // This is a text input question
+                // Always save the text answer, even if it's empty or null
+                studentQuizQuestion.TextAnswer = dto.TextAnswer;
+                
+                // Debug logging
+                Console.WriteLine($"Saving text answer for question {dto.QuestionId}: '{dto.TextAnswer}'");
+                
+                // Check if the text answer matches the correct answer
+                var correctTextAnswer = await _context.Questions
+                    .Where(q => q.Id == dto.QuestionId)
+                    .Select(q => q.TextAnswer)
+                    .FirstOrDefaultAsync();
+                
+                // Debug logging
+                Console.WriteLine($"Correct text answer for question {dto.QuestionId}: '{correctTextAnswer}'");
+                
+                // Compare text answers (case-insensitive and trimmed)
+                // Handle null/empty cases correctly
+                if (!string.IsNullOrWhiteSpace(correctTextAnswer) && 
+                    !string.IsNullOrWhiteSpace(dto.TextAnswer))
+                {
+                    var trimmedCorrect = correctTextAnswer.Trim();
+                    var trimmedAnswer = dto.TextAnswer.Trim();
+                    
+                    // Debug logging for troubleshooting
+                    Console.WriteLine($"Comparing text answers - Correct: '{trimmedCorrect}' | Student: '{trimmedAnswer}'");
+                    
+                    if (string.Equals(trimmedCorrect, trimmedAnswer, StringComparison.OrdinalIgnoreCase))
+                    {
+                        studentQuiz.Total++; // Mark as correct
+                        Console.WriteLine("Text answer matched - incrementing score");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Text answer did not match");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Skipping text answer comparison - Correct empty/null: {string.IsNullOrWhiteSpace(correctTextAnswer)} | Student empty/null: {string.IsNullOrWhiteSpace(dto.TextAnswer)}");
+                }
+            }
+            else
+            {
+                // This is a multiple choice question
+                studentQuizQuestion.OptionId = dto.OptionId;
+
+                var isSelectedOptionCorrect = await _context.Options
+                    .Where(o => o.QuestionId == dto.QuestionId && o.Id == dto.OptionId)
+                    .Select(o => o.IsCorrect)
+                    .FirstOrDefaultAsync();
+                if (isSelectedOptionCorrect)
+                {
+                    studentQuiz.Total++;
+                }
+            }
+            
             try
             {
                 await _context.SaveChangesAsync();
@@ -253,6 +328,7 @@ namespace BlazingQuiz.Api.Services
                 {
                     Id = q.Id,
                     Text = q.Text,
+                    IsTextAnswer = q.IsTextAnswer,
                     Options = q.Options.Select(o => new QuizResultOptionDto
                     {
                         Id = o.Id,
@@ -260,7 +336,10 @@ namespace BlazingQuiz.Api.Services
                     }).ToList(),
                     SelectedOptionId = studentQuiz.StudentQuizQuestions
                         .FirstOrDefault(sqq => sqq.QuestionId == q.Id)?.OptionId ?? 0,
-                    CorrectOptionId = q.Options.FirstOrDefault(o => o.IsCorrect)?.Id ?? 0
+                    SelectedTextAnswer = studentQuiz.StudentQuizQuestions
+                        .FirstOrDefault(sqq => sqq.QuestionId == q.Id)?.TextAnswer,
+                    CorrectOptionId = q.IsTextAnswer ? 0 : q.Options.FirstOrDefault(o => o.IsCorrect)?.Id ?? 0, // For text questions, there's no correct option ID
+                    CorrectTextAnswer = q.IsTextAnswer ? q.TextAnswer : null
                 }).ToList()
             };
 

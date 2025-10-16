@@ -40,38 +40,59 @@ else
                             <h5>@question.Text</h5>
                         </div>
                         <div class="card-body">
-                            @foreach (var option in question.Options)
+                            @if (!question.IsTextAnswer)
                             {
-                                var isSelected = question.SelectedOptionId == option.Id;
-                                var isCorrect = question.CorrectOptionId == option.Id;
+                                <!-- Multiple Choice Question -->
+                                @foreach (var option in question.Options)
+                                {
+                                    var isSelected = question.SelectedOptionId == option.Id;
+                                    var isCorrect = question.CorrectOptionId == option.Id;
 
-                                var optionClass = "";
-                                if (isSelected && isCorrect)
-                                {
-                                    optionClass = "bg-success text-white";
-                                }
-                                else if (isSelected && !isCorrect)
-                                {
-                                    optionClass = "bg-danger text-white";
-                                }
-                                else if (isCorrect)
-                                {
-                                    optionClass = "bg-info text-white";
-                                }
-
-                                <div class="p-2 mb-2 @optionClass">
-                                    @option.Text
-                                    @if (isSelected && isCorrect)
+                                    var optionClass = "";
+                                    if (isSelected && isCorrect)
                                     {
-                                        <span class="float-end">Your Answer (Correct)</span>
+                                        optionClass = "bg-success text-white";
                                     }
                                     else if (isSelected && !isCorrect)
                                     {
-                                        <span class="float-end">Your Answer (Incorrect)</span>
+                                        optionClass = "bg-danger text-white";
                                     }
                                     else if (isCorrect)
                                     {
-                                        <span class="float-end">Correct Answer</span>
+                                        optionClass = "bg-info text-white";
+                                    }
+
+                                    <div class="p-2 mb-2 @optionClass">
+                                        @option.Text
+                                        @if (isSelected && isCorrect)
+                                        {
+                                            <span class="float-end">Your Answer (Correct)</span>
+                                        }
+                                        else if (isSelected && !isCorrect)
+                                        {
+                                            <span class="float-end">Your Answer (Incorrect)</span>
+                                        }
+                                        else if (isCorrect)
+                                        {
+                                            <span class="float-end">Correct Answer</span>
+                                        }
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <!-- Text Input Question -->
+                                <div class="mb-3">
+                                    <p><strong>Your Answer:</strong> @(string.IsNullOrWhiteSpace(question.SelectedTextAnswer) ? "(No answer provided)" : question.SelectedTextAnswer)</p>
+                                    <p><strong>Correct Answer:</strong> @question.CorrectTextAnswer</p>
+                                    
+                                    @if (question.IsTextAnswerCorrect)
+                                    {
+                                        <span class="badge bg-success">Correct</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Incorrect</span>
                                     }
                                 </div>
                             }

@@ -32,13 +32,30 @@ namespace BlazingQuiz.Shared.DTOs
             {
                 return "Question text is required.";
             }
-            if (Questions.Any(q => q.Options.Count < 2))
+            
+            foreach (var q in Questions)
             {
-                return "At-least 2 option are required for each questions.";
-            }
-            if (Questions.Any(q => !q.Options.Any(o => o.IsCorrect)))
-            {
-                return "All options should have correct answer marked";
+                if (q.IsTextAnswer)
+                {
+                    // For text answer questions, check if TextAnswer is provided
+                    if (string.IsNullOrWhiteSpace(q.TextAnswer))
+                    {
+                        return $"Text answer is required for text input question: '{q.Text}'.";
+                    }
+                }
+                else
+                {
+                    // For multiple choice questions, ensure there are at least 2 options
+                    if (q.Options.Count < 2)
+                    {
+                        return "At-least 2 options are required for each multiple choice question.";
+                    }
+                    // For multiple choice questions, ensure there's a correct answer
+                    if (!q.Options.Any(o => o.IsCorrect))
+                    {
+                        return "All multiple choice questions should have correct answer marked.";
+                    }
+                }
             }
             return null;
         }

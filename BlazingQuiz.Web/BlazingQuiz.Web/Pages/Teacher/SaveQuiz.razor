@@ -89,6 +89,20 @@
                         <textarea @bind="q.Text" class="form-control" row="3"></textarea>
                         <button type="button" class="btn btn-outline-danger ms-2" @onclick="() => DeleteQuestionAsync(q)" title="Delete Question">X</button>
                     </div>
+                    
+                    <!-- Question Type Selection -->
+                    <div class="mb-3">
+                        <h6>Question Type</h6>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="questionType_@random" value="multiple-choice" checked="@(!q.IsTextAnswer)" @onchange="() => { q.IsTextAnswer = false; OnQuestionTypeChanged(q); }">
+                            <label class="form-check-label">Multiple Choice</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="questionType_@random" value="text-input" checked="@(q.IsTextAnswer)" @onchange="() => { q.IsTextAnswer = true; OnQuestionTypeChanged(q); }">
+                            <label class="form-check-label">Text Input</label>
+                        </div>
+                    </div>
+                    
                     <!-- Question Image Upload Section -->
                     <div class="mb-3">
                         <label class="form-label">Question Image</label>
@@ -108,24 +122,37 @@
                                    UploadText="Click or drag question image to upload"
                                    UploadHint="Supports JPG, PNG, GIF up to 10MB" />
                     </div>
-                    <h6>Options</h6>
-                    <ol>
-                        @foreach (var o in q.Options)
-                        {
-                            <li class="p-2 mb-2">
-                                <div class="input-group">
-                                    <div class="input-group-text">
-                                        <input class="form-check-input mt-0" type="radio" name="option_radio_@random" checked="@o.IsCorrect" @onchange="() => SetOptionAsCorrectAnswer(q, o)">
+                    
+                    @if (!q.IsTextAnswer)
+                    {
+                        <!-- Multiple Choice Options -->
+                        <h6>Options</h6>
+                        <ol>
+                            @foreach (var o in q.Options)
+                            {
+                                <li class="p-2 mb-2">
+                                    <div class="input-group">
+                                        <div class="input-group-text">
+                                            <input class="form-check-input mt-0" type="radio" name="option_radio_@random" checked="@o.IsCorrect" @onchange="() => SetOptionAsCorrectAnswer(q, o)">
+                                        </div>
+                                        <input type="text" class="form-control" aria-label="Text input with checkbox" @bind="o.Text"/>
+                                        <button type="button" class="btn btn-outline-danger" @onclick="() => q.Options.Remove(o)">X</button>
                                     </div>
-                                    <input type="text" class="form-control" aria-label="Text input with checkbox" @bind="o.Text"/>
-                                    <button type="button" class="btn btn-outline-danger" @onclick="() => q.Options.Remove(o)">X</button>
-                                </div>
-                            </li>
-                        }
-                    </ol>
-                    <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-sm btn-info" @onclick="() => q.Options.Add(new())">+ Add Option</button>
-                    </div>            
+                                </li>
+                            }
+                        </ol>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-sm btn-info" @onclick="() => AddOptionToQuestion(q)">+ Add Option</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Text Input Answer -->
+                        <h6>Correct Answer</h6>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" placeholder="Enter the correct answer" @bind="q.TextAnswer"/>
+                        </div>
+                    }
                 </li>
             }
         </ol>
@@ -199,7 +226,8 @@
 
     private QuestionDto GetDefaultEmptyQuestion() =>  new QuestionDto
         {
-            Options = [new(), new()]
+            Options = [new(), new()],
+            IsTextAnswer = false
         };
 
     private void SetOptionAsCorrectAnswer(QuestionDto q, OptionDto o)
@@ -395,6 +423,32 @@
     private async Task OnImageFileChanged(IBrowserFile? file)
     {
         _selectedImageFile = file;
+        StateHasChanged();
+    }
+    
+    private void OnQuestionTypeChanged(QuestionDto question)
+    {
+        // When changing question type, ensure proper initialization
+        if (question.IsTextAnswer)
+        {
+            // Clear options when switching to text answer
+            question.Options.Clear();
+        }
+        else
+        {
+            // Initialize with at least 2 options when switching back to multiple choice
+            if (question.Options.Count == 0)
+            {
+                question.Options.Add(new OptionDto());
+                question.Options.Add(new OptionDto());
+            }
+        }
+        StateHasChanged();
+    }
+    
+    private void AddOptionToQuestion(QuestionDto question)
+    {
+        question.Options.Add(new OptionDto());
         StateHasChanged();
     }
     
