@@ -142,26 +142,16 @@ namespace BlazingQuiz.Api.Services
                 return QuizApiResponse.Failure("Student quiz question not found.");
             }
 
-            // Handle text answer questions vs multiple choice questions
-            // Check if this is a text answer question based on the DTO or based on the question type in DB
-            var isTextAnswerFromDto = dto.TextAnswer != null; // Even if empty string, this indicates it's a text answer question
-            var isTextAnswerFromDb = false;
+            // Determine if this is a text answer question based on the question type from DB
+            // This is more reliable than relying on the DTO content
+            var questionInfo = await _context.Questions
+                .Where(q => q.Id == dto.QuestionId)
+                .Select(q => new { q.IsTextAnswer })
+                .FirstOrDefaultAsync();
             
-            // If not determined from DTO, check the question in DB
-            if (!isTextAnswerFromDto)
-            {
-                var question = await _context.Questions
-                    .Where(q => q.Id == dto.QuestionId)
-                    .Select(q => new { q.IsTextAnswer })
-                    .FirstOrDefaultAsync();
-                
-                isTextAnswerFromDb = question?.IsTextAnswer == true;
-                Console.WriteLine($"Checking question type from DB - IsTextAnswer: {isTextAnswerFromDb}");
-            }
-            
-            Console.WriteLine($"Is text answer question - From DTO: {isTextAnswerFromDto}, From DB: {isTextAnswerFromDb}");
+            var isTextAnswer = questionInfo?.IsTextAnswer == true;
 
-            if (isTextAnswerFromDto || isTextAnswerFromDb)
+            if (isTextAnswer)
             {
                 // This is a text input question
                 // Always save the text answer, even if it's empty or null
@@ -262,10 +252,6 @@ namespace BlazingQuiz.Api.Services
                 studentQuiz.CompletedOn = completedOn;
                 studentQuiz.Status = status;
 
-                var studentQuizQuestions = await _context.StudentQuizQuestions
-                    .Where(q => q.StudentQuizId == studentQuizId)
-                    .ToListAsync();
-                _context.StudentQuizQuestions.RemoveRange(studentQuizQuestions);
                 await _context.SaveChangesAsync();
                 return QuizApiResponse.Success();
             }
