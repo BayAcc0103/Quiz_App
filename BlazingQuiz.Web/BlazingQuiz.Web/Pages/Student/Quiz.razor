@@ -6,6 +6,8 @@
 @inject IStudentQuizApi StudentQuizApi
 @inject IAppState AppState
 @inject QuestionImageService QuestionImageService
+@inject QuizAudioService QuizAudioService
+@inject QuestionAudioService QuestionAudioService
 
 @*QuizInfo*@
 @*Timer*@
@@ -25,11 +27,43 @@
                 <QuizTimer TotalMinutes="QuizState.Quiz.TimeInMinutes" OnTimerStop="AutoSubmitQuizAsync" />
             </div>
         </div>
+        @if (!string.IsNullOrEmpty(QuizState.Quiz.AudioPath))
+        {
+            <div class="quiz-audio-container my-3">
+                @if (QuizState.Quiz.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                {
+                    <audio controls class="w-100">
+                        <source src="@QuizAudioService.GetAudioUrl(QuizState.Quiz.AudioPath)" type="audio/mpeg" />
+                        Your browser does not support the audio element.
+                    </audio>
+                }
+                else
+                {
+                    <div class="alert alert-info">Quiz audio file available: @QuizState.Quiz.AudioPath</div>
+                }
+            </div>
+        }
         <h4 class="mt-3 mb-0 fw-bold">@_question.Text</h4>
         @if (!string.IsNullOrEmpty(_question.ImagePath))
         {
             <div class="question-image-container my-3">
                 <img src="@QuestionImageService.GetImageUrl(_question.ImagePath)" alt="Question Image" class="img-fluid rounded" style="max-width: 100%; max-height: 300px; object-fit: contain;" />
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(_question.AudioPath))
+        {
+            <div class="question-audio-container my-3">
+                @if (_question.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                {
+                    <audio controls class="w-100">
+                        <source src="@QuestionAudioService.GetAudioUrl(_question.AudioPath)" type="audio/mpeg" />
+                        Your browser does not support the audio element.
+                    </audio>
+                }
+                else
+                {
+                    <div class="alert alert-info">Audio file available: @_question.AudioPath</div>
+                }
             </div>
         }
         <hr/>

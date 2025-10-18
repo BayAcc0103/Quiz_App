@@ -31,6 +31,7 @@ namespace BlazingQuiz.Api.Services
                     TotalQuestions = q.Questions.Count,
                     Id = q.Id,
                     ImagePath = q.ImagePath,
+                    AudioPath = q.AudioPath,
                 })
                 .ToArrayAsync();
             return quizzes;
@@ -84,6 +85,7 @@ namespace BlazingQuiz.Api.Services
                     Id = q.Id,
                     Text = q.Text,
                     ImagePath = q.ImagePath,
+                    AudioPath = q.AudioPath,
                     IsTextAnswer = q.IsTextAnswer,
                     TextAnswer = q.IsTextAnswer ? q.TextAnswer : null, // Only include text answer if it's a text answer question
                     Options = q.Options.Select(o => new OptionDto
