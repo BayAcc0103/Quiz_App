@@ -9,6 +9,8 @@
 @inject IAppState AppState
 @inject QuizImageService QuizImageService
 @inject QuestionImageService QuestionImageService
+@inject QuizAudioService QuizAudioService
+@inject QuestionAudioService QuestionAudioService
 
 <h1>@(IsEditCase ? "Update Quiz" : "Add a Quiz")</h1>
 <hr/>
@@ -71,6 +73,36 @@
                            UploadText="Click or drag image here to upload"
                            UploadHint="Supports JPG, PNG, GIF up to 10MB" />
             </div>
+            
+            <!-- Audio Upload Section -->
+            <div class="mb-3">
+                <label class="form-label">Quiz Audio (MP3)</label>
+                @if (!string.IsNullOrEmpty(_quiz.AudioPath))
+                {
+                    <div class="mb-2">
+                        @if (_quiz.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <audio controls class="w-100">
+                                <source src="@QuizAudioService.GetAudioUrl(_quiz.AudioPath)" type="audio/mpeg" />
+                                Your browser does not support the audio element.
+                            </audio>
+                        }
+                        else
+                        {
+                            <span>Audio file: @_quiz.AudioPath</span>
+                        }
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-sm btn-danger" @onclick="RemoveAudioAsync" title="Remove Audio">Remove Audio</button>
+                        </div>
+                    </div>
+                }
+                <FileUpload CurrentFile="@_selectedAudioFile" 
+                           OnFileChanged="@OnAudioFileChanged" 
+                           AcceptedFileTypes=".mp3,audio/*" 
+                           MaxFileSize="20 * 1024 * 1024"
+                           UploadText="Click or drag MP3 file here to upload"
+                           UploadHint="Supports MP3 files up to 20MB" />
+            </div>
         </div>
 
         <hr/>
@@ -118,6 +150,36 @@
                                    MaxFileSize="10 * 1024 * 1024"
                                    UploadText="Click or drag question image to upload"
                                    UploadHint="Supports JPG, PNG, GIF up to 10MB" />
+                    </div>
+                    
+                    <!-- Question Audio Upload Section -->
+                    <div class="mb-3">
+                        <label class="form-label">Question Audio (MP3)</label>
+                        @if (!string.IsNullOrEmpty(q.AudioPath))
+                        {
+                            <div class="mb-2">
+                                @if (q.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <audio controls class="w-100">
+                                        <source src="@QuestionAudioService.GetAudioUrl(q.AudioPath)" type="audio/mpeg" />
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                }
+                                else
+                                {
+                                    <span>Audio file: @q.AudioPath</span>
+                                }
+                                <div class="mt-2">
+                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => RemoveQuestionAudioAsync(q)" title="Remove Question Audio">Remove Audio</button>
+                                </div>
+                            </div>
+                        }
+                        <FileUpload CurrentFile="@GetQuestionAudioFile(q)" 
+                                   OnFileChanged="@(file => OnQuestionAudioFileChanged(q, file))" 
+                                   AcceptedFileTypes=".mp3,audio/*" 
+                                   MaxFileSize="20 * 1024 * 1024"
+                                   UploadText="Click or drag MP3 file to upload"
+                                   UploadHint="Supports MP3 files up to 20MB" />
                     </div>
                     
                     @if (!q.IsTextAnswer)
@@ -183,7 +245,9 @@
     private CategoryDto[] _categories = [];
 
     private IBrowserFile? _selectedImageFile;
+    private IBrowserFile? _selectedAudioFile;
     private int _imageUploadProgress;
+    private int _audioUploadProgress;
 
     protected override async Task OnInitializedAsync()
     {
@@ -297,6 +361,39 @@
             }
         }
 
+        // If we have a new audio file to upload, do it after saving the quiz
+        if (_selectedAudioFile != null && _quiz.Id != Guid.Empty)
+        {
+            AppState.ShowLoader("Uploading quiz audio...");
+            try
+            {
+                var result = await QuizAudioService.UploadQuizAudioAsync(_quiz.Id, _selectedAudioFile);
+                
+                if (result.IsSuccess)
+                {
+                    // Update the current quiz with the new audio path (we need to reload quiz to get the updated audio path)
+                    var updatedQuiz = await QuizApi.GetQuizToEditAsync(_quiz.Id);
+                    if (updatedQuiz != null)
+                    {
+                        _quiz.AudioPath = updatedQuiz.AudioPath; // Get the actual path from the database
+                    }
+                }
+                else
+                {
+                    await ShowAlertAsync($"Failed to upload quiz audio: {result.ErrorMessage}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await ShowAlertAsync($"Failed to upload quiz audio: {ex.Message}");
+            }
+            finally
+            {
+                AppState.HideLoader();
+                _selectedAudioFile = null;
+            }
+        }
+
         // Handle question images upload after the quiz is saved
         if (_quiz.Id != Guid.Empty)
         {
@@ -329,19 +426,36 @@
                                 }
                             }
                         }
+                        
+                        // Handle audio file upload for this question
+                        if (originalQuestion != null && _questionAudioFiles.ContainsKey(originalQuestion) && _questionAudioFiles[originalQuestion] != null)
+                        {
+                            var questionAudioFile = _questionAudioFiles[originalQuestion];
+                            
+                            // Upload the audio for this question if there's an audio file
+                            if (questionAudioFile != null)
+                            {
+                                var result = await QuestionAudioService.UploadQuestionAudioAsync(question.Id, questionAudioFile);
+                                if (!result.IsSuccess)
+                                {
+                                    await ShowAlertAsync($"Failed to upload audio for question '{question.Text}': {result.ErrorMessage}");
+                                }
+                            }
+                        }
                     }
                     
-                    // Now reload the quiz again to get the updated image paths
-                    var quizWithImages = await QuizApi.GetQuizToEditAsync(_quiz.Id);
-                    if (quizWithImages != null)
+                    // Now reload the quiz again to get the updated image and audio paths
+                    var quizWithMedia = await QuizApi.GetQuizToEditAsync(_quiz.Id);
+                    if (quizWithMedia != null)
                     {
-                        // Update the current quiz with the image paths
+                        // Update the current quiz with the image and audio paths
                         foreach (var question in _quiz.Questions)
                         {
-                            var updatedQuestion = quizWithImages.Questions.FirstOrDefault(q => q.Id == question.Id);
+                            var updatedQuestion = quizWithMedia.Questions.FirstOrDefault(q => q.Id == question.Id);
                             if (updatedQuestion != null)
                             {
                                 question.ImagePath = updatedQuestion.ImagePath;
+                                question.AudioPath = updatedQuestion.AudioPath;
                             }
                         }
                     }
@@ -406,6 +520,9 @@
     // Dictionary to keep track of image files for each question
     private Dictionary<QuestionDto, IBrowserFile?> _questionImageFiles = new Dictionary<QuestionDto, IBrowserFile?>();
 
+    // Dictionary to keep track of audio files for each question
+    private Dictionary<QuestionDto, IBrowserFile?> _questionAudioFiles = new Dictionary<QuestionDto, IBrowserFile?>();
+
     private IBrowserFile? GetQuestionImageFile(QuestionDto question)
     {
         if (!_questionImageFiles.ContainsKey(question))
@@ -415,9 +532,24 @@
         return _questionImageFiles[question];
     }
 
+    private IBrowserFile? GetQuestionAudioFile(QuestionDto question)
+    {
+        if (!_questionAudioFiles.ContainsKey(question))
+        {
+            _questionAudioFiles[question] = null;
+        }
+        return _questionAudioFiles[question];
+    }
+
     private async Task OnQuestionImageFileChanged(QuestionDto question, IBrowserFile? file)
     {
         _questionImageFiles[question] = file;
+        StateHasChanged();
+    }
+
+    private async Task OnQuestionAudioFileChanged(QuestionDto question, IBrowserFile? file)
+    {
+        _questionAudioFiles[question] = file;
         StateHasChanged();
     }
 
@@ -464,4 +596,36 @@
         question.Options.Add(new OptionDto());
         StateHasChanged();
     }
+
+    private async Task OnAudioFileChanged(IBrowserFile? file)
+    {
+        _selectedAudioFile = file;
+        StateHasChanged();
+    }
+
+    private async Task RemoveAudioAsync()
+    {
+        if (_quiz.Id == Guid.Empty || string.IsNullOrEmpty(_quiz.AudioPath)) return;
+
+        var result = await QuizAudioService.RemoveQuizAudioAsync(_quiz.Id);
+        if (result.IsSuccess)
+        {
+            _quiz.AudioPath = null;
+        }
+        StateHasChanged();
+    }
+
+    private async Task RemoveQuestionAudioAsync(QuestionDto question)
+    {
+        if (question.Id == 0 || string.IsNullOrEmpty(question.AudioPath)) return;
+
+        var result = await QuestionAudioService.RemoveQuestionAudioAsync(question.Id);
+        if (result.IsSuccess)
+        {
+            question.AudioPath = null;
+        }
+        StateHasChanged();
+    }
+
+
 }

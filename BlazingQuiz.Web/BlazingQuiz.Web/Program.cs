@@ -39,6 +39,16 @@ builder.Services.AddHttpClient<QuestionImageService>(client =>
     client.BaseAddress = new Uri(ApiBaseUrl);
 });
 
+builder.Services.AddHttpClient<QuizAudioService>(client =>
+{
+    client.BaseAddress = new Uri(ApiBaseUrl);
+});
+
+builder.Services.AddHttpClient<QuestionAudioService>(client =>
+{
+    client.BaseAddress = new Uri(ApiBaseUrl);
+});
+
 builder.Services.AddHttpClient<UserAvatarService>(client =>
 {
     client.BaseAddress = new Uri(ApiBaseUrl);

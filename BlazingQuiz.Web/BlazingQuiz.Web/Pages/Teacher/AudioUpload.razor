@@ -1,0 +1,187 @@
+@page "/teacher/audio-upload"
+@using BlazingQuiz.Shared
+@using BlazingQuiz.Web.Auth
+@inject IAppState AppState
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+@inject QuizAuthStateProvider AuthStateProvider
+
+<AuthorizeView Roles="@nameof(UserRole.Teacher)">
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Upload Audio File</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <label class="form-label">MP3 Audio File</label>
+                            <FileUpload CurrentFile="@_selectedAudioFile" 
+                                       OnFileChanged="@OnAudioFileChanged"
+                                       MaxFileSize="20971520" @* 20MB *@
+                                       AcceptedFileTypes=".mp3,.wav,.aac,.m4a,.ogg"
+                                       ShowProgress="true"
+                                       IsUploading="@_isUploading"
+                                       ProgressPercentage="@_uploadProgress"
+                                       UploadText="Drag & drop your MP3 file here"
+                                       UploadHint="or click to browse (MP3, WAV, AAC, M4A, OGG up to 20MB)" />
+                        </div>
+
+                        @if (_uploadedAudioPath != null)
+                        {
+                            <div class="alert alert-success mt-3">
+                                <strong>Upload Successful!</strong>
+                                <p>Audio file uploaded successfully.</p>
+                                <audio controls class="w-100">
+                                    <source src="@_uploadedAudioPath" type="audio/mpeg">
+                                    Your browser does not support the audio element.
+                                </audio>
+                                <div class="mt-2">
+                                    <small class="text-muted">File path: @_uploadedAudioPath</small>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="mt-4">
+                            <button type="button" class="btn btn-secondary me-2" @onclick="GoToProfile">
+                                Teacher Profile
+                            </button>
+                            <button type="button" class="btn btn-secondary" @onclick="GoToHome">
+                                Teacher Home
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</AuthorizeView>
+
+@code {
+    private IBrowserFile? _selectedAudioFile;
+    private bool _isUploading = false;
+    private int _uploadProgress = 0;
+    private string? _uploadedAudioPath;
+
+    private async Task OnAudioFileChanged(IBrowserFile? file)
+    {
+        _selectedAudioFile = file;
+        
+        if (file != null)
+        {
+            await UploadAudioAsync(file);
+        }
+    }
+
+    private async Task UploadAudioAsync(IBrowserFile file)
+    {
+        if (file == null) return;
+
+        // Validate file size (20MB max)
+        if (file.Size > 20 * 1024 * 1024) // 20MB limit
+        {
+            AppState.ShowAlert("File size must be less than 20MB", AlertType.Error);
+            return;
+        }
+
+        // Validate file type
+        var allowedExtensions = new[] { ".mp3", ".wav", ".aac", ".m4a", ".ogg" };
+        var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+        if (!allowedExtensions.Contains(extension))
+        {
+            AppState.ShowAlert("Only audio files (MP3, WAV, AAC, M4A, OGG) are allowed", AlertType.Error);
+            return;
+        }
+
+        try
+        {
+            _isUploading = true;
+            
+            // Show initial progress
+            _uploadProgress = 0;
+            StateHasChanged();
+            
+            // Create multipart form data
+            using var formData = new MultipartFormDataContent();
+            
+            // Create file content with proper headers
+            var fileContent = new StreamContent(file.OpenReadStream(20 * 1024 * 1024)); // 20MB limit
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+            fileContent.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("form-data")
+            {
+                Name = "audio", // Parameter name expected by the API
+                FileName = file.Name
+            };
+            
+            formData.Add(fileContent);
+
+            // Set the authorization header
+            var token = AuthStateProvider.User?.Token;
+            if (!string.IsNullOrEmpty(token))
+            {
+                HttpClient.DefaultRequestHeaders.Authorization = 
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await HttpClient.PostAsync($"api/audio-upload/upload?folder=teacher-audios", formData);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                // Parse the response to get the audio path
+                var options = new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                var result = System.Text.Json.JsonSerializer.Deserialize<ApiResponse>(responseContent, options);
+                
+                if (!string.IsNullOrEmpty(result?.AudioPath))
+                {
+                    _uploadedAudioPath = $"/{result.AudioPath}";
+                    _uploadProgress = 100;
+                    StateHasChanged();
+                    
+                    AppState.ShowAlert("Audio uploaded successfully!", AlertType.Success);
+                    
+                    // Clear the selected file after successful upload
+                    _selectedAudioFile = null;
+                }
+                else
+                {
+                    AppState.ShowAlert("Failed to upload audio file", AlertType.Error);
+                }
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                AppState.ShowAlert($"Failed to upload audio. Status: {response.StatusCode}. Error: {errorContent}", AlertType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowAlert($"Error uploading audio: {ex.Message}", AlertType.Error);
+        }
+        finally
+        {
+            _isUploading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void GoToProfile()
+    {
+        NavigationManager.NavigateTo("/teacher/profile");
+    }
+
+    private void GoToHome()
+    {
+        NavigationManager.NavigateTo("/teacher/home");
+    }
+
+    public class ApiResponse
+    {
+        public string? AudioPath { get; set; }
+        public string? Message { get; set; }
+    }
+}

@@ -83,7 +83,8 @@ builder.Services.AddTransient<AuthService>()
                 .AddTransient<AdminService>()
                 .AddTransient<StudentQuizService>()
                 .AddTransient<BookmarkService>()
-                .AddTransient<IImageUploadService, ImageUploadService>();
+                .AddTransient<IImageUploadService, ImageUploadService>()
+                .AddTransient<IAudioUploadService, AudioUploadService>();
 var app = builder.Build();
 
 #if DEBUG
@@ -111,11 +112,14 @@ app.MapAuthEndpoints()
    .MapCategoryEndpoints()
    .MapCategoryImageEndpoints()
    .MapQuizEndpoints()
+   .MapQuizAudioEndpoints()
    .MapQuizImageEndpoints()
+   .MapQuestionAudioEndpoints()
    .MapQuestionImageEndpoints()
    .MapAdminEndpoints()
    .MapStudentQuizEndpoints()
    .MapBookmarkEndpoints();
+app.MapGeneralAudioEndpoints();
 app.MapUserAvatarEndpoints();
 
 

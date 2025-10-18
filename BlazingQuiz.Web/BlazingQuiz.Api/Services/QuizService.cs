@@ -20,6 +20,7 @@ namespace BlazingQuiz.Api.Services
                 Id = q.Id,
                 Text = q.Text,
                 ImagePath = q.ImagePath,
+                AudioPath = q.AudioPath,
                 IsTextAnswer = q.IsTextAnswer,
                 TextAnswer = q.TextAnswer,
                 Options = q.Options.Select(o => new Option
@@ -40,6 +41,7 @@ namespace BlazingQuiz.Api.Services
                     IsActive = dto.IsActive,
                     CreatedBy = userId, // Set the creator ID
                     ImagePath = dto.ImagePath, // Set the image path
+                    AudioPath = dto.AudioPath, // Set the audio path
                     Questions = questions
                 };
                 _context.Quizzes.Add(quiz);
@@ -66,6 +68,7 @@ namespace BlazingQuiz.Api.Services
                 dbQuiz.TimeInMinutes = dto.TimeInMinutes;
                 dbQuiz.IsActive = dto.IsActive;
                 dbQuiz.ImagePath = dto.ImagePath; // Set the image path
+                dbQuiz.AudioPath = dto.AudioPath; // Set the audio path
                 dbQuiz.Questions = questions;
             }
 
@@ -113,6 +116,7 @@ namespace BlazingQuiz.Api.Services
                     Id = q.Id,
                     Text = q.Text,
                     ImagePath = q.ImagePath,
+                    AudioPath = q.AudioPath,
                     IsTextAnswer = q.IsTextAnswer,
                     TextAnswer = q.TextAnswer,
                     Options = q.Options.Select(o => new OptionDto
@@ -143,11 +147,13 @@ namespace BlazingQuiz.Api.Services
                 TimeInMinutes = qz.TimeInMinutes,
                 IsActive = qz.IsActive,
                 ImagePath = qz.ImagePath,
+                AudioPath = qz.AudioPath,
                 Questions = qz.Questions.Select(q => new QuestionDto
                 {
                     Id = q.Id,
                     Text = q.Text,
                     ImagePath = q.ImagePath,
+                    AudioPath = q.AudioPath,
                     IsTextAnswer = q.IsTextAnswer,
                     TextAnswer = q.TextAnswer,
                     Options = q.Options.Select(o => new OptionDto
