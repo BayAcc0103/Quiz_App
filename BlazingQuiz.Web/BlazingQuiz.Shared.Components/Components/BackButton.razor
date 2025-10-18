@@ -1,0 +1,31 @@
+﻿@using Microsoft.AspNetCore.Components
+@inject NavigationManager NavigationManager
+@inject ExampleJsInterop JsInterop
+
+<button class="btn btn-secondary back-button" @onclick="GoBack" title="Back to previous page">
+    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M3.86 8.753l5.482 4.796c.646.566 1.658.106 1.658-.753V3.204a1 1 0 0 0-1.659-.753l-5.48 4.796a1 1 0 0 0 0 1.506z"/>
+    </svg>
+    Back
+</button>
+
+<style>
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.375rem 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .back-button svg {
+        margin-right: 0.25rem;
+    }
+</style>
+
+@code {
+    private async Task GoBack()
+    {
+        await JsInterop.GoBack();
+    }
+}

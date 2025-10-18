@@ -1,4 +1,5 @@
 using BlazingQuiz.Shared;
+using BlazingQuiz.Shared.Components;
 using BlazingQuiz.Web;
 using BlazingQuiz.Web.Apis;
 using BlazingQuiz.Web.Auth;
@@ -22,7 +23,8 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddSingleton<IAppState, AppState>()
     .AddSingleton<QuizState>()
     .AddSingleton<IStorageService, StorageService>()
-    .AddSingleton<IPlatform, WebPlatform>();
+    .AddSingleton<IPlatform, WebPlatform>()
+    .AddScoped<ExampleJsInterop>();
 
 builder.Services.AddHttpClient<CategoryImageService>(client =>
 {

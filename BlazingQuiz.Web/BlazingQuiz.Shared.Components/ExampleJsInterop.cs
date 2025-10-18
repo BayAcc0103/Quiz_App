@@ -25,6 +25,12 @@ namespace BlazingQuiz.Shared.Components
             return await module.InvokeAsync<string>("showPrompt", message);
         }
 
+        public async ValueTask GoBack()
+        {
+            var module = await moduleTask.Value;
+            await module.InvokeVoidAsync("goBack");
+        }
+
         public async ValueTask DisposeAsync()
         {
             if (moduleTask.IsValueCreated)
