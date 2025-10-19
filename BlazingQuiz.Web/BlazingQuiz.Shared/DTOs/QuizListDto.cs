@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -18,5 +18,6 @@ namespace BlazingQuiz.Shared.DTOs
         public bool IsActive { get; set; }
         public string? ImagePath { get; set; }
         public string? AudioPath { get; set; }
+        public string? CreatedByName { get; set; }
     }
 }

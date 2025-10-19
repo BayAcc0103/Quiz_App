@@ -15,7 +15,10 @@ namespace BlazingQuiz.Api.Services
         }
         public async Task<QuizListDto[]> GetActiveQuizesAsync(int categoryId)
         {
-            var query = _context.Quizzes.Where(q => q.IsActive);
+            var query = _context.Quizzes
+                .Include(q => q.CreatedByUser)
+                .Include(q => q.Category)
+                .Where(q => q.IsActive);
 
             if(categoryId > 0)
             {
@@ -32,6 +35,7 @@ namespace BlazingQuiz.Api.Services
                     Id = q.Id,
                     ImagePath = q.ImagePath,
                     AudioPath = q.AudioPath,
+                    CreatedByName = q.CreatedByUser != null ? q.CreatedByUser.Name : "Unknown"
                 })
                 .ToArrayAsync();
             return quizzes;
