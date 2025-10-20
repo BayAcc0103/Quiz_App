@@ -16,9 +16,6 @@
             <div class="col-sm-12">
                 <div class="d-flex justify-content-between align-items-center">
                     <h6>Question @(_currentIndex + 1) of @_questions.Count</h6>
-                    <div>
-                        <QuizTimer TotalMinutes="QuizState.Quiz.TimeInMinutes" OnTimerStop="AutoSubmitQuizAsync" />
-                    </div>
                 </div>
                 
                 @if (_questions.Any())
