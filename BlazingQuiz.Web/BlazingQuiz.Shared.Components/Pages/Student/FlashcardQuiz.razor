@@ -1,0 +1,231 @@
+@page "/student/flashcard-quiz"
+@using BlazingQuiz.Shared.Components.Apis
+@using BlazingQuiz.Shared.DTOs
+@using BlazingQuiz.Shared.Components.Components
+
+@layout QuizPageLayout 
+@inject NavigationManager NavigationManager
+@inject QuizState QuizState
+@inject IStudentQuizApi StudentQuizApi
+@inject IAppState AppState
+
+@if(QuizState.Quiz != null)
+{
+    <div class="container-fluid">
+        <div class="row mb-3">
+            <div class="col-sm-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6>Question @(_currentIndex + 1) of @_questions.Count</h6>
+                    <div>
+                        <QuizTimer TotalMinutes="QuizState.Quiz.TimeInMinutes" OnTimerStop="AutoSubmitQuizAsync" />
+                    </div>
+                </div>
+                
+                @if (_questions.Any())
+                {
+                    <Flashcard question="@_currentQuestion" 
+                               IsFlipped="@_isFlipped" 
+                               IsFlippedChanged="OnFlipChangedAsync" 
+                               OnFlipped="OnCardFlipped" />
+                    
+                    <div class="flashcard-navigation">
+                        <button class="flashcard-button flashcard-prev-btn" 
+                                @onclick="PreviousQuestion" 
+                                disabled="@(_currentIndex == 0)">
+                            Previous
+                        </button>
+                        
+                        <button class="flashcard-button flashcard-flip-btn" 
+                                @onclick="ToggleFlip">
+                            @_flipButtonText
+                        </button>
+                        
+                        @if (_currentIndex == _questions.Count - 1)
+                        {
+                            <button class="flashcard-button flashcard-next-btn" 
+                                    @onclick="SubmitQuizAsync">
+                                Submit Quiz
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="flashcard-button flashcard-next-btn" 
+                                    @onclick="NextQuestion">
+                                Next
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="text-center mt-5">
+        <h3>No Quiz Selected</h3>
+        <p>You must start a quiz first from the 'My Quizzes' page.</p>
+        <div class="mt-4">
+            <a href="/student/home" class="btn btn-primary me-2">Go to Home</a>
+            <a href="/student/my-quizes" class="btn btn-secondary">My Quizzes</a>
+        </div>
+    </div>
+}
+
+@if (_submitQuizMessage != null)
+{
+    <Modal Title="Quiz Submitted" OnActionButtonClick="RedirectToMyQuizes" OnCancelClick="RedirectToMyQuizes">
+        <p class="text-success h5">@_submitQuizMessage</p>
+    </Modal>
+}
+
+@if (_errorMessage != null)
+{
+    <div class="alert alert-danger mt-3">
+        @_errorMessage
+        <button type="button" class="btn-close" @onclick="() => _errorMessage = null"></button>
+    </div>
+}
+
+@code {
+    private List<QuestionDto> _questions = new();
+    private QuestionDto _currentQuestion = new();
+    private int _currentIndex = 0;
+    private bool _isFlipped = false;
+    private string _flipButtonText = "Flip Card";
+    private string? _errorMessage;
+    private string? _submitQuizMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if(QuizState.Quiz == null || QuizState.StudentQuizId == 0)
+        {
+            NavigationManager.NavigateTo("student/home", replace: true);
+            return;
+        }
+        
+        AppState.ShowLoader("Loading questions...");
+        try
+        {
+            // Load all questions for the quiz
+            var allQuestionsResult = await StudentQuizApi.GetAllQuestionsForQuizAsync(QuizState.StudentQuizId);
+            if (allQuestionsResult.IsSuccess && allQuestionsResult.Data != null)
+            {
+                _questions = allQuestionsResult.Data.ToList();
+                if (_questions.Any())
+                {
+                    _currentQuestion = _questions[_currentIndex];
+                }
+                else
+                {
+                    _errorMessage = "No questions available for this quiz";
+                }
+            }
+            else
+            {
+                _errorMessage = allQuestionsResult.ErrorMessage ?? "Failed to load questions";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private void NextQuestion()
+    {
+        if (_currentIndex < _questions.Count - 1)
+        {
+            _currentIndex++;
+            _currentQuestion = _questions[_currentIndex];
+            _isFlipped = false; // Reset flip state for new question
+            _flipButtonText = "Flip Card";
+        }
+    }
+
+    private void PreviousQuestion()
+    {
+        if (_currentIndex > 0)
+        {
+            _currentIndex--;
+            _currentQuestion = _questions[_currentIndex];
+            _isFlipped = false; // Reset flip state for new question
+            _flipButtonText = "Flip Card";
+        }
+    }
+
+    private void ToggleFlip()
+    {
+        _isFlipped = !_isFlipped;
+        _flipButtonText = _isFlipped ? "Flip Back" : "Flip Card";
+    }
+
+    private async Task OnFlipChangedAsync(bool isFlipped)
+    {
+        _isFlipped = isFlipped;
+        _flipButtonText = _isFlipped ? "Flip Back" : "Flip Card";
+    }
+
+    private void OnCardFlipped()
+    {
+        // Optional: Handle card flip event for analytics or other purposes
+    }
+
+    private async Task SubmitQuizAsync()
+    {
+        try
+        {
+            AppState.ShowLoader("Submitting quiz...");
+            QuizApiResponse result = await StudentQuizApi.SubmitQuizAsync(QuizState.StudentQuizId);
+            if(!result.IsSuccess)
+            {
+                _errorMessage = result.ErrorMessage;
+                return;
+            }
+            
+            _submitQuizMessage = "Quiz submitted successfully";
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private async Task AutoSubmitQuizAsync()
+    {
+        try
+        {
+            AppState.ShowLoader("Auto submitting the quiz");
+            QuizApiResponse result = await StudentQuizApi.AutoSubmitQuizAsync(QuizState.StudentQuizId);
+            if(!result.IsSuccess)
+            {
+                _errorMessage = result.ErrorMessage;
+                return;
+            }
+            
+            _submitQuizMessage = "Quiz submitted successfully";
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private void RedirectToMyQuizes()
+    {
+        QuizState.StopQuiz();
+        NavigationManager.NavigateTo("student/my-quizes", replace: true);
+    }
+}

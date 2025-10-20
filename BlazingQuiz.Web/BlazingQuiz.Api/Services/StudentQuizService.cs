@@ -337,5 +337,39 @@ namespace BlazingQuiz.Api.Services
 
             return QuizApiResponse<QuizResultDto>.Success(quizResult);
         }
+
+        public async Task<QuizApiResponse<IEnumerable<QuestionDto>>> GetAllQuestionsForQuizAsync(int studentQuizId, int studentId)
+        {
+            // Verify that the student quiz belongs to the student
+            var studentQuiz = await _context.StudentQuizzes
+                .FirstOrDefaultAsync(s => s.Id == studentQuizId && s.StudentId == studentId);
+            
+            if (studentQuiz == null)
+            {
+                return QuizApiResponse<IEnumerable<QuestionDto>>.Failure("Student quiz not found or unauthorized access");
+            }
+
+            // Get all questions for the quiz
+            var questions = await _context.Questions
+                .Where(q => q.QuizId == studentQuiz.QuizId)
+                .Select(q => new QuestionDto
+                {
+                    Id = q.Id,
+                    Text = q.Text,
+                    ImagePath = q.ImagePath,
+                    AudioPath = q.AudioPath,
+                    IsTextAnswer = q.IsTextAnswer,
+                    TextAnswer = q.IsTextAnswer ? q.TextAnswer : null, // Only include text answer if it's a text answer question
+                    Options = q.Options.Select(o => new OptionDto
+                    {
+                        Id = o.Id,
+                        Text = o.Text,
+                        IsCorrect = o.IsCorrect
+                    }).ToList()
+                })
+                .ToArrayAsync();
+
+            return QuizApiResponse<IEnumerable<QuestionDto>>.Success(questions);
+        }
     }
 }

@@ -1,0 +1,70 @@
+@using BlazingQuiz.Shared.DTOs
+@using Microsoft.JSInterop
+
+<div class="flashcard-container">
+    <div class="@(cssClass)" @onclick="ToggleFlip" id="@flashcardId">
+        <div class="flashcard-face flashcard-front">
+            <h5 class="flashcard-question">@question.Text</h5>
+            @if (!question.IsTextAnswer && question.Options.Any())
+            {
+                <div class="flashcard-options mt-3">
+                    @foreach (var option in question.Options)
+                    {
+                        <div class="flashcard-option">@option.Text</div>
+                    }
+                </div>
+            }
+            <div class="flip-hint mt-3">
+                <i class="bi bi-arrow-repeat"></i> Click to flip
+            </div>
+        </div>
+        <div class="flashcard-face flashcard-back">
+            <h5 class="flashcard-question">Answer</h5>
+            @if (question.IsTextAnswer)
+            {
+                <div class="flashcard-answer mt-3">@question.TextAnswer</div>
+            }
+            else
+            {
+                <div class="flashcard-options mt-3">
+                    @foreach (var option in question.Options.Where(o => o.IsCorrect))
+                    {
+                        <div class="flashcard-correct-option">@option.Text</div>
+                    }
+                </div>
+            }
+            <div class="flip-hint mt-3">
+                <i class="bi bi-arrow-repeat"></i> Click to flip back
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public QuestionDto question { get; set; } = new();
+    [Parameter] public bool IsFlipped { get; set; } = false;
+    [Parameter] public EventCallback<bool> IsFlippedChanged { get; set; }
+    [Parameter] public EventCallback OnFlipped { get; set; }
+
+    private string flashcardId = $"flashcard-{Guid.NewGuid():N}";
+    private string cssClass => $"flashcard {(IsFlipped ? "flipped" : "")}";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Small delay to ensure CSS transitions work properly
+            await Task.Delay(50);
+            StateHasChanged();
+        }
+    }
+
+    private async Task ToggleFlip()
+    {
+        // Add a small delay before flipping to ensure smooth animation
+        await Task.Delay(10);
+        IsFlipped = !IsFlipped;
+        await IsFlippedChanged.InvokeAsync(IsFlipped);
+        await OnFlipped.InvokeAsync();
+    }
+}

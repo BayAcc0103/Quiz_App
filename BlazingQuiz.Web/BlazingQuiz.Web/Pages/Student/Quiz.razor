@@ -23,8 +23,13 @@
     <div class="col-sm-12">
         <div class="my-1 d-flex justify-content-between align-items-center">
             <h6>@_questions.Count of @QuizState.Quiz.TotalQuestions</h6>
-            <div>
-                <QuizTimer TotalMinutes="QuizState.Quiz.TimeInMinutes" OnTimerStop="AutoSubmitQuizAsync" />
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary btn-sm" @onclick="() => _showQuizTypeModal = true" title="Change quiz type">
+                    <i class="bi bi-card-list"></i> Quiz Type
+                </button>
+                <div>
+                    <QuizTimer TotalMinutes="QuizState.Quiz.TimeInMinutes" OnTimerStop="AutoSubmitQuizAsync" />
+                </div>
             </div>
         </div>
         @if (!string.IsNullOrEmpty(QuizState.Quiz.AudioPath))
@@ -119,6 +124,24 @@
 </style>
 }
 
+@if (_showQuizTypeModal)
+{
+    <Modal Title="Select Quiz Type" OnActionButtonClick="() => _showQuizTypeModal = false" OnCancelClick="() => _showQuizTypeModal = false" ActionButtonText="Close">
+        <div class="quiz-type-selection">
+            <div class="d-grid gap-3">
+                <button class="btn btn-lg btn-outline-primary p-3" @onclick="NavigateToMcqQuiz">
+                    <h5><i class="bi bi-list-check me-2"></i>Multiple Choice Questions</h5>
+                    <p class="mb-0">Answer questions with options, save and go to next, or submit the quiz when complete.</p>
+                </button>
+                <button class="btn btn-lg btn-outline-success p-3" @onclick="NavigateToFlashcardQuiz">
+                    <h5><i class="bi bi-card-text me-2"></i>Flashcards</h5>
+                    <p class="mb-0">Review questions and answers by flipping cards. Navigate through questions at your own pace.</p>
+                </button>
+            </div>
+        </div>
+    </Modal>
+}
+
 @if (_submitQuizMessage != null)
 {
     <Modal Title="Quiz Submitted" OnActionButtonClick="RedirectToMyQuizes" OnCancelClick="RedirectToMyQuizes">
@@ -144,6 +167,7 @@
     private string? _errorMessage;
     private string? _submitQuizMessage;
     private bool _showExitQuizConfirmation;
+    private bool _showQuizTypeModal = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -322,6 +346,20 @@
         QuizState.StopQuiz();
         NavigationManager.NavigateTo("student/my-quizes", replace: true);
     }
+    
+    private async Task NavigateToMcqQuiz()
+    {
+        _showQuizTypeModal = false;
+        // Stay on the current page (MCQ format is the default)
+        // Or if we need to reload the page, we could call NavigationManager.NavigateTo("/student/quiz", forceLoad: true)
+    }
+    
+    private async Task NavigateToFlashcardQuiz()
+    {
+        _showQuizTypeModal = false;
+        NavigationManager.NavigateTo("/student/flashcard-quiz");
+    }
+    
     private async Task AutoSubmitQuizAsync()
     {
         try

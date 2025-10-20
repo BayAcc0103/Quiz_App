@@ -82,7 +82,7 @@
                         </table>
                         <hr />
                         <div class="d-flex justify-content-between">
-                            <button type="button" class="btn btn-sm btn-warning" @onclick="() => _startingQuiz = q">Start Quiz</button>
+                            <button type="button" class="btn btn-sm btn-warning" @onclick="() => ShowQuizTypeSelection(q)">Start Quiz</button>
                             <button type="button" class="btn btn-sm @(IsBookmarked(q.Id) ? "btn-success" : "btn-outline-success")" 
                                     @onclick="() => ToggleBookmarkAsync(q)" 
                                     title="@(IsBookmarked(q.Id) ? "Remove bookmark" : "Add to bookmarks")">
@@ -96,14 +96,21 @@
     </div>
 </div>
 
-@if(_startingQuiz != null)
+@if(_selectedQuizForType != null)
 {
-    var title = $"Starting Quiz: {_startingQuiz.Name}?";
-    <Modal Title="@title" OnCancelClick="() => _startingQuiz = null" OnActionButtonClick="StartQuizAsync">
-        <p class="m-0 p-3">
-            Are you sure you want to start the quiz?<br/>
-            You will not able to pause the quiz
-        </p>
+    <Modal Title="Select Quiz Type" OnCancelClick="() => _selectedQuizForType = null" OnActionButtonClick="() => {}" ActionButtonText="Close">
+        <div class="quiz-type-selection">
+            <div class="d-grid gap-3">
+                <button class="btn btn-lg btn-outline-primary p-3" @onclick="() => StartQuizWithMode(QuestionType.MCQ)">
+                    <h5><i class="bi bi-list-check me-2"></i>Multiple Choice Questions</h5>
+                    <p class="mb-0">Answer questions with options, save and go to next, or submit the quiz when complete.</p>
+                </button>
+                <button class="btn btn-lg btn-outline-success p-3" @onclick="() => StartQuizWithMode(QuestionType.Flashcard)">
+                    <h5><i class="bi bi-card-text me-2"></i>Flashcards</h5>
+                    <p class="mb-0">Review questions and answers by flipping cards. Navigate through questions at your own pace.</p>
+                </button>
+            </div>
+        </div>
     </Modal>
 }
 
@@ -112,8 +119,10 @@
     private QuizListDto[] _quizes = [];
     private int _selectedCategoryId;
     private bool _isLoading;
-    private QuizListDto? _startingQuiz;
+    private QuizListDto? _selectedQuizForType;
     private Dictionary<Guid, bool> _bookmarkedQuizes = new();
+
+    private enum QuestionType { MCQ, Flashcard }
 
     protected override async Task OnInitializedAsync()
     {
@@ -148,32 +157,7 @@
         AppState.HideLoader();
     }
 
-    private async Task StartQuizAsync()
-    {
-        AppState.ShowLoader("Preparing the quizes...");
-        try
-        {
-            QuizApiResponse<int> response = await StudentQuizApi.StartQuizAsync(_startingQuiz.Id);
-            if (!response.IsSuccess)
-            {
-                //Show error alert
-                return;
-            }
-            int studentQuizId = response.Data;
-
-            QuizState.StartQuiz(_startingQuiz, studentQuizId);
-            NavigationManager.NavigateTo("student/quiz");
-        }
-        catch
-        {
-            throw;
-        }
-        finally
-        {
-            AppState.HideLoader();
-        }
-   
-    }
+    // Removed old StartQuizAsync method - replaced with new quiz type selection functionality
     
     private async Task LoadBookmarkStatusAsync()
     {
@@ -234,5 +218,49 @@
     private bool IsBookmarked(Guid quizId)
     {
         return _bookmarkedQuizes.ContainsKey(quizId) && _bookmarkedQuizes[quizId];
+    }
+
+    private void ShowQuizTypeSelection(QuizListDto quiz)
+    {
+        _selectedQuizForType = quiz;
+    }
+
+    private async Task StartQuizWithMode(QuestionType type)
+    {
+        if (_selectedQuizForType == null) return;
+        
+        AppState.ShowLoader("Preparing the quiz...");
+        try
+        {
+            QuizApiResponse<int> response = await StudentQuizApi.StartQuizAsync(_selectedQuizForType.Id);
+            if (!response.IsSuccess)
+            {
+                //Show error alert
+                return;
+            }
+            int studentQuizId = response.Data;
+
+            QuizState.StartQuiz(_selectedQuizForType, studentQuizId);
+            
+            // Navigate to appropriate quiz type based on selection
+            switch (type)
+            {
+                case QuestionType.MCQ:
+                    NavigationManager.NavigateTo("student/quiz");
+                    break;
+                case QuestionType.Flashcard:
+                    NavigationManager.NavigateTo("student/flashcard-quiz");
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError(ex.Message);
+        }
+        finally
+        {
+            AppState.HideLoader();
+            _selectedQuizForType = null;
+        }
     }
 }

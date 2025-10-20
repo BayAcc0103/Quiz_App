@@ -32,5 +32,8 @@ namespace BlazingQuiz.Shared.Components.Apis
 
         [Post("/api/student/quiz/{studentQuizId}/auto-submit")]
         Task<QuizApiResponse> AutoSubmitQuizAsync(int studentQuizId);
+        
+        [Get("/api/student/quiz/{studentQuizId}/all-questions")]
+        Task<QuizApiResponse<IEnumerable<QuestionDto>>> GetAllQuestionsForQuizAsync(int studentQuizId);
     }
 }
