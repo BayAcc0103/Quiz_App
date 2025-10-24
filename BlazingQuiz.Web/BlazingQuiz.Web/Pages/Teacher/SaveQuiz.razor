@@ -78,36 +78,6 @@
                            UploadText="Click or drag image here to upload"
                            UploadHint="Supports JPG, PNG, GIF up to 10MB" />
             </div>
-            
-            <!-- Audio Upload Section -->
-            <div class="mb-3">
-                <label class="form-label">Quiz Audio (MP3)</label>
-                @if (!string.IsNullOrEmpty(_quiz.AudioPath))
-                {
-                    <div class="mb-2">
-                        @if (_quiz.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
-                        {
-                            <audio controls class="w-100">
-                                <source src="@QuizAudioService.GetAudioUrl(_quiz.AudioPath)" type="audio/mpeg" />
-                                Your browser does not support the audio element.
-                            </audio>
-                        }
-                        else
-                        {
-                            <span>Audio file: @_quiz.AudioPath</span>
-                        }
-                        <div class="mt-2">
-                            <button type="button" class="btn btn-sm btn-danger" @onclick="RemoveAudioAsync" title="Remove Audio">Remove Audio</button>
-                        </div>
-                    </div>
-                }
-                <FileUpload CurrentFile="@_selectedAudioFile" 
-                           OnFileChanged="@OnAudioFileChanged" 
-                           AcceptedFileTypes=".mp3,audio/*" 
-                           MaxFileSize="20 * 1024 * 1024"
-                           UploadText="Click or drag MP3 file here to upload"
-                           UploadHint="Supports MP3 files up to 20MB" />
-            </div>
         </div>
 
         <hr/>

@@ -1,0 +1,86 @@
+﻿@using BlazingQuiz.Shared
+@using BlazingQuiz.Shared.DTOs
+@using BlazingQuiz.Web.Apis
+@inject QuizAuthStateProvider QuizAuthStateProvider
+@inject IAuthApi AuthApi
+@inject UserAvatarService UserAvatarService
+@inject NavigationManager NavigationManager
+
+<div class="dropdown user-profile-dropdown">
+    <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center py-0" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        @if (!string.IsNullOrEmpty(_userDto?.AvatarPath))
+        {
+            <img src="@UserAvatarService.GetImageUrl(_userDto.AvatarPath)" 
+                 alt="Avatar" 
+                 class="rounded-circle" />
+        }
+        else
+        {
+            <img src="@UserAvatarService.GetImageUrl("images/user-avatars/default-avatar.svg")" 
+                 alt="Default Avatar" 
+                 class="rounded-circle" />
+        }
+        <span class="text-white">@QuizAuthStateProvider.User?.Name</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+        <li>
+            <span class="dropdown-item-text">
+                <strong>Role:</strong> @QuizAuthStateProvider.User?.Role
+            </span>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <a class="dropdown-item" href="@GetProfileUrl()">
+                <i class="bi bi-person-circle me-2"></i> Profile
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item" @onclick="LogoutAsync">
+                <i class="bi bi-box-arrow-right me-2"></i> Logout
+            </a>
+        </li>
+    </ul>
+</div>
+
+@code {
+    private UserDto? _userDto;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserProfile();
+    }
+
+    private async Task LoadUserProfile()
+    {
+        if (QuizAuthStateProvider.IsLoggedIn)
+        {
+            try
+            {
+                _userDto = await AuthApi.GetProfileAsync();
+            }
+            catch (Exception ex)
+            {
+                // Handle error silently or log if needed
+                Console.WriteLine($"Error loading user profile: {ex.Message}");
+            }
+        }
+    }
+
+    private string GetProfileUrl()
+    {
+        var role = QuizAuthStateProvider.User?.Role?.ToLower();
+        return role switch
+        {
+            "student" => "/student/profile",
+            "teacher" => "/teacher/profile",
+            "admin" => "/admin/profile", // Assuming admin profile exists
+            _ => "/auth/login"
+        };
+    }
+
+    private async Task LogoutAsync()
+    {
+        await QuizAuthStateProvider.SetLogoutAsync();
+        NavigationManager.NavigateTo("auth/login", replace: true); // Redirect to login page after logout
+    }
+}

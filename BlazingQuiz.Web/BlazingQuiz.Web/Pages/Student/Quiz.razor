@@ -24,9 +24,6 @@
         <div class="my-1 d-flex justify-content-between align-items-center">
             <h6>@_questions.Count of @QuizState.Quiz.TotalQuestions</h6>
             <div class="d-flex gap-2">
-                <button class="btn btn-outline-primary btn-sm" @onclick="() => _showQuizTypeModal = true" title="Change quiz type">
-                    <i class="bi bi-card-list"></i> Quiz Type
-                </button>
                 <div>
                     <QuizTimer TotalMinutes="QuizState.Quiz.TimeInMinutes" OnTimerStop="AutoSubmitQuizAsync" />
                 </div>

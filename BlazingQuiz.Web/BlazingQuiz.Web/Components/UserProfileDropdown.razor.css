@@ -1,0 +1,15 @@
+﻿.user-profile-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-profile-dropdown img {
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+}
+
+.user-profile-dropdown .dropdown-toggle::after {
+    margin-left: 0.5rem;
+}
