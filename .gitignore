@@ -41,3 +41,6 @@ wwwroot/_framework/
 
 # Các file khác
 *.DS_Store
+/BlazingQuiz.Web/.vs/ProjectEvaluation
+/BlazingQuiz.Web/.vs/BlazingQuiz.Web/v17
+/BlazingQuiz.Web/.vs/BlazingQuiz.Web/DesignTimeBuild
