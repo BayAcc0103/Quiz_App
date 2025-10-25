@@ -371,5 +371,81 @@ namespace BlazingQuiz.Api.Services
 
             return QuizApiResponse<IEnumerable<QuestionDto>>.Success(questions);
         }
+
+        public async Task<QuizApiResponse> SaveRatingAndCommentAsync(QuizRatingCommentDto dto, int studentId)
+        {
+            // Verify that the student quiz belongs to the student
+            var studentQuiz = await _context.StudentQuizzes
+                .FirstOrDefaultAsync(s => s.Id == dto.StudentQuizId && s.StudentId == studentId);
+            
+            if (studentQuiz == null)
+            {
+                return QuizApiResponse.Failure("Student quiz not found or unauthorized access");
+            }
+
+            try
+            {
+                // Check if rating already exists for this quiz by this student
+                var existingRating = await _context.Ratings
+                    .FirstOrDefaultAsync(r => r.StudentId == studentId && r.QuizId == studentQuiz.QuizId);
+                
+                if (existingRating != null)
+                {
+                    // Update existing rating
+                    existingRating.Score = dto.RatingScore;
+                    existingRating.CreatedOn = DateTime.UtcNow;
+                }
+                else
+                {
+                    // Create new rating
+                    var rating = new Rating
+                    {
+                        StudentId = studentId,
+                        QuizId = studentQuiz.QuizId,
+                        Score = dto.RatingScore,
+                        CreatedOn = DateTime.UtcNow
+                    };
+                    _context.Ratings.Add(rating);
+                }
+
+                // Check if comment already exists for this quiz by this student
+                var existingComment = await _context.Comments
+                    .FirstOrDefaultAsync(c => c.StudentId == studentId && c.QuizId == studentQuiz.QuizId);
+                
+                if (existingComment != null)
+                {
+                    // Update existing comment if provided
+                    if (!string.IsNullOrWhiteSpace(dto.CommentContent))
+                    {
+                        existingComment.Content = dto.CommentContent;
+                        existingComment.CreatedOn = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        // If no content provided, remove the existing comment
+                        _context.Comments.Remove(existingComment);
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(dto.CommentContent))
+                {
+                    // Create new comment
+                    var comment = new Comment
+                    {
+                        StudentId = studentId,
+                        QuizId = studentQuiz.QuizId,
+                        Content = dto.CommentContent!,
+                        CreatedOn = DateTime.UtcNow
+                    };
+                    _context.Comments.Add(comment);
+                }
+
+                await _context.SaveChangesAsync();
+                return QuizApiResponse.Success();
+            }
+            catch (Exception ex)
+            {
+                return QuizApiResponse.Failure(ex.Message);
+            }
+        }
     }
 }

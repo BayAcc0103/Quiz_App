@@ -1,4 +1,4 @@
-﻿@page "/student/quiz"
+@page "/student/quiz"
 
 @layout QuizPageLayout 
 @inject NavigationManager NavigationManager
@@ -139,12 +139,7 @@
     </Modal>
 }
 
-@if (_submitQuizMessage != null)
-{
-    <Modal Title="Quiz Submitted" OnActionButtonClick="RedirectToMyQuizes" OnCancelClick="RedirectToMyQuizes">
-        <p class="text-success h5">@_submitQuizMessage</p>
-    </Modal>
-}
+
 
 @if (_showExitQuizConfirmation)
 {
@@ -152,6 +147,30 @@
            ActionButtonText="Yes"
            OnCancelClick="() => _showExitQuizConfirmation = false">
         <h5 class="text-danger">Do you realy want to exit the quiz</h5>
+    </Modal>
+}
+
+@if (_showRatingModal)
+{
+    <Modal Title="Rate and Comment on this Quiz" OnActionButtonClick="SubmitRatingAndCommentAsync" OnCancelClick="() => _showRatingModal = false" ActionButtonText="Submit Rating">
+        <div class="mb-3">
+            <label class="form-label">Rating</label>
+            <div class="rating-container">
+                @for (int i = 1; i <= 5; i++)
+                {
+                    <span class="star" 
+                          style=@($"font-size: 2rem; cursor: pointer; color: {(i <= _ratingScore ? "gold" : "gray")};") 
+                          @onclick="() => _ratingScore = i">
+                        ★
+                    </span>
+                }
+            </div>
+            <p class="text-center mt-2">@(GetRatingText(_ratingScore))</p>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Comment</label>
+            <textarea class="form-control" rows="4" placeholder="Share your thoughts about this quiz..." @bind="_commentContent"></textarea>
+        </div>
     </Modal>
 }
 
@@ -165,6 +184,9 @@
     private string? _submitQuizMessage;
     private bool _showExitQuizConfirmation;
     private bool _showQuizTypeModal = false;
+    private bool _showRatingModal = false;
+    private int _ratingScore = 0;
+    private string? _commentContent;
 
     protected override async Task OnInitializedAsync()
     {
@@ -197,8 +219,8 @@
                     _errorMessage = result.ErrorMessage;
                     return;
                 }
-                //TODO: Show the result in Modal Popup or in a separate page
-                _submitQuizMessage = "Quiz submitted successfully";
+                // Show rating modal instead of redirecting to quiz result
+                _showRatingModal = true;
             }
             catch (Exception ex)
             {
@@ -369,12 +391,59 @@
                 _errorMessage = result.ErrorMessage;
                 return;
             }
-            //TODO: Show the result in Modal Popup or in a separate page
-            _submitQuizMessage = "Quiz submitted successfully";
+            // Show rating modal instead of redirecting to quiz result
+            _showRatingModal = true;
         }
         catch (Exception ex)
         {
             //Show error alert
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+    
+    private string GetRatingText(int rating)
+    {
+        return rating switch
+        {
+            1 => "Poor",
+            2 => "Fair",
+            3 => "Good",
+            4 => "Very Good",
+            5 => "Excellent",
+            _ => "Please select a rating"
+        };
+    }
+    
+    private async Task SubmitRatingAndCommentAsync()
+    {
+        try
+        {
+            AppState.ShowLoader("Submitting your rating and comment...");
+            
+            var ratingDto = new QuizRatingCommentDto
+            {
+                StudentQuizId = QuizState.StudentQuizId,
+                RatingScore = _ratingScore,
+                CommentContent = _commentContent
+            };
+            
+            var result = await StudentQuizApi.SaveRatingAndCommentAsync(QuizState.StudentQuizId, ratingDto);
+            
+            if (!result.IsSuccess)
+            {
+                _errorMessage = result.ErrorMessage ?? "Failed to submit rating and comment.";
+                return;
+            }
+            
+            // Redirect to quiz result page after successful rating submission
+            NavigationManager.NavigateTo($"student/quiz-result/{QuizState.StudentQuizId}", replace: true);
+        }
+        catch (Exception ex)
+        {
             _errorMessage = ex.Message;
         }
         finally

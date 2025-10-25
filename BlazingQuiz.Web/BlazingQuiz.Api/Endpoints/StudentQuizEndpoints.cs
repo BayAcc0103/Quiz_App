@@ -49,6 +49,14 @@ namespace BlazingQuiz.Api.Endpoints
 
             quizGroup.MapGet("/{studentQuizId:int}/all-questions", async (int studentQuizId, ClaimsPrincipal principal, StudentQuizService quizService) =>
                 Results.Ok(await quizService.GetAllQuestionsForQuizAsync(studentQuizId, principal.GetStudentId())));
+
+            quizGroup.MapPost("/{studentQuizId:int}/rate-and-comment", async (int studentQuizId, QuizRatingCommentDto dto, ClaimsPrincipal principal, StudentQuizService quizService) =>
+            {
+                if (studentQuizId != dto.StudentQuizId)
+                    return Results.Unauthorized();
+                return Results.Ok(await quizService.SaveRatingAndCommentAsync(dto, principal.GetStudentId()));
+            });
+
             return app;
         }
     }

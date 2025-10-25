@@ -35,5 +35,8 @@ namespace BlazingQuiz.Web.Apis
         
         [Get("/api/student/quiz/{studentQuizId}/all-questions")]
         Task<QuizApiResponse<IEnumerable<QuestionDto>>> GetAllQuestionsForQuizAsync(int studentQuizId);
+
+        [Post("/api/student/quiz/{studentQuizId}/rate-and-comment")]
+        Task<QuizApiResponse> SaveRatingAndCommentAsync(int studentQuizId, QuizRatingCommentDto dto);
     }
 }
