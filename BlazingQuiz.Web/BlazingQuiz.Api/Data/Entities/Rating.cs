@@ -10,7 +10,7 @@ namespace BlazingQuiz.Api.Data.Entities
         
         public int StudentId { get; set; }
         public Guid QuizId { get; set; }
-        public int Score { get; set; } // Rating score from 1 to 5
+        public string Score { get; set; } = string.Empty; // Rating text (e.g., "bad", "very bad", "normal", "good", "very good")
         
         [ForeignKey(nameof(StudentId))]
         public virtual User Student { get; set; }

@@ -1,6 +1,7 @@
 ﻿using BlazingQuiz.Api.Data;
 using BlazingQuiz.Api.Data.Entities;
 using BlazingQuiz.Shared.DTOs;
+using BlazingQuiz.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlazingQuiz.Api.Services
@@ -392,7 +393,7 @@ namespace BlazingQuiz.Api.Services
                 if (existingRating != null)
                 {
                     // Update existing rating
-                    existingRating.Score = dto.RatingScore;
+                    existingRating.Score = ConvertRatingToText(dto);
                     existingRating.CreatedOn = DateTime.UtcNow;
                 }
                 else
@@ -402,7 +403,7 @@ namespace BlazingQuiz.Api.Services
                     {
                         StudentId = studentId,
                         QuizId = studentQuiz.QuizId,
-                        Score = dto.RatingScore,
+                        Score = ConvertRatingToText(dto),
                         CreatedOn = DateTime.UtcNow
                     };
                     _context.Ratings.Add(rating);
@@ -446,6 +447,32 @@ namespace BlazingQuiz.Api.Services
             {
                 return QuizApiResponse.Failure(ex.Message);
             }
+        }
+
+        private string ConvertRatingToText(QuizRatingCommentDto dto)
+        {
+            // If RatingText is provided and valid, use it
+            if (!string.IsNullOrWhiteSpace(dto.RatingText) && BlazingQuiz.Shared.Enums.RatingText.IsValid(dto.RatingText))
+            {
+                return dto.RatingText;
+            }
+            
+            // Otherwise, convert the RatingScore to text
+            if (dto.RatingScore.HasValue)
+            {
+                return dto.RatingScore.Value switch
+                {
+                    1 => BlazingQuiz.Shared.Enums.RatingText.VeryBad,
+                    2 => BlazingQuiz.Shared.Enums.RatingText.Bad,
+                    3 => BlazingQuiz.Shared.Enums.RatingText.Normal,
+                    4 => BlazingQuiz.Shared.Enums.RatingText.Good,
+                    5 => BlazingQuiz.Shared.Enums.RatingText.VeryGood,
+                    _ => BlazingQuiz.Shared.Enums.RatingText.Normal // Default value
+                };
+            }
+            
+            // Default to normal if no valid rating is provided
+            return BlazingQuiz.Shared.Enums.RatingText.Normal;
         }
     }
 }

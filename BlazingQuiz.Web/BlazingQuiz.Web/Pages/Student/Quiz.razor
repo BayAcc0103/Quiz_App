@@ -118,6 +118,38 @@
         border-radius: 10px;
         box-shadow: 0 0 18px 1px #bebebe;
     }
+    
+    .emotion-icon {
+        transition: all ease 0.3s;
+        border-radius: 50%;
+        padding: 10px;
+        position: relative;
+    }
+    
+    .emotion-icon.selected {
+        color: #0d6efd !important;
+        -webkit-animation: pulse 2s infinite;
+        animation: pulse 2s infinite;
+        background-color: rgba(13, 110, 253, 0.1);
+        box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+    }
+    
+    @@keyframes pulse {
+        0% { 
+            box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
+        }
+        50% { 
+            box-shadow: 0 0 20px rgba(13, 110, 253, 0.8);
+        }
+        100% { 
+            box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
+        }
+    }
+    
+    .emotion-icon:hover {
+        transform: scale(1.2);
+        background-color: #f0f8ff;
+    }
 </style>
 }
 
@@ -150,22 +182,34 @@
     </Modal>
 }
 
+@if (_showSuccessMessage)
+{
+    <Modal Title="Quiz Submitted" OnActionButtonClick="ShowRatingModal" OnCancelClick="ShowRatingModal" ActionButtonText="OK">
+        <p class="text-success h5">Quiz submitted successfully</p>
+    </Modal>
+}
+
 @if (_showRatingModal)
 {
-    <Modal Title="Rate and Comment on this Quiz" OnActionButtonClick="SubmitRatingAndCommentAsync" OnCancelClick="() => _showRatingModal = false" ActionButtonText="Submit Rating">
+    <Modal Title="Rate and Comment on this Quiz" OnActionButtonClick="SubmitRatingAndCommentAsync" OnCancelClick="CloseRatingModal" ActionButtonText="Submit Rating">
         <div class="mb-3">
             <label class="form-label">Rating</label>
-            <div class="rating-container">
+            <div class="rating-container d-flex justify-content-between">
                 @for (int i = 1; i <= 5; i++)
                 {
-                    <span class="star" 
-                          style=@($"font-size: 2rem; cursor: pointer; color: {(i <= _ratingScore ? "gold" : "gray")};") 
-                          @onclick="() => _ratingScore = i">
-                        ★
-                    </span>
+                    <div class="text-center" style="cursor: pointer;" @onclick="() => _ratingScore = i">
+                        <div class="emotion-icon @(i == _ratingScore ? "selected" : "")" 
+                             style=@($"font-size: 2rem; color: {(i == _ratingScore ? "#0d6efd" : "gray")};")>
+                            @GetEmotionIcon(i)
+                        </div>
+                        <div class="emotion-label mt-1" 
+                             style=@($"font-size: 0.8rem; color: {(i == _ratingScore ? "#0d6efd" : "gray")}; font-weight: {(i == _ratingScore ? "bold" : "normal")};")>
+                            @GetRatingText(i)
+                        </div>
+                    </div>
                 }
             </div>
-            <p class="text-center mt-2">@(GetRatingText(_ratingScore))</p>
+            <p class="text-center mt-3">@(_ratingScore > 0 ? GetRatingText(_ratingScore) : "Please select a rating")</p>
         </div>
         <div class="mb-3">
             <label class="form-label">Comment</label>
@@ -185,6 +229,7 @@
     private bool _showExitQuizConfirmation;
     private bool _showQuizTypeModal = false;
     private bool _showRatingModal = false;
+    private bool _showSuccessMessage = false;
     private int _ratingScore = 0;
     private string? _commentContent;
 
@@ -219,8 +264,8 @@
                     _errorMessage = result.ErrorMessage;
                     return;
                 }
-                // Show rating modal instead of redirecting to quiz result
-                _showRatingModal = true;
+                // Show success message
+                _showSuccessMessage = true;
             }
             catch (Exception ex)
             {
@@ -391,8 +436,8 @@
                 _errorMessage = result.ErrorMessage;
                 return;
             }
-            // Show rating modal instead of redirecting to quiz result
-            _showRatingModal = true;
+            // Show success message
+            _showSuccessMessage = true;
         }
         catch (Exception ex)
         {
@@ -406,15 +451,41 @@
     }
     
     private string GetRatingText(int rating)
+{
+    return rating switch
+    {
+        1 => "Very Bad",
+        2 => "Bad",
+        3 => "Normal",
+        4 => "Fun",
+        5 => "Very Fun",
+        _ => ""
+    };
+}
+    
+    private string GetEmotionIcon(int rating)
     {
         return rating switch
         {
-            1 => "Poor",
-            2 => "Fair",
-            3 => "Good",
-            4 => "Very Good",
-            5 => "Excellent",
-            _ => "Please select a rating"
+            1 => "😞",
+            2 => "😟",
+            3 => "😐",
+            4 => "🙂",
+            5 => "😊",
+            _ => "😐"
+        };
+    }
+    
+    private string GetEmotionLabel(int rating)
+    {
+        return rating switch
+        {
+            1 => "Very Bad",
+            2 => "Bad",
+            3 => "Normal",
+            4 => "Fun",
+            5 => "Very Fun",
+            _ => ""
         };
     }
     
@@ -428,6 +499,7 @@
             {
                 StudentQuizId = QuizState.StudentQuizId,
                 RatingScore = _ratingScore,
+                RatingText = GetRatingText(_ratingScore),
                 CommentContent = _commentContent
             };
             
@@ -439,7 +511,8 @@
                 return;
             }
             
-            // Redirect to quiz result page after successful rating submission
+            // Close the rating modal and redirect to quiz result page after successful rating submission
+            _showRatingModal = false;
             NavigationManager.NavigateTo($"student/quiz-result/{QuizState.StudentQuizId}", replace: true);
         }
         catch (Exception ex)
@@ -450,5 +523,18 @@
         {
             AppState.HideLoader();
         }
+    }
+    
+    private void CloseRatingModal()
+    {
+        _showRatingModal = false;
+        NavigationManager.NavigateTo($"student/quiz-result/{QuizState.StudentQuizId}", replace: true);
+    }
+    
+    private void ShowRatingModal()
+    {
+        _showSuccessMessage = false;
+        _showRatingModal = true;
+        _ratingScore = 0; // Reset rating score when showing the modal
     }
 }
