@@ -9,6 +9,7 @@ namespace BlazingQuiz.Api.Data.Entities
         public Guid Id { get; set; }
         [MaxLength(100)]
         public string Name { get; set; }
+        public string? Description { get; set; } // Description of the quiz
         public int CategoryId { get; set; }
         public int TotalQuestions { get; set; }
         public int TimeInMinutes { get; set; }

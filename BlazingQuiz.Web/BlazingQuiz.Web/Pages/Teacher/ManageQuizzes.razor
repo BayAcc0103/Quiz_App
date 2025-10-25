@@ -32,6 +32,7 @@
                    <tr>
                         <th>Image</th>
                         <th>Name</th>
+                        <th>Description</th>
                         <th>Category</th>
                         <th>Number of Questions</th>
                         <th>Time (in minutes)</th>
@@ -42,7 +43,7 @@
                     @if(_filteredQuizes.Length == 0)
                     {
                         <tr>
-                            <td colspan="6" class="text-danger">No quizzes found</td>
+                            <td colspan="7" class="text-danger">No quizzes found</td>
                         </tr>
                     }
                     else
@@ -57,6 +58,7 @@
                                     }
                                 </td>
                                 <td>@q.Name</td>
+                                <td>@q.Description</td>
                                 <td>@q.CategoryName</td>
                                 <td>@q.TotalQuestions questions</td>
                                 <td>@q.TimeInMinutes minutes</td>
@@ -84,8 +86,16 @@
            OnCancelClick="() => _showQuestionsModal = false">
            @foreach(var q in _viewQuestions)
            {
-           <div class="mb-2 shadow p-2">
-                @q.Text
+           <div class="mb-3 shadow p-2">
+                <div class="question-text mb-2">
+                    <strong>Question:</strong> @q.Text
+                </div>
+                @if (!string.IsNullOrEmpty(q.AnswerExplanation))
+                {
+                    <div class="answer-explanation">
+                        <strong>Answer Explanation:</strong> @q.AnswerExplanation
+                    </div>
+                }
            </div>
            }
     </Modal>

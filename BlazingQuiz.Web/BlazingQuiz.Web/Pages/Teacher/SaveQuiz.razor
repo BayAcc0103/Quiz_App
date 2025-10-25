@@ -43,6 +43,12 @@
                 <ValidationMessage For="() => _quiz.Name" />
             </div>
         </div>
+        <div class="col-sm-9">
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <InputText @bind-Value="_quiz.Description" class="form-control" placeholder="Enter a description for the quiz"></InputText>
+            </div>
+        </div>
         <div class="col-sm-3">
             <div class="mb-3">
                 <label class="form-label">Total Questions</label>
@@ -125,6 +131,12 @@
                                    MaxFileSize="10 * 1024 * 1024"
                                    UploadText="Click or drag question image to upload"
                                    UploadHint="Supports JPG, PNG, GIF up to 10MB" />
+                    </div>
+                    
+                    <!-- Answer Explanation Section -->
+                    <div class="mb-3">
+                        <label class="form-label">Answer Explanation</label>
+                        <InputText @bind-Value="q.AnswerExplanation" class="form-control" placeholder="Enter explanation for the correct answer"></InputText>
                     </div>
                     
                     <!-- Question Audio Upload Section -->

@@ -7,6 +7,7 @@ namespace BlazingQuiz.Shared.DTOs
         public int Id { get; set; }
         [Required, MaxLength(500)]
         public string Text { get; set; }
+        public string? AnswerExplanation { get; set; } // Explanation of the correct answer
         public string? ImagePath { get; set; } // Path to the question image
         public string? AudioPath { get; set; } // Path to the question audio
         public List<OptionDto> Options { get; set; } = [];

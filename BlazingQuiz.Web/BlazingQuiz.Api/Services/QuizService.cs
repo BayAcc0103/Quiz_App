@@ -19,6 +19,7 @@ namespace BlazingQuiz.Api.Services
             {
                 Id = q.Id,
                 Text = q.Text,
+                AnswerExplanation = q.AnswerExplanation,
                 ImagePath = q.ImagePath,
                 AudioPath = q.AudioPath,
                 IsTextAnswer = q.IsTextAnswer,
@@ -35,6 +36,7 @@ namespace BlazingQuiz.Api.Services
                 var quiz = new Quiz
                 {
                     Name = dto.Name,
+                    Description = dto.Description,
                     CategoryId = dto.CategoryId,
                     TotalQuestions = dto.TotalQuestions,
                     TimeInMinutes = dto.TimeInMinutes,
@@ -63,6 +65,7 @@ namespace BlazingQuiz.Api.Services
                 }
                 
                 dbQuiz.Name = dto.Name;
+                dbQuiz.Description = dto.Description;
                 dbQuiz.CategoryId = dto.CategoryId;
                 dbQuiz.TotalQuestions = dto.TotalQuestions;
                 dbQuiz.TimeInMinutes = dto.TimeInMinutes;
@@ -99,6 +102,7 @@ namespace BlazingQuiz.Api.Services
             {
                 Id = q.Id,
                 Name = q.Name,
+                Description = q.Description,
                 CategoryName = q.Category.Name,
                 TotalQuestions = q.TotalQuestions,
                 TimeInMinutes = q.TimeInMinutes,
@@ -142,6 +146,7 @@ namespace BlazingQuiz.Api.Services
             {
                 Id = qz.Id,
                 Name = qz.Name,
+                Description = qz.Description,
                 CategoryId = qz.CategoryId,
                 TotalQuestions = qz.TotalQuestions,
                 TimeInMinutes = qz.TimeInMinutes,
@@ -152,6 +157,7 @@ namespace BlazingQuiz.Api.Services
                 {
                     Id = q.Id,
                     Text = q.Text,
+                    AnswerExplanation = q.AnswerExplanation,
                     ImagePath = q.ImagePath,
                     AudioPath = q.AudioPath,
                     IsTextAnswer = q.IsTextAnswer,

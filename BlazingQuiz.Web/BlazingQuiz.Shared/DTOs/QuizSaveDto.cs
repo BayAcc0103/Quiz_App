@@ -12,6 +12,8 @@ namespace BlazingQuiz.Shared.DTOs
         public Guid Id { get; set; }
         [Required, MaxLength(100)]
         public string Name { get; set; }
+        [MaxLength(500)]
+        public string? Description { get; set; } // Description of the quiz
         [Range(1, int.MaxValue, ErrorMessage = "Category is required")]
         public int CategoryId { get; set; }
         [Range(1, int.MaxValue, ErrorMessage = "Please provide valid number of questions")]
