@@ -1,0 +1,128 @@
+@using Microsoft.AspNetCore.Components.Web
+
+<div class="bottom-sheet-overlay @(IsOpen ? "show" : "")" @onclick="OnOverlayClick">
+    <div class="bottom-sheet @(IsOpen ? "open" : "")">
+        <div class="bottom-sheet-header">
+            <h5 class="bottom-sheet-title">@Title</h5>
+            <button type="button" class="btn-close" @onclick="OnCancelClick"></button>
+        </div>
+        <div class="bottom-sheet-content">
+            @ChildContent
+        </div>
+        @if (ShowFooter)
+        {
+            <div class="bottom-sheet-footer">
+                <button type="button" class="btn btn-secondary" @onclick="OnCancelClick">@CancelText</button>
+                <button type="button" class="btn btn-primary" @onclick="OnActionButtonClick">@ActionButtonText</button>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .bottom-sheet-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1050; /* Bootstrap modal z-index */
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .bottom-sheet-overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .bottom-sheet {
+        width: 100%;
+        max-width: 1200px;
+        max-height: 700vh; /* Reduced from 80vh to 70vh as per requirement */
+        min-height: 40vh; /* Added minimum height as per requirement */
+        background: white;
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.4);
+        transform: translateY(100%);
+        transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1); /* Smoother animation */
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .bottom-sheet.open {
+        transform: translateY(0);
+    }
+
+    .bottom-sheet-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .bottom-sheet-title {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 500;
+    }
+
+    .bottom-sheet-content {
+        padding: 1.5rem;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .bottom-sheet-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #dee2e6;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+</style>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback OnCancelClick { get; set; }
+    [Parameter] public EventCallback OnActionButtonClick { get; set; }
+    [Parameter] public bool ShowFooter { get; set; } = false;
+    [Parameter] public string ActionButtonText { get; set; } = "Ok";
+    [Parameter] public string CancelText { get; set; } = "Cancel";
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+
+    private async Task OnOverlayClick()
+    {
+        await OnCancelClick.InvokeAsync();
+    }
+    
+    // This method will be called when the IsOpen parameter changes
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        var isOpenBefore = IsOpen;
+        await base.SetParametersAsync(parameters);
+        
+        // Notify interested parties of the change
+        if (isOpenBefore != IsOpen)
+        {
+            await IsOpenChanged.InvokeAsync(IsOpen);
+            StateHasChanged();
+        }
+    }
+    
+    protected override void OnParametersSet()
+    {
+        Console.WriteLine($"BottomSheet OnParametersSet - IsOpen: {IsOpen}");
+        StateHasChanged();
+        base.OnParametersSet();
+    }
+}

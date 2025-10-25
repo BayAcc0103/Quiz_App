@@ -475,5 +475,82 @@ namespace BlazingQuiz.Api.Services
             // Default to normal if no valid rating is provided
             return BlazingQuiz.Shared.Enums.RatingText.Normal;
         }
+
+        public async Task<QuizApiResponse<QuizDetailsDto>> GetQuizDetailsAsync(Guid quizId)
+        {
+            try
+            {
+                // Get the quiz with its details
+                var quiz = await _context.Quizzes
+                    .Include(q => q.CreatedByUser)
+                    .Include(q => q.Category)
+                    .Where(q => q.Id == quizId && q.IsActive)
+                    .Select(q => new QuizDetailsDto
+                    {
+                        Id = q.Id,
+                        Name = q.Name,
+                        Description = q.Description,
+                        CategoryId = q.CategoryId,
+                        CategoryName = q.Category.Name,
+                        TotalQuestions = q.Questions.Count,
+                        TimeInMinutes = q.TimeInMinutes,
+                        IsActive = q.IsActive,
+                        ImagePath = q.ImagePath,
+                        AudioPath = q.AudioPath,
+                        CreatedByName = q.CreatedByUser != null ? q.CreatedByUser.Name : "Unknown",
+                        CreatedOn = DateTime.UtcNow // Using current time since User entity doesn't have a CreatedOn property
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (quiz == null)
+                {
+                    return QuizApiResponse<QuizDetailsDto>.Failure("Quiz not found or not active.");
+                }
+
+                // Get recent ratings for this quiz (limit to 3 most recent)
+                var recentRatings = await _context.Ratings
+                    .Include(r => r.Student)
+                    .Where(r => r.QuizId == quizId)
+                    .OrderByDescending(r => r.CreatedOn)
+                    .Take(3)
+                    .Select(r => new RatingDto
+                    {
+                        Id = r.Id,
+                        StudentId = r.StudentId,
+                        QuizId = r.QuizId,
+                        Score = r.Score,
+                        CreatedOn = r.CreatedOn,
+                        StudentName = r.Student.Name
+                    })
+                    .ToListAsync();
+
+                quiz.RecentRatings = recentRatings;
+
+                // Get recent comments for this quiz (limit to 1 most recent)
+                var recentComments = await _context.Comments
+                    .Include(c => c.Student)
+                    .Where(c => c.QuizId == quizId)
+                    .OrderByDescending(c => c.CreatedOn)
+                    .Take(1)
+                    .Select(c => new CommentDto
+                    {
+                        Id = c.Id,
+                        StudentId = c.StudentId,
+                        QuizId = c.QuizId,
+                        Content = c.Content,
+                        CreatedOn = c.CreatedOn,
+                        StudentName = c.Student.Name
+                    })
+                    .ToListAsync();
+
+                quiz.RecentComments = recentComments;
+
+                return QuizApiResponse<QuizDetailsDto>.Success(quiz);
+            }
+            catch (Exception ex)
+            {
+                return QuizApiResponse<QuizDetailsDto>.Failure(ex.Message);
+            }
+        }
     }
 }

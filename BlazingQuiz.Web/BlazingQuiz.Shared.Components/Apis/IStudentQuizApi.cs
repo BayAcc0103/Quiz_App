@@ -1,4 +1,4 @@
-﻿using BlazingQuiz.Shared.DTOs;
+using BlazingQuiz.Shared.DTOs;
 using Refit;
 
 namespace BlazingQuiz.Shared.Components.Apis
@@ -38,5 +38,8 @@ namespace BlazingQuiz.Shared.Components.Apis
 
         [Post("/api/student/quiz/{studentQuizId}/rate-and-comment")]
         Task<QuizApiResponse> SaveRatingAndCommentAsync(int studentQuizId, QuizRatingCommentDto dto);
+        
+        [Get("/api/student/quiz/{quizId}/details")]
+        Task<QuizApiResponse<QuizDetailsDto>> GetQuizDetailsAsync(Guid quizId);
     }
 }

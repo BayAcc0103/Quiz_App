@@ -57,6 +57,9 @@ namespace BlazingQuiz.Api.Endpoints
                 return Results.Ok(await quizService.SaveRatingAndCommentAsync(dto, principal.GetStudentId()));
             });
 
+            quizGroup.MapGet("/{quizId:guid}/details", async (Guid quizId, StudentQuizService quizService) =>
+                Results.Ok(await quizService.GetQuizDetailsAsync(quizId)));
+
             return app;
         }
     }

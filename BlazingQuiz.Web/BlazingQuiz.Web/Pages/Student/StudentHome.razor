@@ -83,6 +83,7 @@
                         <hr />
                         <div class="d-flex justify-content-between">
                             <button type="button" class="btn btn-sm btn-warning" @onclick="() => ShowQuizTypeSelection(q)">Start Quiz</button>
+                            <button type="button" class="btn btn-sm btn-info me-1" @onclick="() => ShowQuizDetails(q.Id)">View Details</button>
                             <button type="button" class="btn btn-sm @(IsBookmarked(q.Id) ? "btn-success" : "btn-outline-success")" 
                                     @onclick="() => ToggleBookmarkAsync(q)" 
                                     title="@(IsBookmarked(q.Id) ? "Remove bookmark" : "Add to bookmarks")">
@@ -114,6 +115,101 @@
     </Modal>
 }
 
+<BottomSheet IsOpen="@_showQuizDetails" Title="Quiz Details" IsOpenChanged="OnBottomSheetVisibilityChanged" OnCancelClick="() => _showQuizDetails = false" ShowFooter="false">
+    @if (_quizDetails != null)
+    {
+        <div class="quiz-details-content">
+            <div class="quiz-info">
+                <h5 class="fw-bold">@_quizDetails.Name</h5>
+                @if (!string.IsNullOrEmpty(_quizDetails.Description))
+                {
+                    <p><strong>Description:</strong> @_quizDetails.Description</p>
+                }
+                else
+                {
+                    <p><em>No description provided</em></p>
+                }
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Category:</strong></td>
+                        <td>@_quizDetails.CategoryName</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Created By:</strong></td>
+                        <td>@_quizDetails.CreatedByName</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Questions:</strong></td>
+                        <td>@_quizDetails.TotalQuestions</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Time:</strong></td>
+                        <td>@_quizDetails.TimeInMinutes minutes</td>
+                    </tr>
+                </table>
+            </div>
+
+            @if (_quizDetails.RecentRatings.Any())
+            {
+                <div class="recent-ratings mt-3">
+                    <h6>Recent Ratings (@_quizDetails.RecentRatings.Count)</h6>
+                    <div class="ratings-list">
+                        @foreach (var rating in _quizDetails.RecentRatings)
+                        {
+                            <div class="rating-item p-2 mb-2 border rounded">
+                                <div class="d-flex justify-content-between">
+                                    <span><strong>@rating.StudentName</strong></span>
+                                    <span class="badge bg-primary">@rating.Score</span>
+                                </div>
+                                <small class="text-muted">@rating.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="recent-ratings mt-3">
+                    <h6>Recent Ratings</h6>
+                    <p class="text-muted"><em>No ratings yet</em></p>
+                </div>
+            }
+
+            @if (_quizDetails.RecentComments.Any())
+            {
+                <div class="recent-comments mt-3">
+                    <h6>Recent Comment</h6>
+                    @foreach (var comment in _quizDetails.RecentComments)
+                    {
+                        <div class="comment-item p-3 mb-2 border rounded">
+                            <div class="d-flex justify-content-between mb-1">
+                                <strong>@comment.StudentName</strong>
+                                <small class="text-muted">@comment.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
+                            </div>
+                            <p class="mb-0">@comment.Content</p>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="recent-comments mt-3">
+                    <h6>Recent Comment</h6>
+                    <p class="text-muted"><em>No comments yet</em></p>
+                </div>
+            }
+        </div>
+    }
+    else if (_loadingDetails)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+</BottomSheet>
+
 @code {
     private CategoryDto[] _categories = [];
     private QuizListDto[] _quizes = [];
@@ -121,6 +217,11 @@
     private bool _isLoading;
     private QuizListDto? _selectedQuizForType;
     private Dictionary<Guid, bool> _bookmarkedQuizes = new();
+
+    // For quiz details modal
+    private bool _showQuizDetails = false;
+    private QuizDetailsDto? _quizDetails;
+    private bool _loadingDetails = false;
 
     private enum QuestionType { MCQ, Flashcard }
 
@@ -223,6 +324,43 @@
     private void ShowQuizTypeSelection(QuizListDto quiz)
     {
         _selectedQuizForType = quiz;
+    }
+
+    private async Task ShowQuizDetails(Guid quizId)
+    {
+        _loadingDetails = true;
+        _quizDetails = null;
+        _showQuizDetails = true;
+        
+        try
+        {
+            var response = await StudentQuizApi.GetQuizDetailsAsync(quizId);
+            if (response.IsSuccess && response.Data != null)
+            {
+                _quizDetails = response.Data;
+            }
+            else
+            {
+                AppState.ShowError(response.ErrorMessage ?? "Failed to load quiz details");
+                _showQuizDetails = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading quiz details: {ex.Message}");
+            _showQuizDetails = false;
+        }
+        finally
+        {
+            _loadingDetails = false;
+            StateHasChanged();
+        }
+    }
+    
+    private void OnBottomSheetVisibilityChanged(bool isVisible)
+    {
+        _showQuizDetails = isVisible;
+        StateHasChanged();
     }
 
     private async Task StartQuizWithMode(QuestionType type)
