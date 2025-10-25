@@ -387,58 +387,29 @@ namespace BlazingQuiz.Api.Services
 
             try
             {
-                // Check if rating already exists for this quiz by this student
-                var existingRating = await _context.Ratings
-                    .FirstOrDefaultAsync(r => r.StudentId == studentId && r.QuizId == studentQuiz.QuizId);
+                // Check if feedback already exists for this quiz by this student
+                var existingFeedback = await _context.QuizFeedbacks
+                    .FirstOrDefaultAsync(f => f.StudentId == studentId && f.QuizId == studentQuiz.QuizId);
                 
-                if (existingRating != null)
+                if (existingFeedback != null)
                 {
-                    // Update existing rating
-                    existingRating.Score = ConvertRatingToText(dto);
-                    existingRating.CreatedOn = DateTime.UtcNow;
+                    // Update existing feedback
+                    existingFeedback.Score = ConvertRatingToText(dto);
+                    existingFeedback.Comment = dto.CommentContent;
+                    existingFeedback.CreatedOn = DateTime.UtcNow;
                 }
                 else
                 {
-                    // Create new rating
-                    var rating = new Rating
+                    // Create new feedback
+                    var feedback = new QuizFeedback
                     {
                         StudentId = studentId,
                         QuizId = studentQuiz.QuizId,
                         Score = ConvertRatingToText(dto),
+                        Comment = dto.CommentContent,
                         CreatedOn = DateTime.UtcNow
                     };
-                    _context.Ratings.Add(rating);
-                }
-
-                // Check if comment already exists for this quiz by this student
-                var existingComment = await _context.Comments
-                    .FirstOrDefaultAsync(c => c.StudentId == studentId && c.QuizId == studentQuiz.QuizId);
-                
-                if (existingComment != null)
-                {
-                    // Update existing comment if provided
-                    if (!string.IsNullOrWhiteSpace(dto.CommentContent))
-                    {
-                        existingComment.Content = dto.CommentContent;
-                        existingComment.CreatedOn = DateTime.UtcNow;
-                    }
-                    else
-                    {
-                        // If no content provided, remove the existing comment
-                        _context.Comments.Remove(existingComment);
-                    }
-                }
-                else if (!string.IsNullOrWhiteSpace(dto.CommentContent))
-                {
-                    // Create new comment
-                    var comment = new Comment
-                    {
-                        StudentId = studentId,
-                        QuizId = studentQuiz.QuizId,
-                        Content = dto.CommentContent!,
-                        CreatedOn = DateTime.UtcNow
-                    };
-                    _context.Comments.Add(comment);
+                    _context.QuizFeedbacks.Add(feedback);
                 }
 
                 await _context.SaveChangesAsync();
@@ -507,43 +478,43 @@ namespace BlazingQuiz.Api.Services
                     return QuizApiResponse<QuizDetailsDto>.Failure("Quiz not found or not active.");
                 }
 
-                // Get recent ratings for this quiz (limit to 3 most recent)
-                var recentRatings = await _context.Ratings
-                    .Include(r => r.Student)
-                    .Where(r => r.QuizId == quizId)
-                    .OrderByDescending(r => r.CreatedOn)
+                // Get recent feedback for this quiz (limit to 3 most recent)
+                var recentFeedbacks = await _context.QuizFeedbacks
+                    .Include(f => f.Student)
+                    .Where(f => f.QuizId == quizId)
+                    .OrderByDescending(f => f.CreatedOn)
                     .Take(3)
-                    .Select(r => new RatingDto
-                    {
-                        Id = r.Id,
-                        StudentId = r.StudentId,
-                        QuizId = r.QuizId,
-                        Score = r.Score,
-                        CreatedOn = r.CreatedOn,
-                        StudentName = r.Student.Name
-                    })
                     .ToListAsync();
 
-                quiz.RecentRatings = recentRatings;
-
-                // Get recent comments for this quiz (limit to 1 most recent)
-                var recentComments = await _context.Comments
-                    .Include(c => c.Student)
-                    .Where(c => c.QuizId == quizId)
-                    .OrderByDescending(c => c.CreatedOn)
-                    .Take(1)
-                    .Select(c => new CommentDto
+                // Convert feedbacks to separate ratings and comments for the DTO
+                var recentRatings = recentFeedbacks
+                    .Where(f => !string.IsNullOrEmpty(f.Score))
+                    .Select(f => new RatingDto
                     {
-                        Id = c.Id,
-                        StudentId = c.StudentId,
-                        QuizId = c.QuizId,
-                        Content = c.Content,
-                        CreatedOn = c.CreatedOn,
-                        StudentName = c.Student.Name
+                        Id = f.Id,
+                        StudentId = f.StudentId,
+                        QuizId = f.QuizId,
+                        Score = f.Score ?? string.Empty,
+                        CreatedOn = f.CreatedOn,
+                        StudentName = f.Student.Name
                     })
-                    .ToListAsync();
+                    .ToList();
 
-                quiz.RecentComments = recentComments;
+                var recentComments = recentFeedbacks
+                    .Where(f => !string.IsNullOrEmpty(f.Comment))
+                    .Select(f => new CommentDto
+                    {
+                        Id = f.Id,
+                        StudentId = f.StudentId,
+                        QuizId = f.QuizId,
+                        Content = f.Comment ?? string.Empty,
+                        CreatedOn = f.CreatedOn,
+                        StudentName = f.Student.Name
+                    })
+                    .ToList();
+
+                quiz.RecentRatings = recentRatings.Take(3).ToList();
+                quiz.RecentComments = recentComments.Take(1).ToList();
 
                 return QuizApiResponse<QuizDetailsDto>.Success(quiz);
             }

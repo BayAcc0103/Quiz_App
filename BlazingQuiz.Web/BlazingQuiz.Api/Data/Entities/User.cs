@@ -21,7 +21,6 @@ namespace BlazingQuiz.Api.Data.Entities
         [MaxLength(255)]
         public string? AvatarPath { get; set; }
         
-        public virtual ICollection<Rating> Ratings { get; set; } = [];
-        public virtual ICollection<Comment> Comments { get; set; } = [];
+        public virtual ICollection<QuizFeedback> QuizFeedbacks { get; set; } = [];
     }
 }

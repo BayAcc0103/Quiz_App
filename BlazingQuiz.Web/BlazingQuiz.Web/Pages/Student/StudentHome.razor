@@ -149,19 +149,80 @@
                 </table>
             </div>
 
-            @if (_quizDetails.RecentRatings.Any())
+            @if (_quizDetails.RecentRatings.Any() || _quizDetails.RecentComments.Any())
             {
-                <div class="recent-ratings mt-3">
-                    <h6>Recent Ratings (@_quizDetails.RecentRatings.Count)</h6>
-                    <div class="ratings-list">
-                        @foreach (var rating in _quizDetails.RecentRatings)
+                <div class="recent-feedback mt-3">
+                    <h6>Recent Feedback</h6>
+                    @{
+                        // Create a dictionary to hold combined feedback
+                        var combinedFeedback = new Dictionary<int, dynamic>();
+                        
+                        // Add ratings to the dictionary
+                        foreach (var rating in _quizDetails.RecentRatings)
                         {
-                            <div class="rating-item p-2 mb-2 border rounded">
-                                <div class="d-flex justify-content-between">
-                                    <span><strong>@rating.StudentName</strong></span>
-                                    <span class="badge bg-primary">@rating.Score</span>
+                            combinedFeedback[rating.StudentId] = new {
+                                StudentId = rating.StudentId,
+                                StudentName = rating.StudentName,
+                                Score = rating.Score,
+                                Comment = (string)null,
+                                CreatedOn = rating.CreatedOn
+                            };
+                        }
+                        
+                        // Add comments to the dictionary, combining with existing ratings if possible
+                        foreach (var comment in _quizDetails.RecentComments)
+                        {
+                            if (combinedFeedback.ContainsKey(comment.StudentId))
+                            {
+                                // Update existing entry with comment
+                                var existing = combinedFeedback[comment.StudentId];
+                                combinedFeedback[comment.StudentId] = new {
+                                    StudentId = comment.StudentId,
+                                    StudentName = comment.StudentName,
+                                    Score = existing.Score,
+                                    Comment = comment.Content,
+                                    CreatedOn = comment.CreatedOn
+                                };
+                            }
+                            else
+                            {
+                                // Add new entry with just comment
+                                combinedFeedback[comment.StudentId] = new {
+                                    StudentId = comment.StudentId,
+                                    StudentName = comment.StudentName,
+                                    Score = (string)null,
+                                    Comment = comment.Content,
+                                    CreatedOn = comment.CreatedOn
+                                };
+                            }
+                        }
+                        
+                        // Sort by date and take top 3
+                        var sortedFeedback = combinedFeedback.Values
+                            .OrderByDescending(f => f.CreatedOn)
+                            .Take(3)
+                            .ToList();
+                    }
+                    
+                    <div class="feedback-list">
+                        @foreach (var feedback in sortedFeedback)
+                        {
+                            <div class="feedback-item p-3 mb-2 border rounded">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <strong>@feedback.StudentName</strong>
+                                    @if (!string.IsNullOrEmpty(feedback.Score))
+                                    {
+                                        <span class="badge bg-primary">@feedback.Score</span>
+                                    }
                                 </div>
-                                <small class="text-muted">@rating.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
+                                <small class="text-muted">@feedback.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
+                                
+                                @if (!string.IsNullOrEmpty(feedback.Comment))
+                                {
+                                    <div class="mt-2">
+                                        <p class="mb-0">@feedback.Comment</p>
+                                    </div>
+                                }
                             </div>
                         }
                     </div>
@@ -169,33 +230,9 @@
             }
             else
             {
-                <div class="recent-ratings mt-3">
-                    <h6>Recent Ratings</h6>
-                    <p class="text-muted"><em>No ratings yet</em></p>
-                </div>
-            }
-
-            @if (_quizDetails.RecentComments.Any())
-            {
-                <div class="recent-comments mt-3">
-                    <h6>Recent Comment</h6>
-                    @foreach (var comment in _quizDetails.RecentComments)
-                    {
-                        <div class="comment-item p-3 mb-2 border rounded">
-                            <div class="d-flex justify-content-between mb-1">
-                                <strong>@comment.StudentName</strong>
-                                <small class="text-muted">@comment.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
-                            </div>
-                            <p class="mb-0">@comment.Content</p>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="recent-comments mt-3">
-                    <h6>Recent Comment</h6>
-                    <p class="text-muted"><em>No comments yet</em></p>
+                <div class="recent-feedback mt-3">
+                    <h6>Recent Feedback</h6>
+                    <p class="text-muted"><em>No feedback yet</em></p>
                 </div>
             }
         </div>
