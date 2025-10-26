@@ -387,30 +387,16 @@ namespace BlazingQuiz.Api.Services
 
             try
             {
-                // Check if feedback already exists for this quiz by this student
-                var existingFeedback = await _context.QuizFeedbacks
-                    .FirstOrDefaultAsync(f => f.StudentId == studentId && f.QuizId == studentQuiz.QuizId);
-                
-                if (existingFeedback != null)
+                // Always create new feedback (allow multiple ratings per student-quiz combination)
+                var feedback = new QuizFeedback
                 {
-                    // Update existing feedback
-                    existingFeedback.Score = ConvertRatingToText(dto);
-                    existingFeedback.Comment = dto.CommentContent;
-                    existingFeedback.CreatedOn = DateTime.UtcNow;
-                }
-                else
-                {
-                    // Create new feedback
-                    var feedback = new QuizFeedback
-                    {
-                        StudentId = studentId,
-                        QuizId = studentQuiz.QuizId,
-                        Score = ConvertRatingToText(dto),
-                        Comment = dto.CommentContent,
-                        CreatedOn = DateTime.UtcNow
-                    };
-                    _context.QuizFeedbacks.Add(feedback);
-                }
+                    StudentId = studentId,
+                    QuizId = studentQuiz.QuizId,
+                    Score = ConvertRatingToText(dto),
+                    Comment = dto.CommentContent,
+                    CreatedOn = DateTime.UtcNow
+                };
+                _context.QuizFeedbacks.Add(feedback);
 
                 await _context.SaveChangesAsync();
                 return QuizApiResponse.Success();
@@ -423,10 +409,16 @@ namespace BlazingQuiz.Api.Services
 
         private string ConvertRatingToText(QuizRatingCommentDto dto)
         {
-            // If RatingText is provided and valid, use it
-            if (!string.IsNullOrWhiteSpace(dto.RatingText) && BlazingQuiz.Shared.Enums.RatingText.IsValid(dto.RatingText))
+            // If RatingText is provided and valid, use it after trimming
+            if (!string.IsNullOrWhiteSpace(dto.RatingText))
             {
-                return dto.RatingText;
+                var trimmedRatingText = dto.RatingText.Trim();
+                if (BlazingQuiz.Shared.Enums.RatingText.IsValid(trimmedRatingText))
+                {
+                    return trimmedRatingText;
+                }
+                // If RatingText is provided but invalid, log potential issue and continue to RatingScore logic
+                Console.WriteLine($"Invalid RatingText provided: '{dto.RatingText}', trimmed: '{trimmedRatingText}'");
             }
             
             // Otherwise, convert the RatingScore to text

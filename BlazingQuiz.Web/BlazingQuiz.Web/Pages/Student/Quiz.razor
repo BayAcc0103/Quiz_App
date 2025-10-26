@@ -1,4 +1,4 @@
-@page "/student/quiz"
+﻿@page "/student/quiz"
 
 @layout QuizPageLayout 
 @inject NavigationManager NavigationManager
@@ -189,34 +189,7 @@
     </Modal>
 }
 
-@if (_showRatingModal)
-{
-    <Modal Title="Rate and Comment on this Quiz" OnActionButtonClick="SubmitRatingAndCommentAsync" OnCancelClick="CloseRatingModal" ActionButtonText="Submit Rating">
-        <div class="mb-3">
-            <label class="form-label">Rating</label>
-            <div class="rating-container d-flex justify-content-between">
-                @for (int i = 1; i <= 5; i++)
-                {
-                    <div class="text-center" style="cursor: pointer;" @onclick="() => _ratingScore = i">
-                        <div class="emotion-icon @(i == _ratingScore ? "selected" : "")" 
-                             style=@($"font-size: 2rem; color: {(i == _ratingScore ? "#0d6efd" : "gray")};")>
-                            @GetEmotionIcon(i)
-                        </div>
-                        <div class="emotion-label mt-1" 
-                             style=@($"font-size: 0.8rem; color: {(i == _ratingScore ? "#0d6efd" : "gray")}; font-weight: {(i == _ratingScore ? "bold" : "normal")};")>
-                            @GetRatingText(i)
-                        </div>
-                    </div>
-                }
-            </div>
-            <p class="text-center mt-3">@(_ratingScore > 0 ? GetRatingText(_ratingScore) : "Please select a rating")</p>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Comment</label>
-            <textarea class="form-control" rows="4" placeholder="Share your thoughts about this quiz..." @bind="_commentContent"></textarea>
-        </div>
-    </Modal>
-}
+<RatingModal @ref="ratingModalRef" IsVisible="_showRatingModal" OnRatingSubmitted="HandleRatingSubmitted" IsVisibleChanged="OnRatingModalVisibilityChanged" />
 
 @code {
     private QuestionDto _question = new();
@@ -232,6 +205,7 @@
     private bool _showSuccessMessage = false;
     private int _ratingScore = 0;
     private string? _commentContent;
+    private RatingModal? ratingModalRef;
 
     protected override async Task OnInitializedAsync()
     {
@@ -457,9 +431,9 @@
         1 => "Very Bad",
         2 => "Bad",
         3 => "Normal",
-        4 => "Fun",
-        5 => "Very Fun",
-        _ => ""
+        4 => "Good",
+        5 => "Very Good",
+        _ => "" // Default case for any unexpected values
     };
 }
     
@@ -470,22 +444,9 @@
             1 => "😞",
             2 => "😟",
             3 => "😐",
-            4 => "🙂",
-            5 => "😊",
-            _ => "😐"
-        };
-    }
-    
-    private string GetEmotionLabel(int rating)
-    {
-        return rating switch
-        {
-            1 => "Very Bad",
-            2 => "Bad",
-            3 => "Normal",
-            4 => "Fun",
-            5 => "Very Fun",
-            _ => ""
+            4 => "😄",  // Fun rating
+            5 => "😁",  // Very Fun rating
+            _ => "😐"   // Default case for any unexpected values
         };
     }
     
@@ -493,13 +454,31 @@
     {
         try
         {
+            // Validate that a rating has been selected
+            // if (_ratingScore <= 0 || _ratingScore > 5)
+            // {
+            //     _errorMessage = "Please select a rating before submitting.";
+            //     return;
+            // }
+
             AppState.ShowLoader("Submitting your rating and comment...");
+            
+            // Convert frontend rating text to backend rating text
+            string backendRatingText = _ratingScore switch
+            {
+                1 => BlazingQuiz.Shared.Enums.RatingText.VeryBad,
+                2 => BlazingQuiz.Shared.Enums.RatingText.Bad,
+                3 => BlazingQuiz.Shared.Enums.RatingText.Normal,
+                4 => BlazingQuiz.Shared.Enums.RatingText.Good,
+                5 => BlazingQuiz.Shared.Enums.RatingText.VeryGood,
+                _ => BlazingQuiz.Shared.Enums.RatingText.Normal // Default case for any unexpected values
+            };
             
             var ratingDto = new QuizRatingCommentDto
             {
                 StudentQuizId = QuizState.StudentQuizId,
                 RatingScore = _ratingScore,
-                RatingText = GetRatingText(_ratingScore),
+                RatingText = backendRatingText,
                 CommentContent = _commentContent
             };
             
@@ -535,6 +514,97 @@
     {
         _showSuccessMessage = false;
         _showRatingModal = true;
-        _ratingScore = 0; // Reset rating score when showing the modal
+        _ratingScore = 0; // Always reset rating when showing the modal
+    }
+    private void SelectRating(int rating)
+    {
+        // Only allow ratings from 1 to 5
+        if (rating >= 1 && rating <= 5)
+        {
+            _ratingScore = rating;
+            _errorMessage = null;
+        }
+        StateHasChanged(); // Force UI update to reflect the selection
+    }
+    
+    private async Task HandleRatingSubmitted((string rating, string comment) ratingData)
+    {
+        try
+        {
+            // Validate that a rating has been selected
+            if (string.IsNullOrEmpty(ratingData.rating))
+            {
+                _errorMessage = "Please select a rating before submitting.";
+                return;
+            }
+
+            AppState.ShowLoader("Submitting your rating and comment...");
+            
+            // Convert frontend rating text to backend rating text
+            string backendRatingText = ConvertToFrontendRatingToBackendText(ratingData.rating);
+            
+            var ratingDto = new QuizRatingCommentDto
+            {
+                StudentQuizId = QuizState.StudentQuizId,
+                RatingScore = ConvertFrontendRatingToScore(ratingData.rating), // Convert text to score for compatibility
+                RatingText = backendRatingText,
+                CommentContent = ratingData.comment
+            };
+            
+            var result = await StudentQuizApi.SaveRatingAndCommentAsync(QuizState.StudentQuizId, ratingDto);
+            
+            if (!result.IsSuccess)
+            {
+                _errorMessage = result.ErrorMessage ?? "Failed to submit rating and comment.";
+                return;
+            }
+            
+            // Close the rating modal and redirect to quiz result page after successful rating submission
+            _showRatingModal = false;
+            NavigationManager.NavigateTo($"student/quiz-result/{QuizState.StudentQuizId}", replace: true);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+    
+    private string ConvertToFrontendRatingToBackendText(string frontendRating)
+    {
+        return frontendRating.ToLower() switch
+        {
+            "very bad" => BlazingQuiz.Shared.Enums.RatingText.VeryBad,
+            "bad" => BlazingQuiz.Shared.Enums.RatingText.Bad,
+            "normal" => BlazingQuiz.Shared.Enums.RatingText.Normal,
+            "fun" => BlazingQuiz.Shared.Enums.RatingText.Good, // Map "fun" to "good"
+            "very fun" => BlazingQuiz.Shared.Enums.RatingText.VeryGood, // Map "very fun" to "very good"
+            _ => BlazingQuiz.Shared.Enums.RatingText.Normal // Default case for any unexpected values
+        };
+    }
+    
+    private int ConvertFrontendRatingToScore(string frontendRating)
+    {
+        return frontendRating.ToLower() switch
+        {
+            "very bad" => 1,
+            "bad" => 2,
+            "normal" => 3,
+            "fun" => 4, // Map "fun" to score 4
+            "very fun" => 5, // Map "very fun" to score 5
+            _ => 3 // Default to normal (score 3) for any unexpected values
+        };
+    }
+    
+    private async Task OnRatingModalVisibilityChanged(bool visible)
+    {
+        _showRatingModal = visible;
+        if (!visible && !_showSuccessMessage) // If modal is closed without submitting, navigate to results
+        {
+            NavigationManager.NavigateTo($"student/quiz-result/{QuizState.StudentQuizId}", replace: true);
+        }
     }
 }

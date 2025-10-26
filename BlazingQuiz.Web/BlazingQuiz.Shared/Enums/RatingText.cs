@@ -12,7 +12,7 @@
         
         public static bool IsValid(string value)
         {
-            return AllValues.Contains(value.ToLower());
+            return AllValues.Contains(value?.Trim().ToLower());
         }
     }
 }
