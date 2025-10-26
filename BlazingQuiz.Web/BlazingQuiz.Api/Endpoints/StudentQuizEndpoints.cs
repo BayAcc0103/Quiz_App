@@ -60,6 +60,9 @@ namespace BlazingQuiz.Api.Endpoints
             quizGroup.MapGet("/{quizId:guid}/details", async (Guid quizId, StudentQuizService quizService) =>
                 Results.Ok(await quizService.GetQuizDetailsAsync(quizId)));
 
+            quizGroup.MapGet("/{quizId:guid}/all-feedback", async (Guid quizId, StudentQuizService quizService) =>
+                Results.Ok(await quizService.GetAllFeedbackAsync(quizId)));
+
             return app;
         }
     }

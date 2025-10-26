@@ -41,5 +41,8 @@ namespace BlazingQuiz.Web.Apis
         
         [Get("/api/student/quiz/{quizId}/details")]
         Task<QuizApiResponse<QuizDetailsDto>> GetQuizDetailsAsync(Guid quizId);
+        
+        [Get("/api/student/quiz/{quizId}/all-feedback")]
+        Task<QuizApiResponse<QuizAllFeedbackDto>> GetAllFeedbackAsync(Guid quizId);
     }
 }

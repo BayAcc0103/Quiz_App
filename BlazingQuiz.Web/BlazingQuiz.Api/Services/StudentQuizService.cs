@@ -505,7 +505,7 @@ namespace BlazingQuiz.Api.Services
                     })
                     .ToList();
 
-                quiz.RecentRatings = recentRatings.Take(3).ToList();
+                quiz.RecentRatings = recentRatings.Take(1).ToList();
                 quiz.RecentComments = recentComments.Take(1).ToList();
 
                 return QuizApiResponse<QuizDetailsDto>.Success(quiz);
@@ -513,6 +513,72 @@ namespace BlazingQuiz.Api.Services
             catch (Exception ex)
             {
                 return QuizApiResponse<QuizDetailsDto>.Failure(ex.Message);
+            }
+        }
+
+        public async Task<QuizApiResponse<QuizAllFeedbackDto>> GetAllFeedbackAsync(Guid quizId)
+        {
+            try
+            {
+                // Get all feedback for this quiz, ordered by most recent first
+                var allFeedbacks = await _context.QuizFeedbacks
+                    .Include(f => f.Student)
+                    .Where(f => f.QuizId == quizId)
+                    .OrderByDescending(f => f.CreatedOn)
+                    .ToListAsync();
+
+                // Convert feedbacks to separate ratings and comments for the DTO
+                var ratings = allFeedbacks
+                    .Where(f => !string.IsNullOrEmpty(f.Score))
+                    .Select(f => new RatingDto
+                    {
+                        Id = f.Id,
+                        StudentId = f.StudentId,
+                        QuizId = f.QuizId,
+                        Score = f.Score ?? string.Empty,
+                        CreatedOn = f.CreatedOn,
+                        StudentName = f.Student.Name
+                    })
+                    .ToList();
+
+                var comments = allFeedbacks
+                    .Where(f => !string.IsNullOrEmpty(f.Comment))
+                    .Select(f => new CommentDto
+                    {
+                        Id = f.Id,
+                        StudentId = f.StudentId,
+                        QuizId = f.QuizId,
+                        Content = f.Comment ?? string.Empty,
+                        CreatedOn = f.CreatedOn,
+                        StudentName = f.Student.Name
+                    })
+                    .ToList();
+
+                // Create combined feedback data
+                var combinedFeedback = allFeedbacks
+                    .Select(f => new CombinedFeedbackDto
+                    {
+                        Id = f.Id,
+                        StudentId = f.StudentId,
+                        StudentName = f.Student.Name,
+                        Score = f.Score,
+                        Comment = f.Comment,
+                        CreatedOn = f.CreatedOn
+                    })
+                    .ToList();
+
+                var allFeedback = new QuizAllFeedbackDto
+                {
+                    Ratings = ratings,
+                    Comments = comments,
+                    CombinedFeedback = combinedFeedback
+                };
+
+                return QuizApiResponse<QuizAllFeedbackDto>.Success(allFeedback);
+            }
+            catch (Exception ex)
+            {
+                return QuizApiResponse<QuizAllFeedbackDto>.Failure(ex.Message);
             }
         }
     }

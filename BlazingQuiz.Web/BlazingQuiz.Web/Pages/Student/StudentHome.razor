@@ -118,7 +118,7 @@
 <BottomSheet IsOpen="@_showQuizDetails" Title="Quiz Details" IsOpenChanged="OnBottomSheetVisibilityChanged" OnCancelClick="() => _showQuizDetails = false" ShowFooter="false">
     @if (_quizDetails != null)
     {
-        <div class="quiz-details-content">
+        <div class="quiz-details-content" style="max-height: 60vh; overflow-y: auto;">
             <div class="quiz-info">
                 <h5 class="fw-bold">@_quizDetails.Name</h5>
                 @if (!string.IsNullOrEmpty(_quizDetails.Description))
@@ -152,7 +152,10 @@
             @if (_quizDetails.RecentRatings.Any() || _quizDetails.RecentComments.Any())
             {
                 <div class="recent-feedback mt-3">
-                    <h6>Recent Feedback</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6>Recent Feedback</h6>
+                        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => ShowAllFeedback(_quizDetails.Id)">View All Feedback</button>
+                    </div>
                     @{
                         // Create a dictionary to hold combined feedback
                         var combinedFeedback = new Dictionary<int, dynamic>();
@@ -212,7 +215,7 @@
                                     <strong>@feedback.StudentName</strong>
                                     @if (!string.IsNullOrEmpty(feedback.Score))
                                     {
-                                        <span class="badge bg-primary">@feedback.Score</span>
+                                        <span class="badge bg-primary">@GetRatingIcon(feedback.Score) @GetRatingDisplayText(feedback.Score)</span>
                                     }
                                 </div>
                                 <small class="text-muted">@feedback.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
@@ -231,7 +234,10 @@
             else
             {
                 <div class="recent-feedback mt-3">
-                    <h6>Recent Feedback</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6>Recent Feedback</h6>
+                        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => ShowAllFeedback(_quizDetails.Id)">View All Feedback</button>
+                    </div>
                     <p class="text-muted"><em>No feedback yet</em></p>
                 </div>
             }
@@ -240,6 +246,53 @@
     else if (_loadingDetails)
     {
         <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+</BottomSheet>
+
+<BottomSheet IsOpen="@_showAllFeedback" Title="All Feedback" IsOpenChanged="OnAllFeedbackBottomSheetVisibilityChanged" OnCancelClick="() => _showAllFeedback = false" ShowFooter="false">
+    @if (_allFeedback != null)
+    {
+        <div class="quiz-details-content" style="max-height: 60vh; overflow-y: auto;">
+            @if (_allFeedback.CombinedFeedback.Any())
+            {
+                <div class="feedback-list">
+                    @foreach (var feedback in _allFeedback.CombinedFeedback)
+                    {
+                        <div class="feedback-item p-3 mb-3 border rounded">
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>@feedback.StudentName</strong>
+                                @if (!string.IsNullOrEmpty(feedback.Score))
+                                {
+                                    <span class="badge bg-primary">@GetRatingIcon(feedback.Score) @GetRatingDisplayText(feedback.Score)</span>
+                                }
+                            </div>
+                            <small class="text-muted">@feedback.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
+                            
+                            @if (!string.IsNullOrEmpty(feedback.Comment))
+                            {
+                                <div class="mt-2">
+                                    <p class="mb-0">@feedback.Comment</p>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-3">
+                    <p class="text-muted mb-0">No feedback yet for this quiz</p>
+                </div>
+            }
+        </div>
+    }
+    else if (_loadingAllFeedback)
+    {
+        <div class="text-center py-3">
             <div class="spinner-border" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
@@ -259,6 +312,11 @@
     private bool _showQuizDetails = false;
     private QuizDetailsDto? _quizDetails;
     private bool _loadingDetails = false;
+    
+    // For all feedback modal
+    private bool _showAllFeedback = false;
+    private QuizAllFeedbackDto? _allFeedback;
+    private bool _loadingAllFeedback = false;
 
     private enum QuestionType { MCQ, Flashcard }
 
@@ -296,6 +354,36 @@
     }
 
     // Removed old StartQuizAsync method - replaced with new quiz type selection functionality
+    
+    private string GetRatingIcon(string? rating)
+    {
+        if (string.IsNullOrEmpty(rating)) return "😐";
+        
+        return rating?.ToLower().Trim() switch
+        {
+            "very bad" => "😞",
+            "bad" => "😟",
+            "normal" => "😐",
+            "good" => "😄",
+            "very good" => "😁",
+            _ => "😐" // Default to neutral face for unknown ratings
+        };
+    }
+    
+    private string GetRatingDisplayText(string? rating)
+    {
+        if (string.IsNullOrEmpty(rating)) return "";
+        
+        return rating?.ToLower().Trim() switch
+        {
+            "very bad" => "Very Bad",
+            "bad" => "Bad",
+            "normal" => "Normal",
+            "good" => "Good",
+            "very good" => "Very Good",
+            _ => rating ?? "" // Default to original value for unknown ratings
+        };
+    }
     
     private async Task LoadBookmarkStatusAsync()
     {
@@ -397,6 +485,43 @@
     private void OnBottomSheetVisibilityChanged(bool isVisible)
     {
         _showQuizDetails = isVisible;
+        StateHasChanged();
+    }
+    
+    private async Task ShowAllFeedback(Guid quizId)
+    {
+        _loadingAllFeedback = true;
+        _allFeedback = null;
+        _showAllFeedback = true;
+        
+        try
+        {
+            var response = await StudentQuizApi.GetAllFeedbackAsync(quizId);
+            if (response.IsSuccess && response.Data != null)
+            {
+                _allFeedback = response.Data;
+            }
+            else
+            {
+                AppState.ShowError(response.ErrorMessage ?? "Failed to load feedback");
+                _showAllFeedback = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading feedback: {ex.Message}");
+            _showAllFeedback = false;
+        }
+        finally
+        {
+            _loadingAllFeedback = false;
+            StateHasChanged();
+        }
+    }
+    
+    private void OnAllFeedbackBottomSheetVisibilityChanged(bool isVisible)
+    {
+        _showAllFeedback = isVisible;
         StateHasChanged();
     }
 
