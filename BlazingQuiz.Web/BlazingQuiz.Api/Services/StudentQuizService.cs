@@ -541,29 +541,32 @@ namespace BlazingQuiz.Api.Services
                     })
                     .ToList();
 
+                // For students: Show comments that haven't been deleted
                 var comments = allFeedbacks
-                    .Where(f => !string.IsNullOrEmpty(f.Comment))
+                    .Where(f => !string.IsNullOrEmpty(f.Comment) && !f.IsCommentDeleted)
                     .Select(f => new CommentDto
                     {
                         Id = f.Id,
                         StudentId = f.StudentId,
                         QuizId = f.QuizId,
-                        Content = f.IsCommentDeleted ? "comment has been removed by teacher" : f.Comment ?? string.Empty, // Show placeholder for deleted comments
+                        Content = f.Comment ?? string.Empty,
                         CreatedOn = f.CreatedOn,
                         StudentName = f.Student.Name
                     })
                     .ToList();
 
-                // Create combined feedback data for students - show placeholder for deleted comments
+                // Create combined feedback data for students - show both ratings and comments appropriately
+                // If it's a deleted comment with no rating, hide it; if it's a deleted comment with a rating, show the rating but mark the comment appropriately
                 var combinedFeedback = allFeedbacks
-                    .Where(f => !string.IsNullOrEmpty(f.Score) || !string.IsNullOrEmpty(f.Comment)) // Exclude if both score and comment are null/empty
+                    .Where(f => !string.IsNullOrEmpty(f.Score) || !string.IsNullOrEmpty(f.Comment)) // Include entries that have either score or comment
+                    .Where(f => !f.IsCommentDeleted || !string.IsNullOrEmpty(f.Score)) // Hide entries that are deleted comments with no rating
                     .Select(f => new CombinedFeedbackDto
                     {
                         Id = f.Id,
                         StudentId = f.StudentId,
                         StudentName = f.Student.Name,
                         Score = f.Score,
-                        Comment = f.IsCommentDeleted ? "comment has been removed by teacher" : f.Comment, // Show placeholder for deleted comments
+                        Comment = f.IsCommentDeleted ? "comment has been removed by teacher" : f.Comment, // Show placeholder for deleted comments that have ratings
                         CreatedOn = f.CreatedOn
                     })
                     .ToList();
