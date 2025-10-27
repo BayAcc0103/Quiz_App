@@ -10,7 +10,7 @@
                 @ChildContent
             </div>
             <div class="modal-footer d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @onclick="OnCancelClick">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @onclick="OnCancelClick">@CancelText</button>
                 <button type="button" class="btn btn-primary" @onclick="OnActionButtonClick">@ActionButtonText</button>
             </div>
         </div>
@@ -25,6 +25,8 @@
     public RenderFragment ChildContent { get; set; }
     [Parameter]
     public string ActionButtonText { get; set; } = "Ok";
+    [Parameter]
+    public string CancelText { get; set; } = "Close";
     [Parameter]
     public EventCallback OnActionButtonClick { get; set; }
     [Parameter]

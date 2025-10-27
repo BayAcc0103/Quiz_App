@@ -528,6 +528,7 @@ namespace BlazingQuiz.Api.Services
                     .ToListAsync();
 
                 // Convert feedbacks to separate ratings and comments for the DTO
+                // For students, exclude feedback where IsCommentDeleted is true and there's no rating
                 var ratings = allFeedbacks
                     .Where(f => !string.IsNullOrEmpty(f.Score))
                     .Select(f => new RatingDto
@@ -542,7 +543,7 @@ namespace BlazingQuiz.Api.Services
                     .ToList();
 
                 var comments = allFeedbacks
-                    .Where(f => !string.IsNullOrEmpty(f.Comment))
+                    .Where(f => !string.IsNullOrEmpty(f.Comment) && !f.IsCommentDeleted)
                     .Select(f => new CommentDto
                     {
                         Id = f.Id,
@@ -554,7 +555,7 @@ namespace BlazingQuiz.Api.Services
                     })
                     .ToList();
 
-                // Create combined feedback data
+                // Create combined feedback data for students - exclude comments that are deleted
                 var combinedFeedback = allFeedbacks
                     .Select(f => new CombinedFeedbackDto
                     {
@@ -562,9 +563,10 @@ namespace BlazingQuiz.Api.Services
                         StudentId = f.StudentId,
                         StudentName = f.Student.Name,
                         Score = f.Score,
-                        Comment = f.Comment,
+                        Comment = f.IsCommentDeleted ? null : f.Comment, // Don't show deleted comments to students
                         CreatedOn = f.CreatedOn
                     })
+                    .Where(f => !string.IsNullOrEmpty(f.Score) || !string.IsNullOrEmpty(f.Comment)) // Exclude if both score and comment are null/empty
                     .ToList();
 
                 var allFeedback = new QuizAllFeedbackDto

@@ -26,5 +26,7 @@ namespace BlazingQuiz.Api.Data.Entities
         
         public virtual ICollection<Question> Questions { get; set; } = [];
         public virtual ICollection<QuizFeedback> QuizFeedbacks { get; set; } = [];
+        public virtual ICollection<Rating> Ratings { get; set; } = [];
+        public virtual ICollection<Comment> Comments { get; set; } = [];
     }
 }

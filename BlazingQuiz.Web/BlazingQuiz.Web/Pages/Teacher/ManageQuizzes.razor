@@ -2,6 +2,7 @@
 
 @using BlazingQuiz.Shared
 @using BlazingQuiz.Shared.Components.Components
+@using BlazingQuiz.Shared.Components
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = nameof(UserRole.Teacher))]
 
@@ -66,6 +67,7 @@
                                     <div class="d-flex justify-content-around">
                                         <button type="button" class="btn btn-sm btn-info" @onclick="() => ViewQuestionsAsync(q)">View Questions</button>
                                         <a href="teacher/edit-quiz/@q.Id" type="button" class="btn btn-sm btn-primary">Edit</a>
+                                        <button type="button" class="btn btn-sm btn-success" @onclick="() => ShowQuizFeedbackAsync(q)">View Rate and Comment</button>
                                     </div>
                                 </td>
                             </tr>
@@ -101,6 +103,84 @@
     </Modal>
 }
 
+<BottomSheet IsOpen="@_showFeedbackModal" Title="Quiz Ratings and Comments" IsOpenChanged="OnFeedbackModalVisibilityChanged" OnCancelClick="() => _showFeedbackModal = false" ShowFooter="false">
+    @if (_quizFeedback != null)
+    {
+        <div class="quiz-feedback-content" style="max-height: 60vh; overflow-y: auto;">
+            @if (_quizFeedback.CombinedFeedback.Any())
+            {
+                <div class="feedback-list">
+                    @foreach (var feedback in _quizFeedback.CombinedFeedback)
+                    {
+                        <div class="feedback-item p-3 mb-3 border rounded">
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>@feedback.StudentName</strong>
+                                @if (!string.IsNullOrEmpty(feedback.Score))
+                                {
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-primary">@GetRatingIcon(feedback.Score) @GetRatingDisplayText(feedback.Score)</span>
+                                        <button type="button" class="btn btn-sm btn-danger ms-2" @onclick="() => DeleteRatingAsync(feedback.Id)" title="Delete Rating">
+                                            <i class="bi bi-trash"></i> Delete Rating
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                            <small class="text-muted">@feedback.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
+                            
+                            @if (!string.IsNullOrEmpty(feedback.Content))
+                            {
+                                <div class="mt-2 d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        @if (feedback.IsCommentDeleted)
+                                        {
+                                            <p class="mb-0 text-muted"><strong>Comment:</strong> <em>comment has been removed by teacher</em></p>
+                                        }
+                                        else
+                                        {
+                                            <p class="mb-0"><strong>Comment:</strong> @feedback.Content</p>
+                                        }
+                                    </div>
+                                    @if (!feedback.IsCommentDeleted)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-danger ms-2" @onclick="() => DeleteCommentAsync(feedback.Id)" title="Delete Comment">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-3">
+                    <p class="text-muted mb-0">No ratings or comments yet for this quiz</p>
+                </div>
+            }
+        </div>
+    }
+    else if (_loadingFeedback)
+    {
+        <div class="text-center py-3">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+</BottomSheet>
+
+@if (_showDeleteConfirmation)
+{
+    <Modal Title="Confirm Deletion" 
+           OnActionButtonClick="ExecuteDeleteFeedback" 
+           OnCancelClick="() => _showDeleteConfirmation = false"
+           ActionButtonText="Delete" 
+           CancelText="Cancel">
+        <p>Are you sure you want to delete this @_feedbackTypeToDelete?</p>
+    </Modal>
+}
+
 @code {
     private QuizListDto[] _quizes = [];
     private QuizListDto[] _filteredQuizes = [];
@@ -110,6 +190,16 @@
 
     private QuestionDto[] _viewQuestions = [];
     private bool _showQuestionsModal;
+    
+    // For feedback modal
+    private bool _showFeedbackModal = false;
+    private TeacherQuizFeedbackDto? _quizFeedback;
+    private bool _loadingFeedback = false;
+    
+    // For delete confirmation
+    private bool _showDeleteConfirmation = false;
+    private int _feedbackIdToDelete = 0;
+    private string _feedbackTypeToDelete = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -145,5 +235,139 @@
         AppState.HideLoader();
 
         _showQuestionsModal = true;
+    }
+    
+    private async Task ShowQuizFeedbackAsync(QuizListDto quiz)
+    {
+        _loadingFeedback = true;
+        _quizFeedback = null;
+        _showFeedbackModal = true;
+        
+        try
+        {
+            var response = await QuizApi.GetQuizFeedbackAsync(quiz.Id);
+            if (response.IsSuccess && response.Data != null)
+            {
+                _quizFeedback = response.Data;
+            }
+            else
+            {
+                AppState.ShowError(response.ErrorMessage ?? "Failed to load feedback");
+                _showFeedbackModal = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading feedback: {ex.Message}");
+            _showFeedbackModal = false;
+        }
+        finally
+        {
+            _loadingFeedback = false;
+            StateHasChanged();
+        }
+    }
+    
+    private string GetRatingIcon(string? rating)
+    {
+        if (string.IsNullOrEmpty(rating)) return "😐";
+        
+        return rating?.ToLower().Trim() switch
+        {
+            "very bad" => "😞",
+            "bad" => "😟",
+            "normal" => "😐",
+            "good" => "😄",
+            "very good" => "😁",
+            _ => "😐" // Default to neutral face for unknown ratings
+        };
+    }
+    
+    private string GetRatingDisplayText(string? rating)
+    {
+        if (string.IsNullOrEmpty(rating)) return "";
+        
+        return rating?.ToLower().Trim() switch
+        {
+            "very bad" => "Very Bad",
+            "bad" => "Bad",
+            "normal" => "Normal",
+            "good" => "Good",
+            "very good" => "Very Good",
+            _ => rating ?? "" // Default to original value for unknown ratings
+        };
+    }
+    
+    private void OnFeedbackModalVisibilityChanged(bool isVisible)
+    {
+        _showFeedbackModal = isVisible;
+        StateHasChanged();
+    }
+    
+    private void DeleteRatingAsync(int feedbackId)
+    {
+        _feedbackIdToDelete = feedbackId;
+        _feedbackTypeToDelete = "rating";
+        _showDeleteConfirmation = true;
+    }
+    
+    private void DeleteCommentAsync(int feedbackId)
+    {
+        _feedbackIdToDelete = feedbackId;
+        _feedbackTypeToDelete = "comment";
+        _showDeleteConfirmation = true;
+    }
+    
+    private async Task ExecuteDeleteFeedback()
+    {
+        _showDeleteConfirmation = false;
+        
+        try
+        {
+            AppState.ShowLoader($"Deleting {_feedbackTypeToDelete}...");
+            QuizApiResponse response = null;
+            
+            if (_feedbackTypeToDelete == "rating")
+            {
+                response = await QuizApi.DeleteRatingAsync(_feedbackIdToDelete);
+            }
+            else if (_feedbackTypeToDelete == "comment")
+            {
+                response = await QuizApi.DeleteCommentAsync(_feedbackIdToDelete);
+            }
+            else // fallback to quiz feedback for combined entries
+            {
+                response = await QuizApi.DeleteQuizFeedbackAsync(_feedbackIdToDelete);
+            }
+            
+            if (response.IsSuccess)
+            {
+                // Refresh the feedback list to reflect the deletion
+                var currentQuizId = _quizFeedback?.CombinedFeedback.FirstOrDefault()?.QuizId ?? Guid.Empty;
+                if (currentQuizId != Guid.Empty)
+                {
+                    _quizFeedback = null;
+                    var response2 = await QuizApi.GetQuizFeedbackAsync(currentQuizId);
+                    if (response2.IsSuccess && response2.Data != null)
+                    {
+                        _quizFeedback = response2.Data;
+                    }
+                }
+                
+                AppState.ShowAlert($"{char.ToUpper(_feedbackTypeToDelete[0]) + _feedbackTypeToDelete.Substring(1)} deleted successfully.", AlertType.Success);
+            }
+            else
+            {
+                AppState.ShowAlert(response.ErrorMessage ?? $"Failed to delete {_feedbackTypeToDelete}.", AlertType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error deleting {_feedbackTypeToDelete}: {ex.Message}");
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
     }
 }

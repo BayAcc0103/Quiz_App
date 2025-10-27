@@ -69,6 +69,107 @@ namespace BlazingQuiz.Api.Endpoints
                 
                 return Results.Ok(quiz);
             }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+            
+            quizGroup.MapGet("{quizId:guid}/feedback", async (Guid quizId, QuizService service, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest("Invalid user ID");
+                }
+
+                // Check user role to determine if they have permission to view feedback
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Admin) && userRole != nameof(UserRole.Teacher))
+                {
+                    return Results.Forbid();
+                }
+
+                var feedback = await service.GetQuizFeedbackAsync(quizId, userId, userRole == nameof(UserRole.Admin));
+                if (feedback == null)
+                {
+                    return Results.NotFound("Quiz not found or you don't have permission to access feedback.");
+                }
+                
+                return Results.Ok(feedback);
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+            
+            quizGroup.MapDelete("feedback/{feedbackId:int}", async (int feedbackId, QuizService service, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Invalid user ID"));
+                }
+
+                // Check user role to determine if they have permission to delete feedback
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Admin) && userRole != nameof(UserRole.Teacher))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("You don't have permission to delete this feedback."));
+                }
+
+                var result = await service.DeleteQuizFeedbackAsync(feedbackId, userId, userRole == nameof(UserRole.Admin));
+                if (!result)
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Feedback not found or you don't have permission to delete it."));
+                }
+                
+                return Results.Ok(QuizApiResponse.Success());
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+            
+            quizGroup.MapDelete("ratings/{ratingId:int}", async (int ratingId, QuizService service, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Invalid user ID"));
+                }
+
+                // Check user role to determine if they have permission to delete rating
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Admin) && userRole != nameof(UserRole.Teacher))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("You don't have permission to delete this rating."));
+                }
+
+                var result = await service.DeleteRatingAsync(ratingId, userId, userRole == nameof(UserRole.Admin));
+                if (!result)
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Rating not found or you don't have permission to delete it."));
+                }
+                
+                return Results.Ok(QuizApiResponse.Success());
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+            
+            quizGroup.MapDelete("comments/{commentId:int}", async (int commentId, QuizService service, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Invalid user ID"));
+                }
+
+                // Check user role to determine if they have permission to delete comment
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Admin) && userRole != nameof(UserRole.Teacher))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("You don't have permission to delete this comment."));
+                }
+
+                var result = await service.DeleteCommentAsync(commentId, userId, userRole == nameof(UserRole.Admin));
+                if (!result)
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Comment not found or you don't have permission to delete it."));
+                }
+                
+                return Results.Ok(QuizApiResponse.Success());
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+
 
             return app;
         }

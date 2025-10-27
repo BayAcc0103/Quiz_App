@@ -1,7 +1,7 @@
 ﻿using BlazingQuiz.Shared.DTOs;
 using Refit;
 
-namespace BlazingQuiz.Web.Apis
+namespace BlazingQuiz.Shared.Components.Apis
 {
     [Headers("Authorization: Bearer")]
     public interface IQuizApi
@@ -15,5 +15,11 @@ namespace BlazingQuiz.Web.Apis
 
         [Get("/api/quizes/{quizId}")]
         Task<QuizSaveDto?> GetQuizToEditAsync(Guid quizId);
+        
+        [Get("/api/quizes/{quizId}/feedback")]
+        Task<QuizApiResponse<TeacherQuizFeedbackDto>> GetQuizFeedbackAsync(Guid quizId);
+        
+        [Delete("/api/quizes/feedback/{feedbackId}")]
+        Task<QuizApiResponse> DeleteQuizFeedbackAsync(int feedbackId);
     }
 }

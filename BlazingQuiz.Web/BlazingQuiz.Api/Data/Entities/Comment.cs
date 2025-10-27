@@ -11,6 +11,7 @@ namespace BlazingQuiz.Api.Data.Entities
         public int StudentId { get; set; }
         public Guid QuizId { get; set; }
         public string Content { get; set; } = string.Empty;
+        public bool IsDeleted { get; set; } = false;
         
         [ForeignKey(nameof(StudentId))]
         public virtual User Student { get; set; }

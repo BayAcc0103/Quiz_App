@@ -15,5 +15,17 @@ namespace BlazingQuiz.Web.Apis
 
         [Get("/api/quizes/{quizId}")]
         Task<QuizSaveDto?> GetQuizToEditAsync(Guid quizId);
+        
+        [Get("/api/quizes/{quizId}/feedback")]
+        Task<QuizApiResponse<TeacherQuizFeedbackDto>> GetQuizFeedbackAsync(Guid quizId);
+        
+        [Delete("/api/quizes/feedback/{feedbackId}")]
+        Task<QuizApiResponse> DeleteQuizFeedbackAsync(int feedbackId);
+        
+        [Delete("/api/quizes/ratings/{ratingId}")]
+        Task<QuizApiResponse> DeleteRatingAsync(int ratingId);
+        
+        [Delete("/api/quizes/comments/{commentId}")]
+        Task<QuizApiResponse> DeleteCommentAsync(int commentId);
     }
 }
