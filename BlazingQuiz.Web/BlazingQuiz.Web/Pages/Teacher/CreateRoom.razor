@@ -1,0 +1,118 @@
+@page "/teacher/createroom"
+@using BlazingQuiz.Shared.DTOs
+@using BlazingQuiz.Web.Apis
+@using BlazingQuiz.Shared
+@inject IRoomApi RoomApi
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Create New Room</h3>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="createRoomDto" OnValidSubmit="HandleCreateRoom">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="mb-3">
+                            <label for="roomName" class="form-label">Room Name *</label>
+                            <InputText id="roomName" class="form-control" @bind-Value="createRoomDto.Name" />
+                            <ValidationMessage For="@(() => createRoomDto.Name)" class="text-danger" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="roomDescription" class="form-label">Description</label>
+                            <InputTextArea id="roomDescription" class="form-control" @bind-Value="createRoomDto.Description" rows="3"></InputTextArea>
+                            <ValidationMessage For="@(() => createRoomDto.Description)" class="text-danger" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="maxParticipants" class="form-label">Maximum Participants</label>
+                            <InputNumber id="maxParticipants" class="form-control" @bind-Value="createRoomDto.MaxParticipants" min="1" max="1000" />
+                            <ValidationMessage For="@(() => createRoomDto.MaxParticipants)" class="text-danger" />
+                            <div class="form-text">Default: 50 participants</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+                            <button type="submit" class="btn btn-primary" disabled="@isCreating">
+                                @if (isCreating)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    <span>Creating...</span>
+                                }
+                                else
+                                {
+                                    <span>Create Room</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                    
+                    @if (createdRoom != null)
+                    {
+                        <div class="mt-4 p-3 bg-success bg-opacity-10 border border-success rounded">
+                            <h5 class="text-success">Room Created Successfully!</h5>
+                            <p><strong>Room Name:</strong> @createdRoom.Name</p>
+                            <p><strong>Room Code:</strong> <span class="badge bg-primary fs-5">@createdRoom.Code</span></p>
+                            <p>Share this code with students to join the room.</p>
+                            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="CopyCode">Copy Code</button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private CreateRoomDto createRoomDto = new();
+    private RoomDto? createdRoom;
+    private bool isCreating = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        createRoomDto.MaxParticipants = 50;
+    }
+
+    private async Task HandleCreateRoom()
+    {
+        isCreating = true;
+        StateHasChanged();
+        
+        try
+        {
+            createdRoom = await RoomApi.CreateRoomAsync(createRoomDto);
+            await ShowAlertAsync("Room created successfully!", "Success");
+        }
+        catch (Exception ex)
+        {
+            await ShowAlertAsync($"Failed to create room: {ex.Message}", "Error");
+        }
+        finally
+        {
+            isCreating = false;
+            StateHasChanged();
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/teacher");
+    }
+
+    private async Task CopyCode()
+    {
+        if (createdRoom != null)
+        {
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", createdRoom.Code);
+            await ShowAlertAsync("Room code copied to clipboard!", "Copied");
+        }
+    }
+
+    private async Task ShowAlertAsync(string message, string title = "Error") => 
+        await JSRuntime.InvokeVoidAsync("alert", $"{title}\n{message}");
+}

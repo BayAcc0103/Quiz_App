@@ -113,6 +113,7 @@ builder.Services.AddTransient<AuthService>()
                 .AddTransient<AdminService>()
                 .AddTransient<StudentQuizService>()
                 .AddTransient<BookmarkService>()
+                .AddTransient<RoomService>()
                 .AddTransient<IImageUploadService, ImageUploadService>()
                 .AddTransient<IAudioUploadService, AudioUploadService>();
 var app = builder.Build();
@@ -138,17 +139,17 @@ app.UseCors();
 app.UseAuthentication()
     .UseAuthorization();
 
-app.MapAuthEndpoints()
-   .MapCategoryEndpoints()
-   .MapCategoryImageEndpoints()
-   .MapQuizEndpoints()
-   .MapQuizAudioEndpoints()
-   .MapQuizImageEndpoints()
-   .MapQuestionAudioEndpoints()
-   .MapQuestionImageEndpoints()
-   .MapAdminEndpoints()
-   .MapStudentQuizEndpoints()
-   .MapBookmarkEndpoints();
+app.MapAuthEndpoints();
+app.MapCategoryEndpoints();
+app.MapCategoryImageEndpoints();
+app.MapQuizEndpoints();
+app.MapQuizAudioEndpoints();
+app.MapQuizImageEndpoints();
+app.MapQuestionAudioEndpoints();
+app.MapQuestionImageEndpoints();
+app.MapAdminEndpoints();
+app.MapStudentQuizEndpoints();
+app.MapBookmarkEndpoints();
 app.MapRoomEndpoints();
 app.MapGeneralAudioEndpoints();
 app.MapUserAvatarEndpoints();

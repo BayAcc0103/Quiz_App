@@ -83,6 +83,9 @@ static void ConfigureRefit(IServiceCollection services)
     services.AddRefitClient<IUserAvatarApi>(GetRefitSettings)
         .ConfigureHttpClient(SetHttpClient);
 
+    services.AddRefitClient<IRoomApi>(GetRefitSettings)
+        .ConfigureHttpClient(SetHttpClient);
+
     static void SetHttpClient(HttpClient httpClient) =>
         httpClient.BaseAddress = new Uri(ApiBaseUrl);
     static RefitSettings GetRefitSettings(IServiceProvider sp)

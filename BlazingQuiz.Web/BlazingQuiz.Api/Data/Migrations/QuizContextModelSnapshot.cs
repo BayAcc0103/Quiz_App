@@ -285,6 +285,74 @@ namespace BlazingQuiz.Api.Data.Migrations
                     b.ToTable("Ratings");
                 });
 
+            modelBuilder.Entity("BlazingQuiz.Api.Data.Entities.Room", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("nvarchar(6)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EndedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MaxParticipants")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.ToTable("Rooms");
+                });
+
+            modelBuilder.Entity("BlazingQuiz.Api.Data.Entities.RoomQuiz", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("QuizId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuizId");
+
+                    b.HasIndex("RoomId");
+
+                    b.ToTable("RoomQuizzes");
+                });
+
             modelBuilder.Entity("BlazingQuiz.Api.Data.Entities.StudentQuiz", b =>
                 {
                     b.Property<int>("Id")
@@ -392,7 +460,7 @@ namespace BlazingQuiz.Api.Data.Migrations
                             Email = "admin@gmail.com",
                             IsApproved = true,
                             Name = "Admin",
-                            PasswordHash = "AQAAAAIAAYagAAAAEKLyGJIBPBbM2cTs/wozgrliyxdxs+MZ6/6uoH+g5xpxRiAGL6t5gPz7lCjjojepag==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEPhRrAxEVCygpzQNa3TO2hwU/61pxPnmOQNqHj5oF4wnoH+LgKe9QD4ISbuAl/aGrQ==",
                             Phone = "0123456789",
                             Role = "Admin"
                         });
@@ -513,6 +581,36 @@ namespace BlazingQuiz.Api.Data.Migrations
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("BlazingQuiz.Api.Data.Entities.Room", b =>
+                {
+                    b.HasOne("BlazingQuiz.Api.Data.Entities.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+                });
+
+            modelBuilder.Entity("BlazingQuiz.Api.Data.Entities.RoomQuiz", b =>
+                {
+                    b.HasOne("BlazingQuiz.Api.Data.Entities.Quiz", "Quiz")
+                        .WithMany("RoomQuizzes")
+                        .HasForeignKey("QuizId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("BlazingQuiz.Api.Data.Entities.Room", "Room")
+                        .WithMany("RoomQuizzes")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Quiz");
+
+                    b.Navigation("Room");
+                });
+
             modelBuilder.Entity("BlazingQuiz.Api.Data.Entities.StudentQuiz", b =>
                 {
                     b.HasOne("BlazingQuiz.Api.Data.Entities.Quiz", "Quiz")
@@ -567,6 +665,13 @@ namespace BlazingQuiz.Api.Data.Migrations
                     b.Navigation("QuizFeedbacks");
 
                     b.Navigation("Ratings");
+
+                    b.Navigation("RoomQuizzes");
+                });
+
+            modelBuilder.Entity("BlazingQuiz.Api.Data.Entities.Room", b =>
+                {
+                    b.Navigation("RoomQuizzes");
                 });
 
             modelBuilder.Entity("BlazingQuiz.Api.Data.Entities.StudentQuiz", b =>
