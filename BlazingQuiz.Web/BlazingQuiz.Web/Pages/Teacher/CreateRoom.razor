@@ -5,6 +5,7 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = nameof(UserRole.Teacher))]
 @inject IRoomApi RoomApi
+@inject IStudentQuizApi StudentQuizApi
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
@@ -29,6 +30,18 @@
                             <label for="roomDescription" class="form-label">Description</label>
                             <InputTextArea id="roomDescription" class="form-control" @bind-Value="createRoomDto.Description" rows="3"></InputTextArea>
                             <ValidationMessage For="@(() => createRoomDto.Description)" class="text-danger" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Quiz</label>
+                            <div class="input-group">
+                                <input id="selectedQuiz" class="form-control" value="@SelectedQuizName" readonly placeholder="No quiz selected" />
+                                <button type="button" class="btn btn-outline-secondary" @onclick="OpenQuizSelectionModal">Choose Quiz</button>
+                                @if (createRoomDto.QuizId.HasValue)
+                                {
+                                    <button type="button" class="btn btn-outline-danger" @onclick="ClearSelectedQuiz">Clear</button>
+                                }
+                            </div>
                         </div>
                         
                         <div class="mb-3">
@@ -70,14 +83,24 @@
     </div>
 </div>
 
+<QuizSelectionModal @ref="quizSelectionModal" IsVisible="@quizSelectionModalVisible" Quizzes="availableQuizzes" OnQuizSelected="OnQuizSelected" />
+
 @code {
     private CreateRoomDto createRoomDto = new();
     private RoomDto? createdRoom;
     private bool isCreating = false;
+    private QuizSelectionModal? quizSelectionModal;
+    private bool quizSelectionModalVisible = false;
+    private string SelectedQuizName = "No quiz selected";
+    private List<QuizListDto> availableQuizzes = new();
+    private Dictionary<Guid, string> quizNames = new();
 
     protected override async Task OnInitializedAsync()
     {
-        createRoomDto.MaxParticipants = 50;
+        createRoomDto.MaxParticipants = 50; // Default max participants
+        
+        // Load all available quizzes
+        await LoadAvailableQuizzes();
     }
 
     private async Task HandleCreateRoom()
@@ -117,4 +140,57 @@
 
     private async Task ShowAlertAsync(string message, string title = "Error") => 
         await JSRuntime.InvokeVoidAsync("alert", $"{title}\n{message}");
+
+    private async Task LoadAvailableQuizzes()
+    {
+        try
+        {
+            // Load all active quizzes for the teacher (similar to student home page)
+            availableQuizzes = (await StudentQuizApi.GetActiveQuizesAsync(0)).ToList(); // 0 means all categories
+            quizNames = availableQuizzes.ToDictionary(q => q.Id, q => q.Name);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading available quizzes: {ex.Message}");
+        }
+    }
+
+    private void OpenQuizSelectionModal()
+    {
+        quizSelectionModalVisible = true;
+        StateHasChanged();
+    }
+
+    private void ClearSelectedQuiz()
+    {
+        createRoomDto.QuizId = null;
+        SelectedQuizName = "No quiz selected";
+        StateHasChanged();
+    }
+
+    private async Task OnQuizSelected(Guid? quizId)
+    {
+        quizSelectionModalVisible = false;
+        
+        if (quizId.HasValue)
+        {
+            createRoomDto.QuizId = quizId;
+            // Update the quiz name to display it
+            if (quizNames.ContainsKey(quizId.Value))
+            {
+                SelectedQuizName = quizNames[quizId.Value];
+            }
+            else
+            {
+                // Fallback in case the selected quiz is not in our local cache
+                SelectedQuizName = "Quiz selected";
+            }
+        }
+        else
+        {
+            createRoomDto.QuizId = null;
+            SelectedQuizName = "No quiz selected";
+        }
+        StateHasChanged();
+    }
 }

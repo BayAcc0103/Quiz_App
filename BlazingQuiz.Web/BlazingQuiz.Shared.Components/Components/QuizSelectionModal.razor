@@ -1,0 +1,179 @@
+@using BlazingQuiz.Shared.DTOs
+@using Microsoft.AspNetCore.Components
+
+<div class="modal @modalDisplay @(isVisible ? "show" : "")" tabindex="-1" role="dialog" style="display:@modalStyle" aria-modal="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Select a Quiz</h5>
+                <button type="button" class="btn-close" @onclick="Close" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control" @bind="searchTerm" placeholder="Search quizzes..." @oninput="FilterQuizzes" />
+                </div>
+                
+                @if (Quizzes != null && Quizzes.Any())
+                {
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                        @foreach (var quiz in filteredQuizzes)
+                        {
+                            <div class="col">
+                                <div class="card h-100 quiz-card @(selectedQuizId.HasValue && selectedQuizId == quiz.Id ? "selected" : "")" @onclick="() => SelectQuiz(quiz.Id)">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <h5 class="card-title">@quiz.Name</h5>
+                                            @if (selectedQuizId.HasValue && selectedQuizId == quiz.Id)
+                                            {
+                                                <span class="badge bg-success">Selected</span>
+                                            }
+                                        </div>
+                                        <p class="card-text">@quiz.Description</p>
+                                        <div class="d-flex justify-content-between text-muted">
+                                            <small>Questions: @quiz.TotalQuestions</small>
+                                            <small>Time: @quiz.TimeInMinutes min</small>
+                                        </div>
+                                        <div class="mt-2">
+                                            <small>Category: @quiz.CategoryName</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <p class="text-muted">No quizzes available</p>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="Close">Cancel</button>
+                <button type="button" class="btn btn-primary" @onclick="ConfirmSelection" disabled="@(selectedQuizId == null)">Select Quiz</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .quiz-card {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        border: 2px solid transparent;
+    }
+    
+    .quiz-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        border-color: #0d6efd;
+    }
+    
+    .quiz-card.selected {
+        border-color: #198754;
+        background-color: #f8f9fa;
+    }
+</style>
+
+@code {
+    private bool isVisible;
+    private string modalDisplay = "d-none";
+    private string modalStyle = "none";
+    private List<QuizListDto>? originalQuizzes;
+    private List<QuizListDto>? filteredQuizzes;
+    private string searchTerm = "";
+    private Guid? selectedQuizId;
+    
+    [Parameter]
+    public bool IsVisible
+    {
+        get => isVisible;
+        set
+        {
+            if (isVisible != value)
+            {
+                isVisible = value;
+                SetModalVisibility(value);
+            }
+        }
+    }
+    
+    [Parameter]
+    public EventCallback<bool> IsVisibleChanged { get; set; }
+    
+    [Parameter]
+    public EventCallback<Guid?> OnQuizSelected { get; set; }
+    
+    [Parameter]
+    public List<QuizListDto>? Quizzes { get; set; }
+    
+    protected override void OnParametersSet()
+    {
+        if (Quizzes != null && Quizzes != originalQuizzes)
+        {
+            originalQuizzes = new List<QuizListDto>(Quizzes);
+            filteredQuizzes = new List<QuizListDto>(originalQuizzes);
+        }
+    }
+    
+    private void SetModalVisibility(bool visible)
+    {
+        if (visible)
+        {
+            modalDisplay = "";
+            modalStyle = "block";
+        }
+        else
+        {
+            modalDisplay = "d-none";
+            modalStyle = "none";
+        }
+        IsVisibleChanged.InvokeAsync(visible);
+    }
+    
+    private void Close()
+    {
+        SetModalVisibility(false);
+        selectedQuizId = null;
+    }
+    
+    private void SelectQuiz(Guid quizId)
+    {
+        selectedQuizId = quizId;
+    }
+    
+    private async Task ConfirmSelection()
+    {
+        await OnQuizSelected.InvokeAsync(selectedQuizId);
+        Close();
+    }
+    
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            Close();
+        }
+    }
+    
+    private void FilterQuizzes()
+    {
+        InvokeAsync(() =>
+        {
+            if (string.IsNullOrEmpty(searchTerm))
+            {
+                filteredQuizzes = new List<QuizListDto>(originalQuizzes);
+            }
+            else
+            {
+                filteredQuizzes = originalQuizzes?.Where(q => 
+                    q.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    (q.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (q.CategoryName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+                ).ToList();
+            }
+            StateHasChanged();
+        });
+    }
+}

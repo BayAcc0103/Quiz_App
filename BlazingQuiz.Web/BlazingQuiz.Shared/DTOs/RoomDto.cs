@@ -20,6 +20,10 @@ namespace BlazingQuiz.Shared.DTOs
         
         public string? CreatedByName { get; set; }
         
+        public Guid? QuizId { get; set; } // Selected quiz for the room
+        
+        public string? QuizName { get; set; } // Name of the selected quiz
+        
         public DateTime CreatedAt { get; set; }
         
         public DateTime? StartedAt { get; set; }

@@ -87,27 +87,17 @@ namespace BlazingQuiz.Api.Data
                 .HasForeignKey(c => c.QuizId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // Configure Room entity
+            // Configure Room entity - direct relationship with Quiz
             modelBuilder.Entity<Room>()
                 .HasOne(r => r.CreatedByUser)
                 .WithMany()
                 .HasForeignKey(r => r.CreatedBy)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // Configure RoomQuiz entity
-            modelBuilder.Entity<RoomQuiz>()
-                .HasKey(rq => rq.Id);
-
-            modelBuilder.Entity<RoomQuiz>()
-                .HasOne(rq => rq.Room)
-                .WithMany(r => r.RoomQuizzes)
-                .HasForeignKey(rq => rq.RoomId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            modelBuilder.Entity<RoomQuiz>()
-                .HasOne(rq => rq.Quiz)
-                .WithMany(q => q.RoomQuizzes)
-                .HasForeignKey(rq => rq.QuizId)
+            modelBuilder.Entity<Room>()
+                .HasOne(r => r.Quiz)
+                .WithMany()
+                .HasForeignKey(r => r.QuizId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             base.OnModelCreating(modelBuilder);

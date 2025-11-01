@@ -21,7 +21,7 @@ namespace BlazingQuiz.Api.Endpoints
                     return Results.BadRequest("Invalid user ID");
                 }
 
-                var room = await service.CreateRoomAsync(dto.Name, dto.Description, userId, dto.MaxParticipants);
+                var room = await service.CreateRoomAsync(dto.Name, dto.Description, userId, dto.MaxParticipants, dto.QuizId);
                 
                 var roomDto = new RoomDto
                 {
@@ -31,6 +31,7 @@ namespace BlazingQuiz.Api.Endpoints
                     Description = room.Description,
                     CreatedBy = room.CreatedBy,
                     CreatedByName = room.CreatedByUser?.Name,
+                    QuizId = room.QuizId,
                     CreatedAt = room.CreatedAt,
                     IsActive = room.IsActive,
                     MaxParticipants = room.MaxParticipants
@@ -56,6 +57,8 @@ namespace BlazingQuiz.Api.Endpoints
                     Description = room.Description,
                     CreatedBy = room.CreatedBy,
                     CreatedByName = room.CreatedByUser?.Name,
+                    QuizId = room.QuizId,
+                    QuizName = room.Quiz?.Name, // Include quiz name
                     CreatedAt = room.CreatedAt,
                     StartedAt = room.StartedAt,
                     EndedAt = room.EndedAt,
@@ -83,6 +86,8 @@ namespace BlazingQuiz.Api.Endpoints
                     Description = room.Description,
                     CreatedBy = room.CreatedBy,
                     CreatedByName = room.CreatedByUser?.Name,
+                    QuizId = room.QuizId,
+                    QuizName = room.Quiz?.Name, // Include quiz name
                     CreatedAt = room.CreatedAt,
                     StartedAt = room.StartedAt,
                     EndedAt = room.EndedAt,
@@ -112,6 +117,8 @@ namespace BlazingQuiz.Api.Endpoints
                     Description = r.Description,
                     CreatedBy = r.CreatedBy,
                     CreatedByName = r.CreatedByUser?.Name,
+                    QuizId = r.QuizId,
+                    QuizName = r.Quiz?.Name, // Include quiz name
                     CreatedAt = r.CreatedAt,
                     StartedAt = r.StartedAt,
                     EndedAt = r.EndedAt,

@@ -29,9 +29,12 @@ namespace BlazingQuiz.Api.Data.Entities
         
         public int MaxParticipants { get; set; } = 50; // Default max participants
         
-        public virtual User? CreatedByUser { get; set; }
+        public Guid? QuizId { get; set; } // Selected quiz for the room
         
-        public virtual ICollection<RoomQuiz> RoomQuizzes { get; set; } = [];
+        [ForeignKey(nameof(QuizId))]
+        public virtual Quiz? Quiz { get; set; }
+        
+        public virtual User? CreatedByUser { get; set; }
         
         public virtual ICollection<RoomParticipant> Participants { get; set; } = [];
     }

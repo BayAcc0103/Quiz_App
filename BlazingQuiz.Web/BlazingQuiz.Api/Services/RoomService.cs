@@ -13,7 +13,7 @@ namespace BlazingQuiz.Api.Services
             _context = context;
         }
 
-        public async Task<Room> CreateRoomAsync(string name, string? description, int createdBy, int maxParticipants = 50)
+        public async Task<Room> CreateRoomAsync(string name, string? description, int createdBy, int maxParticipants = 50, Guid? quizId = null)
         {
             // Generate a unique 6-digit code
             string code = await GenerateUniqueRoomCodeAsync();
@@ -27,6 +27,7 @@ namespace BlazingQuiz.Api.Services
                 CreatedBy = createdBy,
                 CreatedAt = DateTime.UtcNow,
                 MaxParticipants = maxParticipants,
+                QuizId = quizId,
                 IsActive = true
             };
 
@@ -89,6 +90,8 @@ namespace BlazingQuiz.Api.Services
         public async Task<List<Room>> GetRoomsByCreatorAsync(int userId)
         {
             return await _context.Rooms
+                .Include(r => r.CreatedByUser)
+                .Include(r => r.Quiz) // Include quiz information
                 .Where(r => r.CreatedBy == userId && r.IsActive)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
