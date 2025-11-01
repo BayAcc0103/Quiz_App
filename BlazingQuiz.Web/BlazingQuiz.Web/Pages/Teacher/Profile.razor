@@ -7,6 +7,7 @@
 @inject IAppState AppState
 @inject QuizAuthStateProvider QuizAuthStateProvider
 @inject NavigationManager NavigationManager
+@inject ProfileUpdateService ProfileUpdateService
 
 <BackButton />
 
@@ -171,6 +172,7 @@
         {
             AppState.ShowLoader("Updating profile...");
             await AuthApi.UpdateProfileAsync(_userDto);
+            ProfileUpdateService.NotifyAvatarUpdated(); // Notify other components about potential avatar update
             AppState.ShowAlert("Profile updated successfully!", AlertType.Success);
         }
         catch (Exception ex)
@@ -236,6 +238,7 @@
                 
                 // Reload profile to get the new avatar
                 await LoadProfileAsync();
+                ProfileUpdateService.NotifyAvatarUpdated(); // Notify other components about avatar update
                 AppState.ShowAlert("Avatar uploaded successfully!", AlertType.Success);
                 
                 // Clear the selected file after successful upload
@@ -266,6 +269,7 @@
             {
                 // Reload profile to update avatar display
                 await LoadProfileAsync();
+                ProfileUpdateService.NotifyAvatarUpdated(); // Notify other components about avatar update
                 AppState.ShowAlert("Avatar removed successfully!", AlertType.Success);
             }
             else

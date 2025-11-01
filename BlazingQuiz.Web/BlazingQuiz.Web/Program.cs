@@ -24,7 +24,8 @@ builder.Services.AddSingleton<IAppState, AppState>()
     .AddSingleton<QuizState>()
     .AddSingleton<IStorageService, StorageService>()
     .AddSingleton<IPlatform, WebPlatform>()
-    .AddScoped<ExampleJsInterop>();
+    .AddScoped<ExampleJsInterop>()
+    .AddSingleton<ProfileUpdateService>();
 
 builder.Services.AddHttpClient<CategoryImageService>(client =>
 {

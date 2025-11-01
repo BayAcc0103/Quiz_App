@@ -5,6 +5,7 @@
 @inject IAuthApi AuthApi
 @inject UserAvatarService UserAvatarService
 @inject NavigationManager NavigationManager
+@inject ProfileUpdateService ProfileUpdateService
 
 <div class="dropdown user-profile-dropdown">
     <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center py-0" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -42,12 +43,24 @@
     </ul>
 </div>
 
+@implements IDisposable
 @code {
     private UserDto? _userDto;
 
     protected override async Task OnInitializedAsync()
     {
+        ProfileUpdateService.OnAvatarUpdated += OnAvatarUpdated;
         await LoadUserProfile();
+    }
+
+    private void OnAvatarUpdated()
+    {
+        // Use InvokeAsync to properly handle async operations from event handler
+        InvokeAsync(async () =>
+        {
+            await LoadUserProfile();
+            StateHasChanged();
+        });
     }
 
     private async Task LoadUserProfile()
@@ -80,7 +93,13 @@
 
     private async Task LogoutAsync()
     {
+        ProfileUpdateService.OnAvatarUpdated -= OnAvatarUpdated;
         await QuizAuthStateProvider.SetLogoutAsync();
         NavigationManager.NavigateTo("auth/login", replace: true); // Redirect to login page after logout
+    }
+
+    public void Dispose()
+    {
+        ProfileUpdateService.OnAvatarUpdated -= OnAvatarUpdated;
     }
 }
