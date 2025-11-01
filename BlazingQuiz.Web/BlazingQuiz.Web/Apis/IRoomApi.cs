@@ -17,5 +17,11 @@ namespace BlazingQuiz.Web.Apis
         
         [Get("/api/rooms/code/{code}")]
         Task<RoomDto> GetRoomByCodeAsync(string code);
+        
+        [Post("/api/rooms/join")]
+        Task<RoomDto> JoinRoomAsync(JoinRoomDto joinRoomDto);
+        
+        [Get("/api/rooms/{roomId}/participants")]
+        Task<RoomParticipantDto[]> GetRoomParticipantsAsync(Guid roomId);
     }
 }

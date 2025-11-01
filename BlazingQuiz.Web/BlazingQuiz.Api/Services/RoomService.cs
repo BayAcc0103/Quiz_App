@@ -93,5 +93,47 @@ namespace BlazingQuiz.Api.Services
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
         }
+
+        public async Task<bool> JoinRoomAsync(string code, int userId)
+        {
+            var room = await _context.Rooms
+                .Include(r => r.Participants)
+                .FirstOrDefaultAsync(r => r.Code == code && r.IsActive);
+
+            if (room == null)
+            {
+                return false;
+            }
+
+            // Check if user is already in the room
+            var existingParticipant = room.Participants.FirstOrDefault(p => p.UserId == userId);
+            if (existingParticipant != null)
+            {
+                return true; // Already joined
+            }
+
+            // Add user as participant
+            var participant = new RoomParticipant
+            {
+                Id = Guid.NewGuid(),
+                RoomId = room.Id,
+                UserId = userId,
+                JoinedAt = DateTime.UtcNow
+            };
+
+            _context.RoomParticipants.Add(participant);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<List<User>> GetRoomParticipantsAsync(Guid roomId)
+        {
+            return await _context.RoomParticipants
+                .Where(rp => rp.RoomId == roomId)
+                .Include(rp => rp.User)
+                .Select(rp => rp.User)
+                .ToListAsync();
+        }
     }
 }

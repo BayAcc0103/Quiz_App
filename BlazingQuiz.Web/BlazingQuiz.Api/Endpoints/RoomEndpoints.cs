@@ -11,7 +11,7 @@ namespace BlazingQuiz.Api.Endpoints
         {
             var roomGroup = app.MapGroup("/api/rooms").RequireAuthorization();
             
-            // Create room - only teachers and admins can do this
+            // Create room - teachers, admins, and students can do this
             roomGroup.MapPost("", async (CreateRoomDto dto, RoomService service, HttpContext httpContext) =>
             {
                 // Get the current user ID from the claims
@@ -19,13 +19,6 @@ namespace BlazingQuiz.Api.Endpoints
                 if (!int.TryParse(userIdString, out var userId))
                 {
                     return Results.BadRequest("Invalid user ID");
-                }
-
-                // Check user role to determine if they have permission to create a room
-                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
-                if (userRole != nameof(UserRole.Teacher) && userRole != nameof(UserRole.Admin))
-                {
-                    return Results.Forbid();
                 }
 
                 var room = await service.CreateRoomAsync(dto.Name, dto.Description, userId, dto.MaxParticipants);
@@ -44,7 +37,7 @@ namespace BlazingQuiz.Api.Endpoints
                 };
 
                 return Results.Ok(roomDto);
-            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+            }).RequireAuthorization(); // Allow any authenticated user (admin, teacher, student)
 
             // Get room by code
             roomGroup.MapGet("/code/{code}", async (string code, RoomService service) =>
@@ -127,7 +120,61 @@ namespace BlazingQuiz.Api.Endpoints
                 }).ToList();
 
                 return Results.Ok(roomDtos);
-            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+            }).RequireAuthorization(); // Allow any authenticated user (admin, teacher, student)
+
+            // Join room
+            roomGroup.MapPost("/join", async (JoinRoomDto dto, RoomService service, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest("Invalid user ID");
+                }
+
+                var success = await service.JoinRoomAsync(dto.Code, userId);
+                if (!success)
+                {
+                    return Results.NotFound("Room not found or could not join room.");
+                }
+
+                var room = await service.GetRoomByCodeAsync(dto.Code);
+                if (room == null)
+                {
+                    return Results.NotFound("Room not found.");
+                }
+
+                var roomDto = new RoomDto
+                {
+                    Id = room.Id,
+                    Code = room.Code,
+                    Name = room.Name,
+                    Description = room.Description,
+                    CreatedBy = room.CreatedBy,
+                    CreatedByName = room.CreatedByUser?.Name,
+                    CreatedAt = room.CreatedAt,
+                    StartedAt = room.StartedAt,
+                    EndedAt = room.EndedAt,
+                    IsActive = room.IsActive,
+                    MaxParticipants = room.MaxParticipants
+                };
+
+                return Results.Ok(roomDto);
+            });
+
+            // Get room participants
+            roomGroup.MapGet("/{roomId:guid}/participants", async (Guid roomId, RoomService service) =>
+            {
+                var participants = await service.GetRoomParticipantsAsync(roomId);
+                var participantDtos = participants.Select(p => new RoomParticipantDto
+                {
+                    UserId = p.Id,
+                    UserName = p.Name,
+                    AvatarPath = p.AvatarPath
+                }).ToArray();
+
+                return Results.Ok(participantDtos);
+            });
 
             return app;
         }

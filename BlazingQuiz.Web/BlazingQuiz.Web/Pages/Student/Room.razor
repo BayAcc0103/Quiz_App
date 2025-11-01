@@ -1,0 +1,189 @@
+@page "/student/room/{roomId:guid}"
+@using BlazingQuiz.Shared.DTOs
+@using BlazingQuiz.Web.Apis
+@using BlazingQuiz.Shared
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = nameof(UserRole.Student))]
+@inject IRoomApi RoomApi
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">@room?.Name</h3>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-light text-dark me-3">
+                            <i class="bi bi-people-fill me-1"></i> @participants.Length/@room?.MaxParticipants
+                        </span>
+                        <span class="badge bg-light text-dark me-3">
+                            <i class="bi bi-code-slash me-1"></i> @room?.Code
+                        </span>
+                        <button type="button" class="btn btn-sm btn-light" @onclick="LeaveRoom">
+                            <i class="bi bi-box-arrow-right me-1"></i> Leave Room
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger">@errorMessage</div>
+                    }
+                    else if (isLoading)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p>Loading room information...</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-4">
+                            <h5>Room Description</h5>
+                            <p>@(string.IsNullOrEmpty(room?.Description) ? "No description provided" : room.Description)</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    Created by <strong>@room?.CreatedByName</strong> on @room?.CreatedAt.ToString("MMM dd, yyyy HH:mm")
+                                </small>
+                                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="CopyRoomCode">
+                                    <i class="bi bi-clipboard me-1"></i> Copy Room Code
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <h5>Participants (@participants.Length)</h5>
+                        <div class="row">
+                            @if (participants.Length == 0)
+                            {
+                                <div class="col-12 text-center py-4">
+                                    <p class="text-muted">No participants in this room yet.</p>
+                                </div>
+                            }
+                            else
+                            {
+                                @foreach (var participant in participants)
+                                {
+                                    <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-4">
+                                        <div class="card h-100">
+                                            <div class="card-body text-center">
+                                                <div class="mb-2">
+                                                    @if (!string.IsNullOrEmpty(participant.AvatarPath))
+                                                    {
+                                                        <img src="@participant.AvatarPath" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;" alt="@participant.UserName" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 60px; height: 60px;">
+                                                            <span class="text-white fs-4">@participant.UserName.Substring(0, 1).ToUpper()</span>
+                                                        </div>
+                                                    }
+                                                </div>
+                                                <h6 class="card-title mb-0">@participant.UserName</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Guid RoomId { get; set; }
+
+    private RoomDto? room;
+    private RoomParticipantDto[] participants = Array.Empty<RoomParticipantDto>();
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRoomData();
+        // Start polling for participants
+        _ = PollParticipantsAsync();
+    }
+
+    private async Task LoadRoomData()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            room = await RoomApi.GetRoomByIdAsync(RoomId);
+            await LoadParticipants();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load room data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadParticipants()
+    {
+        try
+        {
+            participants = await RoomApi.GetRoomParticipantsAsync(RoomId);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load participants: {ex.Message}";
+        }
+    }
+
+    private async Task PollParticipantsAsync()
+    {
+        while (!string.IsNullOrEmpty(room?.Code))
+        {
+            try
+            {
+                await LoadParticipants();
+                StateHasChanged();
+                await Task.Delay(5000); // Refresh every 5 seconds
+            }
+            catch
+            {
+                // Ignore errors in polling
+                break;
+            }
+        }
+    }
+
+    private async Task CopyRoomCode()
+    {
+        if (room != null)
+        {
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", room.Code);
+            await ShowAlertAsync("Room code copied to clipboard!", "Copied");
+        }
+    }
+
+    private void LeaveRoom()
+    {
+        Navigation.NavigateTo("/student/home");
+    }
+
+    private async Task ShowAlertAsync(string message, string title = "Error") => 
+        await JSRuntime.InvokeVoidAsync("alert", $"{title}\n{message}");
+
+    public void Dispose()
+    {
+        // Clean up polling if needed
+    }
+}

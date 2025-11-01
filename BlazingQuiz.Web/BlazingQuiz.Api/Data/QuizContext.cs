@@ -27,6 +27,7 @@ namespace BlazingQuiz.Api.Data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<RoomQuiz> RoomQuizzes { get; set; }
+        public DbSet<RoomParticipant> RoomParticipants { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
