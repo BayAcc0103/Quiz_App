@@ -142,22 +142,31 @@
                             {
                                 @foreach (var participant in participants)
                                 {
+                                    var isHost = room?.CreatedBy == participant.UserId;
                                     <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-4">
-                                        <div class="card h-100">
+                                        <div class="card h-100 @(isHost ? "border border-2 border-warning" : "")" style="@(isHost ? "position: relative;" : "")">
+                                            @if (isHost)
+                                            {
+                                                <div class="host-badge position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-warning d-flex align-items-center justify-content-center" 
+                                                     style="width: 24px; height: 24px;" 
+                                                     title="Room Host">
+                                                    <i class="bi bi-star-fill text-white" style="font-size: 0.75rem;"></i>
+                                                </div>
+                                            }
                                             <div class="card-body text-center">
                                                 <div class="mb-2">
                                                     @if (!string.IsNullOrEmpty(participant.AvatarPath))
                                                     {
-                                                        <img src="https://localhost:7048/@(participant.AvatarPath)" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;" alt="@participant.UserName" />
+                                                        <img src="https://localhost:7048/@(participant.AvatarPath)" class="rounded-circle @(isHost ? "border border-2 border-warning" : "")" style="width: 60px; height: 60px; object-fit: cover;" alt="@participant.UserName" />
                                                     }
                                                     else
                                                     {
-                                                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 60px; height: 60px;">
+                                                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto @(isHost ? "border border-2 border-warning" : "")" style="width: 60px; height: 60px;">
                                                             <span class="text-white fs-4">@participant.UserName.Substring(0, 1).ToUpper()</span>
                                                         </div>
                                                     }
                                                 </div>
-                                                <h6 class="card-title mb-0">@participant.UserName</h6>
+                                                <h6 class="card-title mb-0">@participant.UserName @(isHost ? "(Host)" : "")</h6>
                                             </div>
                                         </div>
                                     </div>
