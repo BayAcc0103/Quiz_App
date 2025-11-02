@@ -142,6 +142,17 @@ namespace BlazingQuiz.Api.Endpoints
                 var success = await service.JoinRoomAsync(dto.Code, userId);
                 if (!success)
                 {
+                    // Check if room exists but is full
+                    var roomCheck = await service.GetRoomByCodeAsync(dto.Code);
+                    if (roomCheck != null)
+                    {
+                        // Room exists but user couldn't join, check if it's full by getting participant count
+                        var participants = await service.GetRoomParticipantsAsync(roomCheck.Id);
+                        if (participants.Count >= roomCheck.MaxParticipants)
+                        {
+                            return Results.Conflict("Room is full. Cannot join room that has reached maximum capacity.");
+                        }
+                    }
                     return Results.NotFound("Room not found or could not join room.");
                 }
 

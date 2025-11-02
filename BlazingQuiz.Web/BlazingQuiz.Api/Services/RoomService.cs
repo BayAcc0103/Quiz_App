@@ -108,6 +108,12 @@ namespace BlazingQuiz.Api.Services
                 return false;
             }
 
+            // Check if the room is full (reached maximum participants)
+            if (room.Participants.Count >= room.MaxParticipants)
+            {
+                return false; // Room is full
+            }
+
             // Check if user is already in the room
             var existingParticipant = room.Participants.FirstOrDefault(p => p.UserId == userId);
             if (existingParticipant != null)

@@ -3,10 +3,11 @@
 @using BlazingQuiz.Web.Apis
 @using BlazingQuiz.Shared
 @using Microsoft.AspNetCore.Authorization
-@attribute [Authorize(Roles = nameof(UserRole.Student))]
 @inject IRoomApi RoomApi
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+
+@attribute [Authorize(Roles = nameof(UserRole.Student))]
 
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -25,6 +26,13 @@
                             <ValidationMessage For="@(() => joinRoomDto.Code)" class="text-danger" />
                             <div class="form-text">Enter the 6-digit room code provided by your teacher or peer</div>
                         </div>
+                        
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger mb-3" role="alert">
+                                @errorMessage
+                            </div>
+                        }
                         
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary btn-lg" disabled="@isJoining">
@@ -51,10 +59,12 @@
 @code {
     private JoinRoomDto joinRoomDto = new();
     private bool isJoining = false;
+    private string? errorMessage;
 
     private async Task HandleJoinRoom()
     {
         isJoining = true;
+        errorMessage = null; // Clear previous error
         StateHasChanged();
         
         try
@@ -63,9 +73,17 @@
             // Navigate to room page
             Navigation.NavigateTo($"/student/room/{room.Id}");
         }
+        catch (Refit.ApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            errorMessage = "Room is full. Cannot join room that has reached maximum capacity.";
+        }
+        catch (Refit.ApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            errorMessage = "Room not found. Please check the room code and try again.";
+        }
         catch (Exception ex)
         {
-            await ShowAlertAsync($"Failed to join room: {ex.Message}", "Error");
+            errorMessage = $"Failed to join room: {ex.Message}";
         }
         finally
         {
