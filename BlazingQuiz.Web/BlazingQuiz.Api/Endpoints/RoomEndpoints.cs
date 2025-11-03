@@ -183,15 +183,91 @@ namespace BlazingQuiz.Api.Endpoints
             // Get room participants
             roomGroup.MapGet("/{roomId:guid}/participants", async (Guid roomId, RoomService service) =>
             {
-                var participants = await service.GetRoomParticipantsAsync(roomId);
-                var participantDtos = participants.Select(p => new RoomParticipantDto
+                var roomParticipants = await service.GetRoomParticipantsWithReadyStatusAsync(roomId);
+                var participantDtos = roomParticipants.Select(rp => new RoomParticipantDto
                 {
-                    UserId = p.Id,
-                    UserName = p.Name,
-                    AvatarPath = p.AvatarPath
+                    UserId = rp.User.Id,
+                    UserName = rp.User.Name,
+                    AvatarPath = rp.User.AvatarPath,
+                    IsReady = rp.IsReady
                 }).ToArray();
 
                 return Results.Ok(participantDtos);
+            });
+
+            // Set participant ready status
+            roomGroup.MapPost("/{roomId:guid}/ready", async (Guid roomId, HttpContext httpContext, RoomService service) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest("Invalid user ID");
+                }
+
+                var success = await service.SetParticipantReadyStatusAsync(roomId, userId, true);
+                if (!success)
+                {
+                    return Results.NotFound("Room or participant not found.");
+                }
+
+                return Results.Ok(new { Message = "Ready status set successfully" });
+            });
+
+            // Set participant not ready status
+            roomGroup.MapPost("/{roomId:guid}/not-ready", async (Guid roomId, HttpContext httpContext, RoomService service) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest("Invalid user ID");
+                }
+
+                var success = await service.SetParticipantReadyStatusAsync(roomId, userId, false);
+                if (!success)
+                {
+                    return Results.NotFound("Room or participant not found.");
+                }
+
+                return Results.Ok(new { Message = "Not ready status set successfully" });
+            });
+
+            // Start room (for host only)
+            roomGroup.MapPost("/{roomId:guid}/start", async (Guid roomId, HttpContext httpContext, RoomService service) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest("Invalid user ID");
+                }
+
+                var result = await service.StartRoomAsync(roomId, userId);
+                if (result == "Room not found")
+                {
+                    return Results.NotFound("Room not found.");
+                }
+                else if (result == "Not authorized")
+                {
+                    return Results.StatusCode(403); // Forbidden status code
+                }
+                else if (result == "Not enough participants")
+                {
+                    return Results.BadRequest("Not enough participants to start the room.");
+                }
+                else if (result == "Not all participants ready")
+                {
+                    return Results.BadRequest("All participants must be ready to start the room.");
+                }
+                else if (result == "Success")
+                {
+                    return Results.Ok(new { Message = "Room started successfully." });
+                }
+                else
+                {
+                    return Results.StatusCode(500); // Internal server error
+                }
             });
 
             return app;

@@ -144,5 +144,69 @@ namespace BlazingQuiz.Api.Services
                 .Select(rp => rp.User)
                 .ToListAsync();
         }
+
+        public async Task<List<RoomParticipant>> GetRoomParticipantsWithReadyStatusAsync(Guid roomId)
+        {
+            return await _context.RoomParticipants
+                .Where(rp => rp.RoomId == roomId)
+                .Include(rp => rp.User)
+                .ToListAsync();
+        }
+
+        public async Task<bool> SetParticipantReadyStatusAsync(Guid roomId, int userId, bool isReady)
+        {
+            var roomParticipant = await _context.RoomParticipants
+                .FirstOrDefaultAsync(rp => rp.RoomId == roomId && rp.UserId == userId);
+
+            if (roomParticipant == null)
+            {
+                return false;
+            }
+
+            roomParticipant.IsReady = isReady;
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<string> StartRoomAsync(Guid roomId, int userId)
+        {
+            var room = await _context.Rooms
+                .Include(r => r.Participants)
+                    .ThenInclude(rp => rp.User)
+                .FirstOrDefaultAsync(r => r.Id == roomId && r.IsActive);
+
+            if (room == null)
+            {
+                return "Room not found";
+            }
+
+            // Check if the user is the host
+            if (room.CreatedBy != userId)
+            {
+                return "Not authorized";
+            }
+
+            // Check if there are enough participants (at least 2)
+            var participantCount = room.Participants.Count;
+            if (participantCount < 2)
+            {
+                return "Not enough participants";
+            }
+
+            // Check if all participants are ready (excluding the host)
+            var readyParticipantsCount = room.Participants.Count(rp => rp.IsReady);
+            // All participants except the host need to be ready
+            if (readyParticipantsCount < participantCount - 1)
+            {
+                return "Not all participants ready";
+            }
+
+            // All conditions met, start the room
+            room.StartedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return "Success";
+        }
     }
 }

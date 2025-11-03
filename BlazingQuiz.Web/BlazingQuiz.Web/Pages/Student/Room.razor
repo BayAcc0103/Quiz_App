@@ -3,12 +3,14 @@
 @using BlazingQuiz.Web.Apis
 @using BlazingQuiz.Shared
 @using Microsoft.AspNetCore.Authorization
+@using BlazingQuiz.Web.Auth
 @attribute [Authorize(Roles = nameof(UserRole.Student))]
 @inject IRoomApi RoomApi
 @inject IStudentQuizApi StudentQuizApi
 @inject QuizImageService QuizImageService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject QuizAuthStateProvider QuizAuthStateProvider
 
 <div class="container-fluid mt-4">
     <div class="row">
@@ -130,6 +132,37 @@
 
                         <hr />
 
+                        <!-- Room Control Buttons -->
+                        @if (room != null && QuizAuthStateProvider.IsLoggedIn)
+                        {
+                            bool isHost = room.CreatedBy == QuizAuthStateProvider.User.Id;
+                            <div class="mb-4">
+                                @if (isHost)
+                                {
+                                    <button type="button" class="btn btn-success btn-lg me-2" @onclick="StartRoom" disabled="@(room.StartedAt.HasValue || participants.Length < 2 || !AreAllParticipantsReady())">
+                                        <i class="bi bi-play-circle me-1"></i> @(room.StartedAt.HasValue ? "Room Started" : "Start Room")
+                                    </button>
+                                    @if (participants.Length < 2)
+                                    {
+                                        <small class="text-muted">Need at least 2 participants to start</small>
+                                    }
+                                    else if (!AreAllParticipantsReady())
+                                    {
+                                        <small class="text-muted">All participants must be ready</small>
+                                    }
+                                }
+                                else
+                                {
+                                    var currentUser = participants.FirstOrDefault(p => p.UserId == QuizAuthStateProvider.User.Id);
+                                    <button type="button" class="btn btn-primary btn-lg" @onclick="ToggleReadyStatus">
+                                        <i class="bi bi-check-circle me-1"></i> @(currentUser?.IsReady == true ? "Not Ready" : "Ready")
+                                    </button>
+                                }
+                            </div>
+                        }
+
+                        <hr />
+
                         <h5>Participants (@participants.Length)</h5>
                         <div class="row">
                             @if (participants.Length == 0)
@@ -143,8 +176,9 @@
                                 @foreach (var participant in participants)
                                 {
                                     var isHost = room?.CreatedBy == participant.UserId;
+                                    var isReady = participant.IsReady;
                                     <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-4">
-                                        <div class="card h-100 @(isHost ? "border border-2 border-warning" : "")" style="@(isHost ? "position: relative;" : "")">
+                                        <div class="card h-100 @(isHost ? "border border-2 border-warning" : "") @(isReady && !isHost ? "border border-2 border-success" : "")" style="@(isHost ? "position: relative;" : "")">
                                             @if (isHost)
                                             {
                                                 <div class="host-badge position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-warning d-flex align-items-center justify-content-center" 
@@ -153,20 +187,29 @@
                                                     <i class="bi bi-star-fill text-white" style="font-size: 0.75rem;"></i>
                                                 </div>
                                             }
+                                            else if (isReady)
+                                            {
+                                                <div class="ready-badge position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-success d-flex align-items-center justify-content-center" 
+                                                     style="width: 24px; height: 24px;" 
+                                                     title="Ready">
+                                                    <i class="bi bi-check text-white" style="font-size: 0.75rem;"></i>
+                                                </div>
+                                            }
                                             <div class="card-body text-center">
                                                 <div class="mb-2">
                                                     @if (!string.IsNullOrEmpty(participant.AvatarPath))
                                                     {
-                                                        <img src="https://localhost:7048/@(participant.AvatarPath)" class="rounded-circle @(isHost ? "border border-2 border-warning" : "")" style="width: 60px; height: 60px; object-fit: cover;" alt="@participant.UserName" />
+                                                        <img src="https://localhost:7048/@(participant.AvatarPath)" class="rounded-circle @(isHost ? "border border-2 border-warning" : isReady ? "border border-2 border-success" : "")" style="width: 60px; height: 60px; object-fit: cover;" alt="@participant.UserName" />
                                                     }
                                                     else
                                                     {
-                                                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto @(isHost ? "border border-2 border-warning" : "")" style="width: 60px; height: 60px;">
+                                                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto @(isHost ? "border border-2 border-warning" : isReady ? "border border-2 border-success" : "")" style="width: 60px; height: 60px;">
                                                             <span class="text-white fs-4">@participant.UserName.Substring(0, 1).ToUpper()</span>
                                                         </div>
                                                     }
                                                 </div>
                                                 <h6 class="card-title mb-0">@participant.UserName @(isHost ? "(Host)" : "")</h6>
+                                                <small class="text-muted">@(isReady ? "Ready" : "Not Ready")</small>
                                             </div>
                                         </div>
                                     </div>
@@ -301,6 +344,119 @@
 
     private async Task ShowAlertAsync(string message, string title = "Error") => 
         await JSRuntime.InvokeVoidAsync("alert", $"{title}\n{message}");
+
+    private bool AreAllParticipantsReady()
+    {
+        // Check if all participants except the host are ready
+        return participants.All(p => p.IsReady || room?.CreatedBy == p.UserId);
+    }
+
+    private async Task ToggleReadyStatus()
+    {
+        if (room == null || !QuizAuthStateProvider.IsLoggedIn)
+        {
+            await ShowAlertAsync("You must be logged in to set ready status", "Error");
+            return;
+        }
+
+        // Check if user is the host (hosts can't be ready, they start the room)
+        if (room.CreatedBy == QuizAuthStateProvider.User.Id)
+        {
+            await ShowAlertAsync("Host cannot set ready status", "Error");
+            return;
+        }
+
+        var currentUser = participants.FirstOrDefault(p => p.UserId == QuizAuthStateProvider.User.Id);
+        if (currentUser?.IsReady == true)
+        {
+            // Set to not ready
+            var response = await RoomApi.SetNotReadyStatusAsync(room.Id);
+            if (response.IsSuccessStatusCode)
+            {
+                await ShowAlertAsync("You are no longer ready", "Status Update");
+            }
+            else
+            {
+                await ShowAlertAsync($"Failed to update status: {response.Error}", "Error");
+            }
+        }
+        else
+        {
+            // Set to ready
+            var response = await RoomApi.SetReadyStatusAsync(room.Id);
+            if (response.IsSuccessStatusCode)
+            {
+                await ShowAlertAsync("You are now ready", "Status Update");
+            }
+            else
+            {
+                await ShowAlertAsync($"Failed to update status: {response.Error}", "Error");
+            }
+        }
+        
+        // Refresh participants to get updated status
+        await LoadParticipants();
+        StateHasChanged();
+    }
+
+    private async Task StartRoom()
+    {
+        if (room == null || !QuizAuthStateProvider.IsLoggedIn)
+        {
+            await ShowAlertAsync("You must be logged in to start the room", "Error");
+            return;
+        }
+
+        // Check if current user is the host
+        if (room.CreatedBy != QuizAuthStateProvider.User.Id)
+        {
+            await ShowAlertAsync("Only the host can start the room", "Permission Error");
+            return;
+        }
+
+        // Check if there are enough participants
+        if (participants.Length < 2)
+        {
+            await ShowAlertAsync("Need at least 2 participants to start the room", "Not Enough Participants");
+            return;
+        }
+
+        // Check if all participants are ready
+        var nonReadyParticipants = participants.Where(p => p.UserId != room.CreatedBy && !p.IsReady).ToList();
+        if (nonReadyParticipants.Any())
+        {
+            var nonReadyNames = string.Join(", ", nonReadyParticipants.Select(p => p.UserName));
+            await ShowAlertAsync($"The following users are not ready: {nonReadyNames}. All participants must be ready to start.", "Not Ready");
+            return;
+        }
+
+        // Call API to start the room
+        var response = await RoomApi.StartRoomAsync(room.Id);
+        if (response.IsSuccessStatusCode)
+        {
+            await ShowAlertAsync("Room started successfully!", "Success");
+            
+            // Navigate to the quiz page
+            if (room.QuizId.HasValue)
+            {
+                Navigation.NavigateTo($"/student/quiz/{room.QuizId.Value}/room/{room.Id}");
+            }
+            else
+            {
+                await ShowAlertAsync("No quiz assigned to this room", "Error");
+            }
+        }
+        else
+        {
+            // Get the specific error message from the API response
+            string errorMessage = "Failed to start room";
+            if (response.Error?.Message != null)
+            {
+                errorMessage = response.Error.Message;
+            }
+            await ShowAlertAsync($"Failed to start room: {errorMessage}", "Error");
+        }
+    }
 
     public void Dispose()
     {

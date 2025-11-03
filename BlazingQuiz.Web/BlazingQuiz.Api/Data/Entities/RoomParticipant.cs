@@ -14,6 +14,8 @@ namespace BlazingQuiz.Api.Data.Entities
         
         public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
         
+        public bool IsReady { get; set; } = false;
+        
         [ForeignKey(nameof(RoomId))]
         public virtual Room Room { get; set; }
         
