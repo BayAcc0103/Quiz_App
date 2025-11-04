@@ -4,6 +4,7 @@ using BlazingQuiz.Web;
 using BlazingQuiz.Web.Apis;
 using BlazingQuiz.Web.Auth;
 using BlazingQuiz.Web.Services;
+using BlazingQuiz.Web.Services.SignalR;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -25,7 +26,8 @@ builder.Services.AddSingleton<IAppState, AppState>()
     .AddSingleton<IStorageService, StorageService>()
     .AddSingleton<IPlatform, WebPlatform>()
     .AddScoped<ExampleJsInterop>()
-    .AddSingleton<ProfileUpdateService>();
+    .AddSingleton<ProfileUpdateService>()
+    .AddSingleton<QuizHubService>();
 
 builder.Services.AddHttpClient<CategoryImageService>(client =>
 {

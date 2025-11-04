@@ -1,6 +1,7 @@
 using BlazingQuiz.Api.Data;
 using BlazingQuiz.Api.Data.Entities;
 using BlazingQuiz.Api.Endpoints;
+using BlazingQuiz.Api.Hubs;
 using BlazingQuiz.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -113,9 +114,12 @@ builder.Services.AddTransient<AuthService>()
                 .AddTransient<AdminService>()
                 .AddTransient<StudentQuizService>()
                 .AddTransient<BookmarkService>()
-                .AddTransient<RoomService>()
                 .AddTransient<IImageUploadService, ImageUploadService>()
                 .AddTransient<IAudioUploadService, AudioUploadService>();
+
+// Add SignalR
+builder.Services.AddSignalR();
+builder.Services.AddTransient<RoomService>();
 var app = builder.Build();
 
 #if DEBUG
@@ -154,6 +158,8 @@ app.MapRoomEndpoints();
 app.MapGeneralAudioEndpoints();
 app.MapUserAvatarEndpoints();
 
+// Map SignalR hubs
+app.MapHub<QuizHub>("/quizhub");
 
 app.Run();
 

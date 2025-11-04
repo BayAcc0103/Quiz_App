@@ -270,6 +270,110 @@ namespace BlazingQuiz.Api.Endpoints
                 }
             });
 
+            // Start quiz in room (for host only)
+            roomGroup.MapPost("/{roomId:guid}/start-quiz", async (Guid roomId, HttpContext httpContext, RoomService service) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest("Invalid user ID");
+                }
+
+                // Check if user is the host
+                var room = await service.GetRoomByIdAsync(roomId);
+                if (room == null)
+                {
+                    return Results.NotFound("Room not found.");
+                }
+
+                if (room.CreatedBy != userId)
+                {
+                    return Results.StatusCode(403); // Forbidden
+                }
+
+                if (!room.IsActive)
+                {
+                    return Results.BadRequest("Room is not active.");
+                }
+
+                if (room.StartedAt == null)
+                {
+                    return Results.BadRequest("Room has not been started yet.");
+                }
+
+                // Update room status to indicate quiz has started
+                await service.UpdateRoomStatusAsync(roomId, startedAt: room.StartedAt);
+
+                // Send real-time update to all participants in the room that the quiz has started
+                await service.NotifyQuizStartedAsync(room.Code);
+
+                return Results.Ok(new { Message = "Quiz started successfully.", RoomCode = room.Code });
+            });
+
+            // Submit answer for a room quiz
+            roomGroup.MapPost("/{roomId:guid}/answers", async (RoomAnswerDto dto, Guid roomId, HttpContext httpContext, RoomService service) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest("Invalid user ID");
+                }
+
+                // Verify that the user is a participant in the room
+                var participants = await service.GetRoomParticipantsAsync(roomId);
+                if (!participants.Any(p => p.Id == userId))
+                {
+                    return Results.BadRequest("User is not a participant in this room.");
+                }
+
+                // Record the answer
+                var success = await service.RecordRoomAnswerAsync(roomId, userId, dto.QuestionId, dto.OptionId, dto.TextAnswer);
+                if (!success)
+                {
+                    return Results.StatusCode(500);
+                }
+
+                return Results.Ok(new { Message = "Answer recorded successfully." });
+            });
+
+            // Get answers for a room
+            roomGroup.MapGet("/{roomId:guid}/answers", async (Guid roomId, RoomService service) =>
+            {
+                var answers = await service.GetRoomAnswersAsync(roomId);
+                var answerDtos = answers.Select(ra => new RoomAnswerDto
+                {
+                    Id = ra.Id,
+                    RoomId = ra.RoomId,
+                    UserId = ra.UserId,
+                    QuestionId = ra.QuestionId,
+                    OptionId = ra.OptionId,
+                    TextAnswer = ra.TextAnswer,
+                    AnsweredAt = ra.AnsweredAt
+                }).ToList();
+
+                return Results.Ok(answerDtos);
+            });
+
+            // Get answers for a specific user in a room
+            roomGroup.MapGet("/{roomId:guid}/answers/user/{userId:int}", async (Guid roomId, int userId, RoomService service) =>
+            {
+                var answers = await service.GetRoomAnswersForUserAsync(roomId, userId);
+                var answerDtos = answers.Select(ra => new RoomAnswerDto
+                {
+                    Id = ra.Id,
+                    RoomId = ra.RoomId,
+                    UserId = ra.UserId,
+                    QuestionId = ra.QuestionId,
+                    OptionId = ra.OptionId,
+                    TextAnswer = ra.TextAnswer,
+                    AnsweredAt = ra.AnsweredAt
+                }).ToList();
+
+                return Results.Ok(answerDtos);
+            });
+
             return app;
         }
     }

@@ -37,5 +37,7 @@ namespace BlazingQuiz.Api.Data.Entities
         public virtual User? CreatedByUser { get; set; }
         
         public virtual ICollection<RoomParticipant> Participants { get; set; } = [];
+        
+        public virtual ICollection<RoomAnswer> RoomAnswers { get; set; } = [];
     }
 }

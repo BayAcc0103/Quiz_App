@@ -1,0 +1,570 @@
+@page "/student/quiz/{QuizId:guid}/room/{RoomId:guid}"
+@using BlazingQuiz.Web.Services.SignalR
+@inject NavigationManager NavigationManager
+@inject QuizState QuizState
+@inject IStudentQuizApi StudentQuizApi
+@inject IRoomApi RoomApi
+@inject QuizHubService QuizHubService
+@inject IAppState AppState
+@inject QuestionImageService QuestionImageService
+@inject QuizAudioService QuizAudioService
+@inject QuestionAudioService QuestionAudioService
+@inject QuizAuthStateProvider QuizAuthStateProvider
+
+@layout QuizPageLayout 
+
+@if (isLoading)
+{
+    <div class="text-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p>Joining room and preparing quiz...</p>
+    </div>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+else
+{
+    @if (isQuizStarted)
+    {
+        <div class="row mb-3">
+            @*Timer*@
+            <div class="col-sm-12">
+                <div class="my-1 d-flex justify-content-between align-items-center">
+                    <h6>@(_currentQuestionIndex + 1) of @_totalQuestions</h6>
+                    <div class="d-flex gap-2">
+                        <div>
+                            <QuizTimer TotalMinutes="quizTimeInMinutes" OnTimerStop="AutoSubmitQuizAsync" />
+                        </div>
+                    </div>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(quizName))
+                {
+                    <h5 class="mt-3 mb-0 fw-bold">@quizName</h5>
+                }
+                
+                @if (!string.IsNullOrEmpty(currentQuestion?.Text))
+                {
+                    <h4 class="mt-2 mb-0 fw-bold">@currentQuestion.Text</h4>
+                    @if (!string.IsNullOrEmpty(currentQuestion.ImagePath))
+                    {
+                        <div class="question-image-container my-3">
+                            <img src="@QuestionImageService.GetImageUrl(currentQuestion.ImagePath)" alt="Question Image" class="img-fluid rounded" style="max-width: 100%; max-height: 300px; object-fit: contain;" />
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(currentQuestion.AudioPath))
+                    {
+                        <div class="question-audio-container my-3">
+                            @if (currentQuestion.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <audio controls class="w-100">
+                                    <source src="@QuestionAudioService.GetAudioUrl(currentQuestion.AudioPath)" type="audio/mpeg" />
+                                    Your browser does not support the audio element.
+                                </audio>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info">Audio file available: @currentQuestion.AudioPath</div>
+                            }
+                        </div>
+                    }
+                }
+                <hr/>
+                @if (currentQuestion != null && !currentQuestion.IsTextAnswer)
+                {
+                    <!-- Multiple Choice Options -->
+                    @foreach (var o in currentQuestion.Options)
+                    {
+                        <div class="d-flex gap-2 p-3 mb-3 bg-white option-box" @onclick="() => SelectOption(o.Id)">
+                            <input type="radio" name="rdo_@currentQuestion?.Id" id="rdo_@o.Id" class="" 
+                            checked="@(selectedOptionId == o.Id)" 
+                            @onchange="() => SelectOption(o.Id)"/>
+                            <label for="rdo_@o.Id" class="d-block">@o.Text</label>
+                        </div>
+                    }
+                }
+                else if (currentQuestion != null && currentQuestion.IsTextAnswer)
+                {
+                    <!-- Text Input Field -->
+                    <div class="mb-3">
+                        <input type="text" class="form-control" placeholder="Enter your answer" @bind="textAnswer" />
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="bg-danger my-3 p-2 d-flex justify-content-between align-items-center">
+                        <label class="text-white">@errorMessage</label>
+                        <button type="button" class="btn btn-sm btn-light" @onclick="() => errorMessage = null">X</button>
+                    </div>
+                }
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="button" class="btn btn-danger" @onclick="ExitQuiz">Exit Quiz</button>
+                        @if (isLastQuestion)
+                        {
+                            <button type="button" class="btn btn-success" @onclick="SubmitQuiz">Submit Quiz</button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-primary" @onclick="SubmitCurrentAnswer">Submit Answer</button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Waiting room before quiz starts -->
+        <div class="container mt-5">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0">Quiz Room</h4>
+                        </div>
+                        <div class="card-body text-center">
+                            <h5>Waiting for the host to start the quiz...</h5>
+                            <div class="spinner-border mt-4" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h6>Quiz: @quizName</h6>
+                                <p class="text-muted">Room: @roomCode</p>
+                            </div>
+                            
+                            @if (isHost)
+                            {
+                                <div class="mt-4">
+                                    <button class="btn btn-success btn-lg" @onclick="StartQuizForRoom">Start Quiz for All</button>
+                                    <p class="mt-2">Click when all participants are ready to begin the quiz</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+<style>
+    .option-box {
+        transition: all ease 0.2s;
+    }
+    .option-box:hover {
+        border-radius: 10px;
+        box-shadow: 0 0 18px 1px #bebebe;
+    }
+    
+    .emotion-icon {
+        transition: all ease 0.3s;
+        border-radius: 50%;
+        padding: 10px;
+        position: relative;
+    }
+    
+    .emotion-icon.selected {
+        color: #0d6efd !important;
+        -webkit-animation: pulse 2s infinite;
+        animation: pulse 2s infinite;
+        background-color: rgba(13, 110, 253, 0.1);
+        box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+    }
+    
+    @@keyframes pulse {
+        0% { 
+            box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
+        }
+        50% { 
+            box-shadow: 0 0 20px rgba(13, 110, 253, 0.8);
+        }
+        100% { 
+            box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
+        }
+    }
+    
+    .emotion-icon:hover {
+        transform: scale(1.2);
+        background-color: #f0f8ff;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public Guid QuizId { get; set; }
+    
+    [Parameter]
+    public Guid RoomId { get; set; }
+    
+    private bool isLoading = true;
+    private bool isQuizStarted = false;
+    private bool isHost = false;
+    private string? errorMessage;
+    private string? roomCode;
+    private string? quizName;
+    private int quizTimeInMinutes;
+    private int? currentQuestionId;
+    private QuestionDto? currentQuestion;
+    private int _currentQuestionIndex = 0;
+    private int _totalQuestions = 0;
+    private int selectedOptionId = 0;
+    private string? textAnswer;
+    private bool isLastQuestion = false;
+    private int studentQuizId = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Check if user is logged in
+            if (!QuizAuthStateProvider.IsLoggedIn)
+            {
+                NavigationManager.NavigateTo("/auth/login", replace: true);
+                return;
+            }
+
+            // Verify user is a participant in this room
+            var participants = await RoomApi.GetRoomParticipantsAsync(RoomId);
+            var currentUser = participants.FirstOrDefault(p => p.UserId == QuizAuthStateProvider.User.Id);
+            
+            if (currentUser == null)
+            {
+                errorMessage = "You are not a participant in this room.";
+                isLoading = false;
+                return;
+            }
+
+            // Check if user is the host
+            var roomDto = await RoomApi.GetRoomByIdAsync(RoomId);
+            if (roomDto?.CreatedBy == QuizAuthStateProvider.User.Id)
+            {
+                isHost = true;
+            }
+            
+            roomCode = roomDto?.Code;
+            quizName = roomDto?.QuizName ?? "Quiz";
+
+            // Check if the room has already started - if so, start the quiz immediately
+            if (roomDto?.StartedAt.HasValue == true)
+            {
+                isQuizStarted = true;
+            }
+
+            // Set up SignalR connection - make sure connection is started
+            if (!QuizHubService.IsConnected)
+            {
+                await QuizHubService.StartConnectionAsync();
+            }
+            
+            // Set up SignalR connection
+            QuizHubService.OnQuizStarted += HandleQuizStarted;
+            
+            // Join the room in SignalR
+            await QuizHubService.JoinRoomAsync(roomCode);
+            
+            // If the quiz has already started, initialize it now
+            if (isQuizStarted)
+            {
+                await InitializeQuizAsync();
+            }
+            
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error initializing room: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task StartQuizForRoom()
+    {
+        try
+        {
+            AppState.ShowLoader("Starting quiz for all participants...");
+            
+            // Call API to start quiz for room - this API call sends the SignalR event to all participants
+            var response = await RoomApi.StartQuizAsync(RoomId);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                // The host should start the quiz immediately as well, not wait for the SignalR event
+                // This prevents any race condition issues
+                isQuizStarted = true;
+                await InitializeQuizAsync();
+                StateHasChanged();
+            }
+            else
+            {
+                errorMessage = "Failed to start quiz: " + response.Error?.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error starting quiz: " + ex.Message;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private void HandleQuizStarted(string roomCode)
+    {
+        InvokeAsync(async () =>
+        {
+            // Only handle the event if it's for this room
+            if (roomCode == this.roomCode)
+            {
+                isQuizStarted = true;
+                
+                // Initialize quiz for the participant
+                await InitializeQuizAsync();
+                StateHasChanged();
+            }
+        });
+    }
+
+    private async Task InitializeQuizAsync()
+    {
+        try
+        {
+            AppState.ShowLoader("Preparing quiz...");
+            
+            // Initialize quiz state - this returns the studentQuizId
+            var quizResponse = await StudentQuizApi.StartQuizAsync(QuizId);
+            if (!quizResponse.IsSuccess || quizResponse.Data == 0) // studentQuizId should not be 0
+            {
+                errorMessage = "Failed to start quiz: " + quizResponse.ErrorMessage;
+                return;
+            }
+
+            studentQuizId = quizResponse.Data;
+
+            // Get quiz details to get time and total questions
+            var quizDetailsResponse = await StudentQuizApi.GetQuizDetailsAsync(QuizId);
+            if (!quizDetailsResponse.IsSuccess || quizDetailsResponse.Data == null)
+            {
+                errorMessage = "Failed to load quiz details: " + quizDetailsResponse.ErrorMessage;
+                return;
+            }
+
+            quizTimeInMinutes = quizDetailsResponse.Data.TimeInMinutes;
+            _totalQuestions = quizDetailsResponse.Data.TotalQuestions;
+
+            // Get the first question
+            await LoadNextQuestionAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error initializing quiz: " + ex.Message;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private async Task LoadNextQuestionAsync()
+    {
+        try
+        {
+            AppState.ShowLoader("Loading question...");
+            
+            var result = await StudentQuizApi.GetNextQuestionForQuizAsync(studentQuizId);
+            if (!result.IsSuccess || result.Data == null)
+            {
+                errorMessage = result.ErrorMessage ?? "Failed to load question";
+                return;
+            }
+            
+            currentQuestion = result.Data;
+            currentQuestionId = currentQuestion.Id;
+            isLastQuestion = (_currentQuestionIndex + 1) == _totalQuestions;
+            
+            // Reset selected answer
+            selectedOptionId = 0;
+            textAnswer = null;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error loading question: " + ex.Message;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private void SelectOption(int optionId)
+    {
+        selectedOptionId = optionId;
+    }
+
+    private void OnTextAnswerChanged(ChangeEventArgs e)
+    {
+        textAnswer = e.Value?.ToString();
+    }
+
+    private async Task SubmitCurrentAnswer()
+    {
+        try
+        {
+            if (currentQuestion == null)
+            {
+                errorMessage = "No question to answer";
+                return;
+            }
+
+            if (currentQuestion.IsTextAnswer && string.IsNullOrWhiteSpace(textAnswer))
+            {
+                errorMessage = "Please enter an answer";
+                return;
+            }
+
+            if (!currentQuestion.IsTextAnswer && selectedOptionId == 0)
+            {
+                errorMessage = "Please select an option";
+                return;
+            }
+
+            AppState.ShowLoader("Saving answer...");
+            
+            // Save the answer using the existing API
+            StudentQuizQuestionResponseDto responseDto;
+            if (currentQuestion.IsTextAnswer)
+            {
+                responseDto = new StudentQuizQuestionResponseDto(studentQuizId, currentQuestion.Id, 0, textAnswer);
+            }
+            else
+            {
+                responseDto = new StudentQuizQuestionResponseDto(studentQuizId, currentQuestion.Id, selectedOptionId);
+            }
+
+            var result = await StudentQuizApi.SaveQuestionResponseAsync(studentQuizId, responseDto);
+            if (!result.IsSuccess)
+            {
+                errorMessage = result.ErrorMessage ?? "Failed to save answer";
+                return;
+            }
+
+            // Submit answer to room as well
+            var roomAnswerDto = new RoomAnswerDto
+            {
+                RoomId = RoomId,
+                UserId = QuizAuthStateProvider.User.Id,
+                QuestionId = currentQuestion.Id,
+                OptionId = currentQuestion.IsTextAnswer ? null : selectedOptionId,
+                TextAnswer = currentQuestion.IsTextAnswer ? textAnswer : null,
+                AnsweredAt = DateTime.UtcNow
+            };
+
+            var roomResult = await RoomApi.SubmitAnswerAsync(roomAnswerDto, RoomId);
+            if (!roomResult.IsSuccessStatusCode)
+            {
+                errorMessage = "Failed to record answer in room: " + roomResult.Error?.Message;
+                return;
+            }
+
+            // Move to next question if not last
+            if (!isLastQuestion)
+            {
+                _currentQuestionIndex++;
+                await LoadNextQuestionAsync();
+            }
+            else
+            {
+                // This will be the last question, so prepare for submit
+                errorMessage = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error submitting answer: " + ex.Message;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private async Task SubmitQuiz()
+    {
+        try
+        {
+            AppState.ShowLoader("Submitting quiz...");
+            
+            var result = await StudentQuizApi.SubmitQuizAsync(studentQuizId);
+            if (!result.IsSuccess)
+            {
+                errorMessage = result.ErrorMessage ?? "Failed to submit quiz";
+                return;
+            }
+
+            // Navigate to results page
+            NavigationManager.NavigateTo($"/student/quiz-result/{studentQuizId}", replace: true);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error submitting quiz: " + ex.Message;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private async Task AutoSubmitQuizAsync()
+    {
+        try
+        {
+            AppState.ShowLoader("Submitting quiz...");
+            
+            var result = await StudentQuizApi.AutoSubmitQuizAsync(studentQuizId);
+            if (!result.IsSuccess)
+            {
+                errorMessage = result.ErrorMessage ?? "Failed to submit quiz";
+                return;
+            }
+
+            // Navigate to results page
+            NavigationManager.NavigateTo($"/student/quiz-result/{studentQuizId}", replace: true);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error auto-submitting quiz: " + ex.Message;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private void ExitQuiz()
+    {
+        QuizHubService.LeaveRoomAsync(roomCode);
+        NavigationManager.NavigateTo("/student/home", replace: true);
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe from SignalR events
+        QuizHubService.OnQuizStarted -= HandleQuizStarted;
+        
+        // Leave the room in SignalR
+        if (!string.IsNullOrEmpty(roomCode))
+        {
+            _ = QuizHubService.LeaveRoomAsync(roomCode); // Fire and forget to prevent blocking disposal
+        }
+    }
+}

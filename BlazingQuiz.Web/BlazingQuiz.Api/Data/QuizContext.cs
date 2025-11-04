@@ -28,6 +28,7 @@ namespace BlazingQuiz.Api.Data
         public DbSet<Room> Rooms { get; set; }
         public DbSet<RoomQuiz> RoomQuizzes { get; set; }
         public DbSet<RoomParticipant> RoomParticipants { get; set; }
+        public DbSet<RoomAnswer> RoomAnswers { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -98,6 +99,25 @@ namespace BlazingQuiz.Api.Data
                 .HasOne(r => r.Quiz)
                 .WithMany()
                 .HasForeignKey(r => r.QuizId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure RoomAnswer entity
+            modelBuilder.Entity<RoomAnswer>()
+                .HasOne(ra => ra.Room)
+                .WithMany(r => r.RoomAnswers)
+                .HasForeignKey(ra => ra.RoomId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<RoomAnswer>()
+                .HasOne(ra => ra.User)
+                .WithMany()
+                .HasForeignKey(ra => ra.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<RoomAnswer>()
+                .HasOne(ra => ra.Question)
+                .WithMany()
+                .HasForeignKey(ra => ra.QuestionId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             base.OnModelCreating(modelBuilder);

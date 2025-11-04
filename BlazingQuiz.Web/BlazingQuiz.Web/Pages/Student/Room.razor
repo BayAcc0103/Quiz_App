@@ -5,12 +5,14 @@
 @using Microsoft.AspNetCore.Authorization
 @using BlazingQuiz.Web.Auth
 @attribute [Authorize(Roles = nameof(UserRole.Student))]
+@using BlazingQuiz.Web.Services.SignalR
 @inject IRoomApi RoomApi
 @inject IStudentQuizApi StudentQuizApi
 @inject QuizImageService QuizImageService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @inject QuizAuthStateProvider QuizAuthStateProvider
+@inject QuizHubService QuizHubService
 
 <div class="container-fluid mt-4">
     <div class="row">
@@ -237,7 +239,24 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadRoomData();
-        // Start polling for participants
+        
+        // Make sure SignalR connection is started
+        if (!QuizHubService.IsConnected)
+        {
+            await QuizHubService.StartConnectionAsync();
+        }
+        
+        // Set up SignalR connection to receive real-time updates
+        QuizHubService.OnParticipantReadyStatusChanged += HandleParticipantReadyStatusChanged;
+        QuizHubService.OnQuizStarted += HandleQuizStarted;
+        
+        // Join the room in SignalR to receive updates
+        if (!string.IsNullOrEmpty(room?.Code))
+        {
+            await QuizHubService.JoinRoomAsync(room.Code);
+        }
+        
+        // Start polling for participants (as backup)
         _ = PollParticipantsAsync();
     }
 
@@ -396,6 +415,14 @@
         
         // Refresh participants to get updated status
         await LoadParticipants();
+        
+        // Also notify via SignalR that the status changed
+        if (room != null)
+        {
+            var isCurrentlyReady = participants.FirstOrDefault(p => p.UserId == QuizAuthStateProvider.User.Id)?.IsReady == true;
+            await QuizHubService.NotifyParticipantReadyAsync(room.Code, QuizAuthStateProvider.User.Name, isCurrentlyReady);
+        }
+        
         StateHasChanged();
     }
 
@@ -421,6 +448,9 @@
             return;
         }
 
+        // Refresh participants list to ensure we have the latest ready status
+        await LoadParticipants();
+        
         // Check if all participants are ready
         var nonReadyParticipants = participants.Where(p => p.UserId != room.CreatedBy && !p.IsReady).ToList();
         if (nonReadyParticipants.Any())
@@ -436,7 +466,7 @@
         {
             await ShowAlertAsync("Room started successfully!", "Success");
             
-            // Navigate to the quiz page
+            // Navigate to the quiz room page immediately - participants will receive the SignalR event
             if (room.QuizId.HasValue)
             {
                 Navigation.NavigateTo($"/student/quiz/{room.QuizId.Value}/room/{room.Id}");
@@ -458,8 +488,51 @@
         }
     }
 
+    private async void HandleQuizStarted(string roomCode)
+    {
+        if (room?.Code == roomCode && room.QuizId.HasValue)
+        {
+            await InvokeAsync(StateHasChanged); // Ensure UI is updated before navigation
+            Navigation.NavigateTo($"/student/quiz/{room.QuizId.Value}/room/{room.Id}");
+        }
+    }
+
+    private async void HandleParticipantReadyStatusChanged(string userName, bool isReady)
+    {
+        await InvokeAsync(async () =>
+        {
+            // Update the participant's ready status in the local list
+            for (int i = 0; i < participants.Length; i++)
+            {
+                if (participants[i].UserName == userName)
+                {
+                    var updatedParticipants = participants.ToList();
+                    updatedParticipants[i] = new RoomParticipantDto
+                    {
+                        UserId = participants[i].UserId,
+                        UserName = participants[i].UserName,
+                        AvatarPath = participants[i].AvatarPath,
+                        IsReady = isReady
+                    };
+                    participants = updatedParticipants.ToArray();
+                    break;
+                }
+            }
+            
+            StateHasChanged();
+        });
+    }
+
     public void Dispose()
     {
-        // Clean up polling if needed
+        // Unsubscribe from SignalR events
+        QuizHubService.OnParticipantReadyStatusChanged -= HandleParticipantReadyStatusChanged;
+        QuizHubService.OnQuizStarted -= HandleQuizStarted;
+        
+        // Leave the room in SignalR when leaving the page
+        if (!string.IsNullOrEmpty(room?.Code))
+        {
+            _ = QuizHubService.LeaveRoomAsync(room.Code); // Fire and forget
+        }
     }
 }
