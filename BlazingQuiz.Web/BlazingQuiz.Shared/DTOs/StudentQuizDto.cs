@@ -11,6 +11,7 @@ namespace BlazingQuiz.Shared.DTOs
     public class StudentQuizDto
     {
         public int Id { get; set; }
+        public int StudentId { get; set; }
         public Guid QuizId { get; set; } 
         public string QuizName { get; set; }
         public string CategoryName { get; set; }

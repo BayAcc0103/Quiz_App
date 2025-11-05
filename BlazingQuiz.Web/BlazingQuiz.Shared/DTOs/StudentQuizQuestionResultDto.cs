@@ -2,7 +2,7 @@ using System;
 
 namespace BlazingQuiz.Shared.DTOs
 {
-    public class StudentQuizQuestionResponse
+    public class StudentQuizQuestionResultDto
     {
         public int Id { get; set; }
         public int StudentQuizId { get; set; }

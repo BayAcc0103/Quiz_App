@@ -63,6 +63,14 @@ namespace BlazingQuiz.Api.Endpoints
             quizGroup.MapGet("/{quizId:guid}/all-feedback", async (Guid quizId, StudentQuizService quizService) =>
                 Results.Ok(await quizService.GetAllFeedbackAsync(quizId)));
 
+            // Get all student quizzes for a specific quiz id
+            group.MapGet("/quizzes/quiz/{quizId:guid}", async (Guid quizId, StudentQuizService quizService) =>
+                Results.Ok(await quizService.GetStudentQuizzesByQuizIdAsync(quizId)));
+
+            // Get all question responses for a student quiz
+            quizGroup.MapGet("/{studentQuizId:int}/responses", async (int studentQuizId, ClaimsPrincipal principal, StudentQuizService quizService) =>
+                Results.Ok(await quizService.GetStudentQuizQuestionResponsesAsync(studentQuizId, principal.GetStudentId())));
+
             return app;
         }
     }

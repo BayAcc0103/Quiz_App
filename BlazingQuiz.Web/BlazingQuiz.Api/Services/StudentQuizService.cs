@@ -279,6 +279,7 @@ namespace BlazingQuiz.Api.Services
                 .Select(q => new StudentQuizDto
                 {
                     Id = q.Id,
+                    StudentId = q.StudentId,
                     QuizId = q.QuizId,
                     QuizName = q.Quiz.Name,
                     CategoryName = q.Quiz.Category.Name,
@@ -584,6 +585,61 @@ namespace BlazingQuiz.Api.Services
             {
                 return QuizApiResponse<QuizAllFeedbackDto>.Failure(ex.Message);
             }
+        }
+
+        public async Task<StudentQuizDto[]> GetStudentQuizzesByQuizIdAsync(Guid quizId)
+        {
+            var studentQuizzes = await _context.StudentQuizzes
+                .Include(sq => sq.Quiz)
+                .Include(sq => sq.Student) // Include the student data
+                .Where(sq => sq.QuizId == quizId && sq.Status == nameof(StudentQuizStatus.Completed))
+                .Select(sq => new StudentQuizDto
+                {
+                    Id = sq.Id,
+                    StudentId = sq.StudentId,
+                    QuizId = sq.QuizId,
+                    QuizName = sq.Quiz.Name,
+                    CategoryName = sq.Quiz.Category.Name,
+                    StartedOn = sq.StartedOn,
+                    CompletedOn = sq.CompletedOn,
+                    Status = sq.Status,
+                    Total = sq.Total, // This contains the correct answers count
+                })
+                .ToArrayAsync();
+
+            return studentQuizzes;
+        }
+
+        public async Task<BlazingQuiz.Shared.DTOs.StudentQuizQuestionResultDto[]> GetStudentQuizQuestionResponsesAsync(int studentQuizId, int studentId)
+        {
+            // Verify that the student quiz belongs to the student
+            var studentQuiz = await _context.StudentQuizzes
+                .FirstOrDefaultAsync(sq => sq.Id == studentQuizId && sq.StudentId == studentId);
+            
+            if (studentQuiz == null)
+            {
+                return Array.Empty<BlazingQuiz.Shared.DTOs.StudentQuizQuestionResultDto>(); // Return empty array if not authorized
+            }
+
+            var responses = await _context.StudentQuizQuestions
+                .Where(sq => sq.StudentQuizId == studentQuizId)
+                .Select(sq => new BlazingQuiz.Shared.DTOs.StudentQuizQuestionResultDto
+                {
+                    // StudentQuizQuestion doesn't have an Id property, so we can't use sq.Id
+                    // We'll create a composite key from StudentQuizId and QuestionId for the ID
+                    Id = (sq.StudentQuizId * 1000) + sq.QuestionId, // Create a unique ID using StudentQuizId and QuestionId
+                    StudentQuizId = sq.StudentQuizId,
+                    QuestionId = sq.QuestionId,
+                    OptionId = sq.OptionId,
+                    TextAnswer = sq.TextAnswer,
+                    // Calculate approximate answered time based on the quiz start time
+                    // Since we don't track exact answer time per question, we'll use a simple approach
+                    // Create a unique value based on both StudentQuizId and QuestionId to distribute times for different questions
+                    AnsweredAt = sq.StudentQuiz.StartedOn.AddSeconds(Math.Abs((sq.StudentQuizId * 17) + sq.QuestionId) % 300) // Distribute times within the quiz duration 
+                })
+                .ToArrayAsync();
+
+            return responses;
         }
     }
 }

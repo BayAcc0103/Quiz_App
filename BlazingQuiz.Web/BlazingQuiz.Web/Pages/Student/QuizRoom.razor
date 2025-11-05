@@ -378,8 +378,8 @@ else
             // Only handle the event if it's for this room
             if (roomCode == this.roomCode)
             {
-                // Show results to all participants
-                NavigationManager.NavigateTo($"/student/quiz-result/{studentQuizId}", replace: true);
+                // Show leaderboard to all participants
+                NavigationManager.NavigateTo($"/student/quiz/{QuizId}/room/{RoomId}/leaderboard", replace: true);
             }
         });
     }
@@ -665,8 +665,8 @@ else
                 // Check if all participants have submitted
                 if (unsubmittedCount == 0)
                 {
-                    // All participants have submitted - redirect to results
-                    NavigationManager.NavigateTo($"/student/quiz-result/{studentQuizId}", replace: true);
+                    // All participants have submitted - redirect to leaderboard
+                    NavigationManager.NavigateTo($"/student/quiz/{QuizId}/room/{RoomId}/leaderboard", replace: true);
                     break;
                 }
                 

@@ -1,0 +1,296 @@
+@page "/student/quiz/{QuizId:guid}/room/{RoomId:guid}/leaderboard"
+@using BlazingQuiz.Web.Services.SignalR
+@using BlazingQuiz.Shared.DTOs
+@inject NavigationManager NavigationManager
+@inject IRoomApi RoomApi
+@inject IStudentQuizApi StudentQuizApi
+@inject QuizAuthStateProvider QuizAuthStateProvider
+
+@layout QuizPageLayout
+
+@if (isLoading)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p>Đang tải bảng xếp hạng...</p>
+    </div>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+else
+{
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">Bảng Xếp Hạng Phòng @roomName</h3>
+                        <small>Phòng: @roomCode</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th style="width: 10%">Xếp hạng</th>
+                                        <th>Học viên</th>
+                                        <th>Số câu đúng</th>
+                                        <th>Tổng số câu</th>
+                                        <th>Tỷ lệ (%)</th>
+                                        <th>Thời gian hoàn thành</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < leaderboardResults.Count; i++)
+                                    {
+                                        var result = leaderboardResults[i];
+                                        var rank = i + 1;
+                                        var isCurrentUser = result.UserId == QuizAuthStateProvider.User.Id;
+                                        
+                                        <tr class="@(isCurrentUser ? "table-info" : "")">
+                                            <td>
+                                                <span class="badge @(rank == 1 ? "bg-warning text-dark" : rank == 2 ? "bg-secondary" : rank == 3 ? "bg-tertiary text-dark" : "bg-primary")">
+                                                    @rank
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    @if (!string.IsNullOrEmpty(result.UserAvatarPath))
+                                                    {
+                                                        <img src="@result.UserAvatarPath" alt="Avatar" class="rounded-circle me-2" style="width: 30px; height: 30px;" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                                            <span class="text-white">@result.UserName.Substring(0, 1).ToUpper()</span>
+                                                        </div>
+                                                    }
+                                                    <span class="@(isCurrentUser ? "fw-bold" : "")">@result.UserName @(isCurrentUser ? "(Bạn)" : "")</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <strong>@result.CorrectAnswers</strong>
+                                            </td>
+                                            <td>@result.TotalQuestions</td>
+                                            <td>
+                                                @if (result.TotalQuestions > 0)
+                                                {
+                                                    <span class="badge bg-@(result.Percentage >= 80 ? "success" : result.Percentage >= 60 ? "warning text-dark" : "danger")">
+                                                        @(Math.Round(result.Percentage, 1))%
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span>0%</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (result.CompletionTime.HasValue)
+                                                {
+                                                    <span>@FormatTimeSpan(result.CompletionTime.Value)</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>Không xác định</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-4 d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" @onclick="GoToHome">Về trang chủ</button>
+                            <button type="button" class="btn btn-primary" @onclick="GoToRoom">Quay lại phòng</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .table th {
+        vertical-align: middle;
+    }
+    
+    .table td {
+        vertical-align: middle;
+    }
+    
+    .badge {
+        font-size: 1em;
+    }
+    
+    .table-info {
+        background-color: rgba(13, 110, 253, 0.1) !important;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public Guid QuizId { get; set; }
+    
+    [Parameter]
+    public Guid RoomId { get; set; }
+    
+    private bool isLoading = true;
+    private string? errorMessage;
+    private string? roomName;
+    private string? roomCode;
+    private List<RoomParticipantLeaderboardResult> leaderboardResults = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Get room details
+            var room = await RoomApi.GetRoomByIdAsync(RoomId);
+            if (room == null)
+            {
+                errorMessage = "Không tìm thấy phòng quiz.";
+                isLoading = false;
+                return;
+            }
+            
+            roomName = room.Name;
+            roomCode = room.Code;
+            
+            // Get quiz results for all participants in the room
+            leaderboardResults = await GetRoomLeaderboardResultsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi khi tải bảng xếp hạng: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task<List<RoomParticipantLeaderboardResult>> GetRoomLeaderboardResultsAsync()
+    {
+        var results = new List<RoomParticipantLeaderboardResult>();
+        
+        try
+        {
+            // Get all participants in the room
+            var participants = await RoomApi.GetRoomParticipantsAsync(RoomId);
+            
+            // Get all completed student quizzes for this quiz
+            var allStudentQuizzes = await StudentQuizApi.GetStudentQuizzesByQuizIdAsync(QuizId);
+            var quizDetails = await StudentQuizApi.GetQuizDetailsAsync(QuizId);
+            var totalQuestions = quizDetails?.Data?.TotalQuestions ?? 0;
+            
+            foreach (var participant in participants)
+            {
+                // Find the student quiz for this participant
+                var studentQuiz = allStudentQuizzes.FirstOrDefault(sq => sq.StudentId == participant.UserId);
+                
+                if (studentQuiz != null)
+                {
+                    var completionTime = studentQuiz.CompletedOn.HasValue
+                        ? studentQuiz.CompletedOn.Value - studentQuiz.StartedOn
+                        : (TimeSpan?)null;
+                    
+                    double percentage = totalQuestions > 0 ? (double)studentQuiz.Total / totalQuestions * 100 : 0;
+                    
+                    results.Add(new RoomParticipantLeaderboardResult
+                    {
+                        UserId = participant.UserId,
+                        UserName = participant.UserName,
+                        UserAvatarPath = participant.AvatarPath,
+                        CorrectAnswers = studentQuiz.Total, // Correct answers are stored in Total property
+                        TotalQuestions = totalQuestions,
+                        Percentage = percentage,
+                        CompletionTime = completionTime
+                    });
+                }
+                else
+                {
+                    // Participant didn't take the quiz
+                    results.Add(new RoomParticipantLeaderboardResult
+                    {
+                        UserId = participant.UserId,
+                        UserName = participant.UserName,
+                        UserAvatarPath = participant.AvatarPath,
+                        CorrectAnswers = 0,
+                        TotalQuestions = totalQuestions,
+                        Percentage = 0,
+                        CompletionTime = null
+                    });
+                }
+            }
+            
+            // Sort by correct answers (descending), then by completion time (ascending) for tie-breaking
+            results.Sort((x, y) =>
+            {
+                var correctAnswerComparison = y.CorrectAnswers.CompareTo(x.CorrectAnswers);
+                if (correctAnswerComparison != 0)
+                {
+                    return correctAnswerComparison; // Sort by correct answers descending
+                }
+                
+                // If correct answers are the same, sort by completion time ascending (faster is better)
+                if (x.CompletionTime.HasValue && y.CompletionTime.HasValue)
+                {
+                    return x.CompletionTime.Value.CompareTo(y.CompletionTime.Value);
+                }
+                
+                // If only one has completion time, prioritize the one that completed
+                if (x.CompletionTime.HasValue && !y.CompletionTime.HasValue)
+                    return 1;
+                if (!x.CompletionTime.HasValue && y.CompletionTime.HasValue)
+                    return -1;
+                
+                // If neither has completion time, they are equal
+                return 0;
+            });
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi khi lấy kết quả: {ex.Message}";
+        }
+        
+        return results;
+    }
+
+    private string FormatTimeSpan(TimeSpan? timeSpan)
+    {
+        if (!timeSpan.HasValue)
+        {
+            return "N/A";
+        }
+        
+        var time = timeSpan.Value;
+        if (time.TotalMinutes < 1)
+        {
+            return $"{time.Seconds} giây";
+        }
+        else if (time.TotalHours < 1)
+        {
+            return $"{(int)time.TotalMinutes} phút {time.Seconds} giây";
+        }
+        else
+        {
+            return $"{(int)time.TotalHours} giờ {(int)time.Minutes} phút";
+        }
+    }
+
+    private void GoToHome()
+    {
+        NavigationManager.NavigateTo("/student/home");
+    }
+
+    private void GoToRoom()
+    {
+        NavigationManager.NavigateTo($"/student/quiz/{QuizId}/room/{RoomId}");
+    }
+}
