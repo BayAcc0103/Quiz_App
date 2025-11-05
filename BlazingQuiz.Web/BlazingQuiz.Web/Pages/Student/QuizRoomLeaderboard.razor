@@ -106,7 +106,10 @@ else
                         
                         <div class="mt-4 d-flex justify-content-between">
                             <button type="button" class="btn btn-secondary" @onclick="GoToHome">Về trang chủ</button>
-                            <button type="button" class="btn btn-primary" @onclick="GoToRoom">Quay lại phòng</button>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-primary" @onclick="GoToQuizResult" disabled="@(currentUserStudentQuizId == null)">Xem kết quả quiz</button>
+                                <button type="button" class="btn btn-primary" @onclick="GoToRoom">Quay lại phòng</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -145,6 +148,7 @@ else
     private string? roomName;
     private string? roomCode;
     private List<RoomParticipantLeaderboardResult> leaderboardResults = new();
+    private int? currentUserStudentQuizId;
     
     protected override async Task OnInitializedAsync()
     {
@@ -202,7 +206,7 @@ else
                     
                     double percentage = totalQuestions > 0 ? (double)studentQuiz.Total / totalQuestions * 100 : 0;
                     
-                    results.Add(new RoomParticipantLeaderboardResult
+                    var result = new RoomParticipantLeaderboardResult
                     {
                         UserId = participant.UserId,
                         UserName = participant.UserName,
@@ -211,12 +215,20 @@ else
                         TotalQuestions = totalQuestions,
                         Percentage = percentage,
                         CompletionTime = completionTime
-                    });
+                    };
+                    
+                    // Track the current user's student quiz ID
+                    if (participant.UserId == QuizAuthStateProvider.User.Id)
+                    {
+                        currentUserStudentQuizId = studentQuiz.Id;
+                    }
+                    
+                    results.Add(result);
                 }
                 else
                 {
                     // Participant didn't take the quiz
-                    results.Add(new RoomParticipantLeaderboardResult
+                    var result = new RoomParticipantLeaderboardResult
                     {
                         UserId = participant.UserId,
                         UserName = participant.UserName,
@@ -225,7 +237,9 @@ else
                         TotalQuestions = totalQuestions,
                         Percentage = 0,
                         CompletionTime = null
-                    });
+                    };
+                    
+                    results.Add(result);
                 }
             }
             
@@ -292,5 +306,13 @@ else
     private void GoToRoom()
     {
         NavigationManager.NavigateTo($"/student/quiz/{QuizId}/room/{RoomId}");
+    }
+
+    private void GoToQuizResult()
+    {
+        if (currentUserStudentQuizId.HasValue)
+        {
+            NavigationManager.NavigateTo($"/student/quiz-result/{currentUserStudentQuizId.Value}");
+        }
     }
 }
