@@ -44,5 +44,11 @@ namespace BlazingQuiz.Web.Apis
         
         [Get("/api/rooms/{roomId}/answers/user/{userId}")]
         Task<RoomAnswerDto[]> GetRoomAnswersForUserAsync(Guid roomId, int userId);
+        
+        [Post("/api/rooms/{roomId}/submit")]
+        Task<ApiResponse<object>> SubmitQuizToRoomAsync([Body] SubmitQuizToRoomRequest request, Guid roomId);
+        
+        [Get("/api/rooms/{roomId}/submission-status")]
+        Task<RoomParticipantDto[]> GetSubmissionStatusAsync(Guid roomId);
     }
 }

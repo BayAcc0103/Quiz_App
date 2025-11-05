@@ -1,5 +1,6 @@
 @page "/student/quiz/{QuizId:guid}/room/{RoomId:guid}"
 @using BlazingQuiz.Web.Services.SignalR
+@using BlazingQuiz.Shared.DTOs
 @inject NavigationManager NavigationManager
 @inject QuizState QuizState
 @inject IStudentQuizApi StudentQuizApi
@@ -30,92 +31,122 @@ else
 {
     @if (isQuizStarted)
     {
-        <div class="row mb-3">
-            @*Timer*@
-            <div class="col-sm-12">
-                <div class="my-1 d-flex justify-content-between align-items-center">
-                    <h6>@(_currentQuestionIndex + 1) of @_totalQuestions</h6>
-                    <div class="d-flex gap-2">
-                        <div>
-                            <QuizTimer TotalMinutes="quizTimeInMinutes" OnTimerStop="AutoSubmitQuizAsync" />
+        @if (showWaitingMessage)
+        {
+            <!-- Show waiting message after user has submitted but others haven't -->
+            <div class="container mt-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card shadow text-center">
+                            <div class="card-body p-5">
+                                <div class="mb-4">
+                                    <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                                </div>
+                                <h4 class="card-title text-success">Nộp quiz thành công!</h4>
+                                <p class="card-text">Vui lòng chờ người chơi khác hoàn thành bài quiz.</p>
+                                <div class="d-flex justify-content-center my-4">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Đang chờ...</span>
+                                    </div>
+                                </div>
+                                <p class="text-muted">
+                                    <small>Đang chờ @GetUnsubmittedCount() người chơi khác hoàn thành bài quiz...</small>
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                
-                @if (!string.IsNullOrEmpty(quizName))
-                {
-                    <h5 class="mt-3 mb-0 fw-bold">@quizName</h5>
-                }
-                
-                @if (!string.IsNullOrEmpty(currentQuestion?.Text))
-                {
-                    <h4 class="mt-2 mb-0 fw-bold">@currentQuestion.Text</h4>
-                    @if (!string.IsNullOrEmpty(currentQuestion.ImagePath))
-                    {
-                        <div class="question-image-container my-3">
-                            <img src="@QuestionImageService.GetImageUrl(currentQuestion.ImagePath)" alt="Question Image" class="img-fluid rounded" style="max-width: 100%; max-height: 300px; object-fit: contain;" />
-                        </div>
-                    }
-                    @if (!string.IsNullOrEmpty(currentQuestion.AudioPath))
-                    {
-                        <div class="question-audio-container my-3">
-                            @if (currentQuestion.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
-                            {
-                                <audio controls class="w-100">
-                                    <source src="@QuestionAudioService.GetAudioUrl(currentQuestion.AudioPath)" type="audio/mpeg" />
-                                    Your browser does not support the audio element.
-                                </audio>
-                            }
-                            else
-                            {
-                                <div class="alert alert-info">Audio file available: @currentQuestion.AudioPath</div>
-                            }
-                        </div>
-                    }
-                }
-                <hr/>
-                @if (currentQuestion != null && !currentQuestion.IsTextAnswer)
-                {
-                    <!-- Multiple Choice Options -->
-                    @foreach (var o in currentQuestion.Options)
-                    {
-                        <div class="d-flex gap-2 p-3 mb-3 bg-white option-box" @onclick="() => SelectOption(o.Id)">
-                            <input type="radio" name="rdo_@currentQuestion?.Id" id="rdo_@o.Id" class="" 
-                            checked="@(selectedOptionId == o.Id)" 
-                            @onchange="() => SelectOption(o.Id)"/>
-                            <label for="rdo_@o.Id" class="d-block">@o.Text</label>
-                        </div>
-                    }
-                }
-                else if (currentQuestion != null && currentQuestion.IsTextAnswer)
-                {
-                    <!-- Text Input Field -->
-                    <div class="mb-3">
-                        <input type="text" class="form-control" placeholder="Enter your answer" @bind="textAnswer" />
-                    </div>
-                }
-                @if (!string.IsNullOrEmpty(errorMessage))
-                {
-                    <div class="bg-danger my-3 p-2 d-flex justify-content-between align-items-center">
-                        <label class="text-white">@errorMessage</label>
-                        <button type="button" class="btn btn-sm btn-light" @onclick="() => errorMessage = null">X</button>
-                    </div>
-                }
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <button type="button" class="btn btn-danger" @onclick="ExitQuiz">Exit Quiz</button>
-                        @if (isLastQuestion)
-                        {
-                            <button type="button" class="btn btn-success" @onclick="SubmitQuiz">Submit Quiz</button>
-                        }
-                        else
-                        {
-                            <button type="button" class="btn btn-primary" @onclick="SubmitCurrentAnswer">Submit Answer</button>
-                        }
                     </div>
                 </div>
             </div>
-        </div>
+        }
+        else
+        {
+            <div class="row mb-3">
+                @*Timer*@
+                <div class="col-sm-12">
+                    <div class="my-1 d-flex justify-content-between align-items-center">
+                        <h6>@(_currentQuestionIndex + 1) of @_totalQuestions</h6>
+                        <div class="d-flex gap-2">
+                            <div>
+                                <QuizTimer TotalMinutes="quizTimeInMinutes" OnTimerStop="AutoSubmitQuizAsync" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    @if (!string.IsNullOrEmpty(quizName))
+                    {
+                        <h5 class="mt-3 mb-0 fw-bold">@quizName</h5>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(currentQuestion?.Text))
+                    {
+                        <h4 class="mt-2 mb-0 fw-bold">@currentQuestion.Text</h4>
+                        @if (!string.IsNullOrEmpty(currentQuestion.ImagePath))
+                        {
+                            <div class="question-image-container my-3">
+                                <img src="@QuestionImageService.GetImageUrl(currentQuestion.ImagePath)" alt="Question Image" class="img-fluid rounded" style="max-width: 100%; max-height: 300px; object-fit: contain;" />
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(currentQuestion.AudioPath))
+                        {
+                            <div class="question-audio-container my-3">
+                                @if (currentQuestion.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <audio controls class="w-100">
+                                        <source src="@QuestionAudioService.GetAudioUrl(currentQuestion.AudioPath)" type="audio/mpeg" />
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-info">Audio file available: @currentQuestion.AudioPath</div>
+                                }
+                            </div>
+                        }
+                    }
+                    <hr/>
+                    @if (currentQuestion != null && !currentQuestion.IsTextAnswer)
+                    {
+                        <!-- Multiple Choice Options -->
+                        @foreach (var o in currentQuestion.Options)
+                        {
+                            <div class="d-flex gap-2 p-3 mb-3 bg-white option-box" @onclick="() => SelectOption(o.Id)">
+                                <input type="radio" name="rdo_@currentQuestion?.Id" id="rdo_@o.Id" class="" 
+                                checked="@(selectedOptionId == o.Id)" 
+                                @onchange="() => SelectOption(o.Id)"/>
+                                <label for="rdo_@o.Id" class="d-block">@o.Text</label>
+                            </div>
+                        }
+                    }
+                    else if (currentQuestion != null && currentQuestion.IsTextAnswer)
+                    {
+                        <!-- Text Input Field -->
+                        <div class="mb-3">
+                            <input type="text" class="form-control" placeholder="Enter your answer" @bind="textAnswer" />
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="bg-danger my-3 p-2 d-flex justify-content-between align-items-center">
+                            <label class="text-white">@errorMessage</label>
+                            <button type="button" class="btn btn-sm btn-light" @onclick="() => errorMessage = null">X</button>
+                        </div>
+                    }
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button type="button" class="btn btn-danger" @onclick="ExitQuiz">Exit Quiz</button>
+                            @if (isLastQuestion)
+                            {
+                                <button type="button" class="btn btn-success" @onclick="SubmitQuiz">Submit Quiz</button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-primary" @onclick="SubmitCurrentAnswer">Submit Answer</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
     }
     else
     {
@@ -205,6 +236,8 @@ else
     private bool isLoading = true;
     private bool isQuizStarted = false;
     private bool isHost = false;
+    private bool hasSubmitted = false;
+    private bool showWaitingMessage = false;
     private string? errorMessage;
     private string? roomCode;
     private string? quizName;
@@ -217,6 +250,8 @@ else
     private string? textAnswer;
     private bool isLastQuestion = false;
     private int studentQuizId = 0;
+    private List<RoomParticipantDto> roomParticipants = new();
+    private int unsubmittedCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -264,6 +299,7 @@ else
             
             // Set up SignalR connection
             QuizHubService.OnQuizStarted += HandleQuizStarted;
+            QuizHubService.OnQuizEnded += HandleQuizEnded; // Add event handler for when quiz ends for all
             
             // Join the room in SignalR
             await QuizHubService.JoinRoomAsync(roomCode);
@@ -331,6 +367,19 @@ else
                 // Initialize quiz for the participant
                 await InitializeQuizAsync();
                 StateHasChanged();
+            }
+        });
+    }
+
+    private void HandleQuizEnded(string roomCode)
+    {
+        InvokeAsync(async () =>
+        {
+            // Only handle the event if it's for this room
+            if (roomCode == this.roomCode)
+            {
+                // Show results to all participants
+                NavigationManager.NavigateTo($"/student/quiz-result/{studentQuizId}", replace: true);
             }
         });
     }
@@ -511,8 +560,39 @@ else
                 return;
             }
 
-            // Navigate to results page
-            NavigationManager.NavigateTo($"/student/quiz-result/{studentQuizId}", replace: true);
+            // Mark that this participant has submitted
+            hasSubmitted = true;
+
+            // Notify the room that this user has submitted
+            var submitResult = await RoomApi.SubmitQuizToRoomAsync(new SubmitQuizToRoomRequest { StudentQuizId = studentQuizId }, RoomId);
+            if (!submitResult.IsSuccessStatusCode)
+            {
+                errorMessage = "Failed to record submission in room: " + submitResult.Error?.Message;
+                return;
+            }
+
+            // Check if all participants have submitted
+            var allParticipants = await RoomApi.GetSubmissionStatusAsync(RoomId);
+            var totalParticipants = allParticipants.Length;
+            var submittedParticipants = allParticipants.Count(p => p.HasSubmitted);
+
+            if (submittedParticipants == totalParticipants)
+            {
+                // All participants have submitted, so end the quiz for everyone
+                if (isHost)
+                {
+                    await QuizHubService.EndQuizAsync(roomCode); // Trigger end quiz for all
+                }
+            }
+            else
+            {
+                // Show waiting message to the current user who submitted early
+                showWaitingMessage = true;
+                errorMessage = null; // Clear any error messages
+                
+                // Start updating the unsubmitted count
+                _ = StartUpdatingUnsubmittedCount(); // Fire and forget
+            }
         }
         catch (Exception ex)
         {
@@ -521,6 +601,7 @@ else
         finally
         {
             AppState.HideLoader();
+            StateHasChanged(); // Update the UI to show waiting message
         }
     }
 
@@ -528,25 +609,12 @@ else
     {
         try
         {
-            AppState.ShowLoader("Submitting quiz...");
-            
-            var result = await StudentQuizApi.AutoSubmitQuizAsync(studentQuizId);
-            if (!result.IsSuccess)
-            {
-                errorMessage = result.ErrorMessage ?? "Failed to submit quiz";
-                return;
-            }
-
-            // Navigate to results page
-            NavigationManager.NavigateTo($"/student/quiz-result/{studentQuizId}", replace: true);
+            // Call SubmitQuiz instead of the original auto submit to use our new logic
+            await SubmitQuiz();
         }
         catch (Exception ex)
         {
             errorMessage = "Error auto-submitting quiz: " + ex.Message;
-        }
-        finally
-        {
-            AppState.HideLoader();
         }
     }
 
@@ -556,10 +624,62 @@ else
         NavigationManager.NavigateTo("/student/home", replace: true);
     }
 
+    private async Task<int> GetUnsubmittedCountAsync()
+    {
+        try
+        {
+            var allParticipants = await RoomApi.GetSubmissionStatusAsync(RoomId);
+            var totalParticipants = allParticipants.Length;
+            var submittedParticipants = allParticipants.Count(p => p.HasSubmitted);
+            
+            return totalParticipants - submittedParticipants;
+        }
+        catch
+        {
+            // Return 0 if we can't get the count
+            return 0;
+        }
+    }
+
+    private int GetUnsubmittedCount()
+    {
+        // Return the current unsubmitted count
+        return unsubmittedCount;
+    }
+
+    private async Task StartUpdatingUnsubmittedCount()
+    {
+        // Update the count immediately
+        unsubmittedCount = await GetUnsubmittedCountAsync();
+        StateHasChanged();
+
+        // Then update every 2 seconds while showing the waiting message
+        while (showWaitingMessage)
+        {
+            await Task.Delay(2000); // Wait 2 seconds
+            
+            if (showWaitingMessage) // Check again if we should still be updating
+            {
+                unsubmittedCount = await GetUnsubmittedCountAsync();
+                
+                // Check if all participants have submitted
+                if (unsubmittedCount == 0)
+                {
+                    // All participants have submitted - redirect to results
+                    NavigationManager.NavigateTo($"/student/quiz-result/{studentQuizId}", replace: true);
+                    break;
+                }
+                
+                StateHasChanged();
+            }
+        }
+    }
+
     public void Dispose()
     {
         // Unsubscribe from SignalR events
         QuizHubService.OnQuizStarted -= HandleQuizStarted;
+        QuizHubService.OnQuizEnded -= HandleQuizEnded; // Remove the event handler that was added
         
         // Leave the room in SignalR
         if (!string.IsNullOrEmpty(roomCode))

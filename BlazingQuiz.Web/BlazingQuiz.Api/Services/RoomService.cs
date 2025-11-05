@@ -296,5 +296,36 @@ namespace BlazingQuiz.Api.Services
             // Send real-time update to all participants in the room that the quiz has started
             await _hubContext.Clients.Group(roomCode).SendAsync("QuizStarted", roomCode);
         }
+
+        public async Task<bool> SetParticipantSubmissionStatusAsync(Guid roomId, int userId, bool hasSubmitted)
+        {
+            var roomParticipant = await _context.RoomParticipants
+                .Include(rp => rp.User) // Need to include user to get the name
+                .FirstOrDefaultAsync(rp => rp.RoomId == roomId && rp.UserId == userId);
+
+            if (roomParticipant == null)
+            {
+                return false;
+            }
+
+            roomParticipant.HasSubmitted = hasSubmitted;
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<List<RoomParticipant>> GetRoomParticipantsWithSubmissionStatusAsync(Guid roomId)
+        {
+            return await _context.RoomParticipants
+                .Where(rp => rp.RoomId == roomId)
+                .Include(rp => rp.User)
+                .ToListAsync();
+        }
+
+        public async Task NotifyQuizEndedAsync(string roomCode)
+        {
+            // Send real-time update to all participants in the room that the quiz has ended
+            await _hubContext.Clients.Group(roomCode).SendAsync("QuizEnded", roomCode);
+        }
     }
 }

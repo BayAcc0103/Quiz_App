@@ -16,6 +16,8 @@ namespace BlazingQuiz.Api.Data.Entities
         
         public bool IsReady { get; set; } = false;
         
+        public bool HasSubmitted { get; set; } = false;
+        
         [ForeignKey(nameof(RoomId))]
         public virtual Room Room { get; set; }
         

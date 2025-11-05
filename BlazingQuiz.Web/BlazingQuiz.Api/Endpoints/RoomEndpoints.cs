@@ -1,6 +1,7 @@
 using BlazingQuiz.Api.Services;
 using BlazingQuiz.Shared;
 using BlazingQuiz.Shared.DTOs;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace BlazingQuiz.Api.Endpoints
@@ -372,6 +373,94 @@ namespace BlazingQuiz.Api.Endpoints
                 }).ToList();
 
                 return Results.Ok(answerDtos);
+            });
+
+            // Submit quiz to room - marks participant as having submitted
+            roomGroup.MapPost("/{roomId:guid}/submit", async (Guid roomId, HttpContext httpContext, RoomService service) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest("Invalid user ID");
+                }
+
+                // Try to read studentQuizId from the request body
+                var request = httpContext.Request;
+                int studentQuizId = 0;
+                
+                // Check if there's a body and try to read it
+                if (request.ContentLength > 0)
+                {
+                    using var reader = new StreamReader(request.Body);
+                    var bodyContent = await reader.ReadToEndAsync();
+                    
+                    // Try to parse the studentQuizId from JSON
+                    try
+                    {
+                        var jsonDocument = System.Text.Json.JsonDocument.Parse(bodyContent);
+                        if (jsonDocument.RootElement.TryGetProperty("studentQuizId", out var idElement))
+                        {
+                            studentQuizId = idElement.GetInt32();
+                        }
+                        else if (jsonDocument.RootElement.ValueKind == System.Text.Json.JsonValueKind.Number)
+                        {
+                            // If the body is just the number, parse it directly
+                            studentQuizId = jsonDocument.RootElement.GetInt32();
+                        }
+                    }
+                    catch (System.Text.Json.JsonException)
+                    {
+                        // If JSON parsing fails, try to parse as plain number
+                        if (int.TryParse(bodyContent.Trim(), out var parsedId))
+                        {
+                            studentQuizId = parsedId;
+                        }
+                    }
+                }
+
+                // Verify that the user is a participant in the room
+                var participants = await service.GetRoomParticipantsAsync(roomId);
+                if (!participants.Any(p => p.Id == userId))
+                {
+                    return Results.BadRequest("User is not a participant in this room.");
+                }
+
+                // Mark the participant as having submitted their quiz
+                var success = await service.SetParticipantSubmissionStatusAsync(roomId, userId, true);
+                if (!success)
+                {
+                    return Results.StatusCode(500);
+                }
+
+                // Check if all participants have submitted
+                var allParticipants = await service.GetRoomParticipantsWithSubmissionStatusAsync(roomId);
+                var totalParticipants = allParticipants.Count;
+                var submittedParticipants = allParticipants.Count(p => p.HasSubmitted);
+
+                if (totalParticipants > 0 && submittedParticipants == totalParticipants)
+                {
+                    // All participants have submitted, notify all via SignalR
+                    await service.NotifyQuizEndedAsync((await service.GetRoomByIdAsync(roomId)).Code);
+                }
+
+                return Results.Ok(new { Message = "Quiz submission recorded successfully." });
+            });
+
+            // Get submission status for all participants in a room
+            roomGroup.MapGet("/{roomId:guid}/submission-status", async (Guid roomId, RoomService service) =>
+            {
+                var participants = await service.GetRoomParticipantsWithSubmissionStatusAsync(roomId);
+                var participantDtos = participants.Select(rp => new RoomParticipantDto
+                {
+                    UserId = rp.User.Id,
+                    UserName = rp.User.Name,
+                    AvatarPath = rp.User.AvatarPath,
+                    IsReady = rp.IsReady,
+                    HasSubmitted = rp.HasSubmitted
+                }).ToArray();
+
+                return Results.Ok(participantDtos);
             });
 
             return app;
