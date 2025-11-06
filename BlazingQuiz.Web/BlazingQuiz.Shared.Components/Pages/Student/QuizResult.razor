@@ -84,10 +84,7 @@ else
                                     <p><strong>Possible Correct Answers:</strong> 
                                         @if (question.TextAnswers != null && question.TextAnswers.Any())
                                         {
-                                            @foreach (var textAnswer in question.TextAnswers)
-                                            {
-                                                <span class="badge bg-info me-1">@textAnswer.Text</span>
-                                            }
+                                            @question.AllCorrectTextAnswers
                                         }
                                         else
                                         {

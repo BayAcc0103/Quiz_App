@@ -86,7 +86,16 @@ else
                                 <!-- Text Input Question -->
                                 <div class="mb-3">
                                     <p><strong>Your Answer:</strong> @(string.IsNullOrWhiteSpace(question.SelectedTextAnswer) ? "(No answer provided)" : question.SelectedTextAnswer)</p>
-                                    <p><strong>Correct Answer:</strong> @question.CorrectTextAnswer</p>
+                                    <p><strong>Correct Answer(s):</strong> 
+                                        @if (question.TextAnswers != null && question.TextAnswers.Any())
+                                        {
+                                            @question.AllCorrectTextAnswers
+                                        }
+                                        else
+                                        {
+                                            <span>(No correct answers defined)</span>
+                                        }
+                                    </p>
                                     
                                     @if (question.IsTextAnswerCorrect)
                                     {

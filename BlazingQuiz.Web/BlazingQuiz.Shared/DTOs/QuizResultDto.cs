@@ -21,6 +21,7 @@ namespace BlazingQuiz.Shared.DTOs
         public string? SelectedTextAnswer { get; set; }
         public bool IsTextAnswer { get; set; }
         public string? CorrectTextAnswer => TextAnswers.FirstOrDefault()?.Text;
+        public string AllCorrectTextAnswers => TextAnswers.Any() ? string.Join(" | ", TextAnswers.Select(ta => ta.Text)) : "";
         public bool IsTextAnswerCorrect { 
             get 
             {

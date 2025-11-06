@@ -82,6 +82,8 @@ namespace BlazingQuiz.Api.Services
                 .Select(s => s.QuestionId)
                 .ToArray();
             var nextQuestion = await _context.Questions
+                .Include(q => q.TextAnswers)
+                .Include(q => q.Options)
                 .Where(q => q.QuizId == studentQuiz.QuizId)
                 .Where(q => !questionsServed.Contains(q.Id))
                 .OrderBy(q => Guid.NewGuid())
@@ -316,6 +318,9 @@ namespace BlazingQuiz.Api.Services
                 .Include(sq => sq.Quiz)
                     .ThenInclude(q => q.Questions)
                         .ThenInclude(q => q.Options)
+                .Include(sq => sq.Quiz)
+                    .ThenInclude(q => q.Questions)
+                        .ThenInclude(q => q.TextAnswers)
                 .Include(sq => sq.StudentQuizQuestions)
                 .FirstOrDefaultAsync(sq => sq.Id == studentQuizId);
 
@@ -375,6 +380,8 @@ namespace BlazingQuiz.Api.Services
 
             // Get all questions for the quiz
             var questions = await _context.Questions
+                .Include(q => q.TextAnswers)
+                .Include(q => q.Options)
                 .Where(q => q.QuizId == studentQuiz.QuizId)
                 .Select(q => new QuestionDto
                 {
