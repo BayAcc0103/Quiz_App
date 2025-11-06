@@ -22,7 +22,19 @@
             <h5 class="flashcard-question">Answer</h5>
             @if (question.IsTextAnswer)
             {
-                <div class="flashcard-answer mt-3">@question.TextAnswer</div>
+                <div class="flashcard-answer mt-3">
+                    @if (question.TextAnswers != null && question.TextAnswers.Any())
+                    {
+                        @foreach (var textAnswer in question.TextAnswers)
+                        {
+                            <div class="flashcard-text-answer">@textAnswer.Text</div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="flashcard-text-answer">No answer provided</div>
+                    }
+                </div>
             }
             else
             {

@@ -29,6 +29,7 @@ namespace BlazingQuiz.Api.Data
         public DbSet<RoomQuiz> RoomQuizzes { get; set; }
         public DbSet<RoomParticipant> RoomParticipants { get; set; }
         public DbSet<RoomAnswer> RoomAnswers { get; set; }
+        public DbSet<TextAnswer> TextAnswers { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -119,6 +120,13 @@ namespace BlazingQuiz.Api.Data
                 .WithMany()
                 .HasForeignKey(ra => ra.QuestionId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure TextAnswer entity
+            modelBuilder.Entity<TextAnswer>()
+                .HasOne(ta => ta.Question)
+                .WithMany(q => q.TextAnswers)
+                .HasForeignKey(ta => ta.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);
             var adminUser = new User

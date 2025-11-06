@@ -93,7 +93,11 @@ namespace BlazingQuiz.Api.Services
                     ImagePath = q.ImagePath,
                     AudioPath = q.AudioPath,
                     IsTextAnswer = q.IsTextAnswer,
-                    TextAnswer = q.IsTextAnswer ? q.TextAnswer : null, // Only include text answer if it's a text answer question
+                    TextAnswers = q.IsTextAnswer ? q.TextAnswers.Select(ta => new TextAnswerDto
+                    {
+                        Id = ta.Id,
+                        Text = ta.Text
+                    }).ToList() : new List<TextAnswerDto>(), // Only include text answers if it's a text answer question
                     Options = q.Options.Select(o => new OptionDto
                     {
                         Id = o.Id,
@@ -168,39 +172,52 @@ namespace BlazingQuiz.Api.Services
                 // Debug logging
                 Console.WriteLine($"Saving text answer for question {dto.QuestionId}: '{dto.TextAnswer}'");
                 
-                // Check if the text answer matches the correct answer
-                var correctTextAnswer = await _context.Questions
-                    .Where(q => q.Id == dto.QuestionId)
-                    .Select(q => q.TextAnswer)
-                    .FirstOrDefaultAsync();
+                // Get all possible correct text answers for this question
+                var correctTextAnswers = await _context.TextAnswers
+                    .Where(ta => ta.QuestionId == dto.QuestionId)
+                    .Select(ta => ta.Text)
+                    .ToArrayAsync();
                 
                 // Debug logging
-                Console.WriteLine($"Correct text answer for question {dto.QuestionId}: '{correctTextAnswer}'");
+                Console.WriteLine($"Found {correctTextAnswers.Length} correct text answers for question {dto.QuestionId}");
                 
-                // Compare text answers (case-insensitive and trimmed)
+                // Compare student's answer with all correct answers (case-insensitive and trimmed)
                 // Handle null/empty cases correctly
-                if (!string.IsNullOrWhiteSpace(correctTextAnswer) && 
-                    !string.IsNullOrWhiteSpace(dto.TextAnswer))
+                if (!string.IsNullOrWhiteSpace(dto.TextAnswer) && correctTextAnswers.Length > 0)
                 {
-                    var trimmedCorrect = correctTextAnswer.Trim();
-                    var trimmedAnswer = dto.TextAnswer.Trim();
+                    var trimmedStudentAnswer = dto.TextAnswer.Trim();
                     
-                    // Debug logging for troubleshooting
-                    Console.WriteLine($"Comparing text answers - Correct: '{trimmedCorrect}' | Student: '{trimmedAnswer}'");
+                    bool isCorrect = false;
+                    foreach (var correctAnswer in correctTextAnswers)
+                    {
+                        if (!string.IsNullOrWhiteSpace(correctAnswer))
+                        {
+                            var trimmedCorrect = correctAnswer.Trim();
+                            
+                            // Debug logging for troubleshooting
+                            Console.WriteLine($"Comparing text answers - Correct: '{trimmedCorrect}' | Student: '{trimmedStudentAnswer}'");
+                            
+                            if (string.Equals(trimmedStudentAnswer, trimmedCorrect, StringComparison.OrdinalIgnoreCase))
+                            {
+                                isCorrect = true;
+                                break;
+                            }
+                        }
+                    }
                     
-                    if (string.Equals(trimmedCorrect, trimmedAnswer, StringComparison.OrdinalIgnoreCase))
+                    if (isCorrect)
                     {
                         studentQuiz.Total++; // Mark as correct
                         Console.WriteLine("Text answer matched - incrementing score");
                     }
                     else
                     {
-                        Console.WriteLine("Text answer did not match");
+                        Console.WriteLine("Text answer did not match any of the correct answers");
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"Skipping text answer comparison - Correct empty/null: {string.IsNullOrWhiteSpace(correctTextAnswer)} | Student empty/null: {string.IsNullOrWhiteSpace(dto.TextAnswer)}");
+                    Console.WriteLine($"Skipping text answer comparison - Student answer empty/null: {string.IsNullOrWhiteSpace(dto.TextAnswer)} | Correct answers count: {correctTextAnswers.Length}");
                 }
             }
             else
@@ -329,12 +346,16 @@ namespace BlazingQuiz.Api.Services
                         Id = o.Id,
                         Text = o.Text
                     }).ToList(),
+                    TextAnswers = q.IsTextAnswer ? q.TextAnswers.Select(ta => new TextAnswerDto
+                    {
+                        Id = ta.Id,
+                        Text = ta.Text
+                    }).ToList() : new List<TextAnswerDto>(),
                     SelectedOptionId = studentQuiz.StudentQuizQuestions
                         .FirstOrDefault(sqq => sqq.QuestionId == q.Id)?.OptionId ?? 0,
                     SelectedTextAnswer = studentQuiz.StudentQuizQuestions
                         .FirstOrDefault(sqq => sqq.QuestionId == q.Id)?.TextAnswer,
-                    CorrectOptionId = q.IsTextAnswer ? 0 : q.Options.FirstOrDefault(o => o.IsCorrect)?.Id ?? 0, // For text questions, there's no correct option ID
-                    CorrectTextAnswer = q.IsTextAnswer ? q.TextAnswer : null
+                    CorrectOptionId = q.IsTextAnswer ? 0 : q.Options.FirstOrDefault(o => o.IsCorrect)?.Id ?? 0 // For text questions, there's no correct option ID
                 }).ToList()
             };
 
@@ -359,16 +380,21 @@ namespace BlazingQuiz.Api.Services
                 {
                     Id = q.Id,
                     Text = q.Text,
+                    AnswerExplanation = q.AnswerExplanation,
                     ImagePath = q.ImagePath,
                     AudioPath = q.AudioPath,
                     IsTextAnswer = q.IsTextAnswer,
-                    TextAnswer = q.IsTextAnswer ? q.TextAnswer : null, // Only include text answer if it's a text answer question
                     Options = q.Options.Select(o => new OptionDto
                     {
                         Id = o.Id,
                         Text = o.Text,
                         IsCorrect = o.IsCorrect
-                    }).ToList()
+                    }).ToList(),
+                    TextAnswers = q.IsTextAnswer ? q.TextAnswers.Select(ta => new TextAnswerDto
+                    {
+                        Id = ta.Id,
+                        Text = ta.Text
+                    }).ToList() : new List<TextAnswerDto>()
                 })
                 .ToArrayAsync();
 

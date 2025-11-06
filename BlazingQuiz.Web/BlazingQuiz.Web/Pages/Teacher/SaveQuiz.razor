@@ -2,6 +2,7 @@
 @page "/teacher/edit-quiz/{quizId:guid?}"
 
 @using BlazingQuiz.Shared
+@using BlazingQuiz.Shared.DTOs
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = nameof(UserRole.Teacher))]
 
@@ -194,9 +195,19 @@
                     else
                     {
                         <!-- Text Input Answer -->
-                        <h6>Correct Answer</h6>
+                        <h6>Possible Correct Answers</h6>
                         <div class="mb-3">
-                            <input type="text" class="form-control" placeholder="Enter the correct answer" @bind="q.TextAnswer"/>
+                            @if (q.TextAnswers != null)
+                            {
+                                @foreach (var textAnswer in q.TextAnswers.ToList()) // Use ToList() to avoid collection modification during enumeration
+                                {
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" placeholder="Enter a correct answer" @bind="textAnswer.Text"/>
+                                        <button type="button" class="btn btn-outline-danger" @onclick="() => q.TextAnswers.Remove(textAnswer)">X</button>
+                                    </div>
+                                }
+                            }
+                            <button type="button" class="btn btn-sm btn-info" @onclick="() => q.TextAnswers.Add(new TextAnswerDto())">+ Add Correct Answer</button>
                         </div>
                     }
                 </li>
@@ -275,6 +286,7 @@
     private QuestionDto GetDefaultEmptyQuestion() =>  new QuestionDto
         {
             Options = [new(), new()],
+            TextAnswers = [],
             IsTextAnswer = false
         };
 

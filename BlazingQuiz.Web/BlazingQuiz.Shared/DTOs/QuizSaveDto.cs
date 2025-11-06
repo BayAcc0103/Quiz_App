@@ -40,10 +40,10 @@ namespace BlazingQuiz.Shared.DTOs
             {
                 if (q.IsTextAnswer)
                 {
-                    // For text answer questions, check if TextAnswer is provided
-                    if (string.IsNullOrWhiteSpace(q.TextAnswer))
+                    // For text answer questions, ensure there's at least one correct text answer
+                    if (q.TextAnswers == null || q.TextAnswers.Count == 0 || q.TextAnswers.All(ta => string.IsNullOrWhiteSpace(ta.Text)))
                     {
-                        return $"Text answer is required for text input question: '{q.Text}'.";
+                        return $"At least one correct text answer is required for text input question: '{q.Text}'.";
                     }
                 }
                 else

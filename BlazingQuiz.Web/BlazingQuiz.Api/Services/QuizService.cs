@@ -23,12 +23,16 @@ namespace BlazingQuiz.Api.Services
                 ImagePath = q.ImagePath,
                 AudioPath = q.AudioPath,
                 IsTextAnswer = q.IsTextAnswer,
-                TextAnswer = q.TextAnswer,
                 Options = q.Options.Select(o => new Option
                 {
                     Id = o.Id,
                     Text = o.Text,
                     IsCorrect = o.IsCorrect
+                }).ToArray(),
+                TextAnswers = q.TextAnswers.Select(ta => new TextAnswer
+                {
+                    Id = ta.Id,
+                    Text = ta.Text
                 }).ToArray()
             }).ToArray();
             if (dto.Id == Guid.Empty)
@@ -119,16 +123,21 @@ namespace BlazingQuiz.Api.Services
                 {
                     Id = q.Id,
                     Text = q.Text,
+                    AnswerExplanation = q.AnswerExplanation,
                     ImagePath = q.ImagePath,
                     AudioPath = q.AudioPath,
                     IsTextAnswer = q.IsTextAnswer,
-                    TextAnswer = q.TextAnswer,
                     Options = q.Options.Select(o => new OptionDto
                     {
                         Id = o.Id,
                         Text = o.Text,
                         IsCorrect = o.IsCorrect
-                    }).ToList()
+                    }).ToList(),
+                    TextAnswers = q.IsTextAnswer ? q.TextAnswers.Select(ta => new TextAnswerDto
+                    {
+                        Id = ta.Id,
+                        Text = ta.Text
+                    }).ToList() : new List<TextAnswerDto>()
                 })
                 .ToArrayAsync();
 
@@ -161,13 +170,17 @@ namespace BlazingQuiz.Api.Services
                     ImagePath = q.ImagePath,
                     AudioPath = q.AudioPath,
                     IsTextAnswer = q.IsTextAnswer,
-                    TextAnswer = q.TextAnswer,
                     Options = q.Options.Select(o => new OptionDto
                     {
                         Id = o.Id,
                         Text = o.Text,
                         IsCorrect = o.IsCorrect
-                    }).ToList()
+                    }).ToList(),
+                    TextAnswers = q.IsTextAnswer ? q.TextAnswers.Select(ta => new TextAnswerDto
+                    {
+                        Id = ta.Id,
+                        Text = ta.Text
+                    }).ToList() : new List<TextAnswerDto>()
                 }).ToList()
             }).FirstOrDefaultAsync();
             

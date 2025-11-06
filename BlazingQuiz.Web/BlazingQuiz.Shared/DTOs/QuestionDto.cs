@@ -11,7 +11,7 @@ namespace BlazingQuiz.Shared.DTOs
         public string? ImagePath { get; set; } // Path to the question image
         public string? AudioPath { get; set; } // Path to the question audio
         public List<OptionDto> Options { get; set; } = [];
+        public List<TextAnswerDto> TextAnswers { get; set; } = [];
         public bool IsTextAnswer { get; set; } = false;
-        public string? TextAnswer { get; set; } // The correct text answer for text input questions
     }
 }

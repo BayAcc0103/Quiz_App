@@ -15,25 +15,29 @@ namespace BlazingQuiz.Shared.DTOs
         public int Id { get; set; }
         public string Text { get; set; }
         public List<QuizResultOptionDto> Options { get; set; } = new();
+        public List<TextAnswerDto> TextAnswers { get; set; } = new();
         public int SelectedOptionId { get; set; }
         public int CorrectOptionId { get; set; }
         public string? SelectedTextAnswer { get; set; }
-        public string? CorrectTextAnswer { get; set; }
         public bool IsTextAnswer { get; set; }
+        public string? CorrectTextAnswer => TextAnswers.FirstOrDefault()?.Text;
         public bool IsTextAnswerCorrect { 
             get 
             {
                 // If this is not a text answer question, return false
                 if (!IsTextAnswer) return false;
                 
-                // If either answer is null/empty, check if both are null/empty
-                if (string.IsNullOrWhiteSpace(SelectedTextAnswer) || string.IsNullOrWhiteSpace(CorrectTextAnswer))
+                // If no answer was provided, return false (not correct)
+                if (string.IsNullOrWhiteSpace(SelectedTextAnswer))
                 {
-                    return string.IsNullOrWhiteSpace(SelectedTextAnswer) && string.IsNullOrWhiteSpace(CorrectTextAnswer);
+                    return false;
                 }
                 
-                // Compare the text answers (case-insensitive and trimmed)
-                return string.Equals(SelectedTextAnswer.Trim(), CorrectTextAnswer.Trim(), StringComparison.OrdinalIgnoreCase);
+                // Compare the selected answer with all correct text answers (case-insensitive and trimmed)
+                var trimmedSelected = SelectedTextAnswer.Trim();
+                return TextAnswers.Any(textAnswer => 
+                    string.Equals(trimmedSelected, textAnswer.Text.Trim(), StringComparison.OrdinalIgnoreCase)
+                );
             } 
         }
     }

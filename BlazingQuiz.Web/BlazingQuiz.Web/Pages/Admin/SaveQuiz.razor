@@ -2,6 +2,7 @@
 @page "/admin/edit-quiz/{quizId:guid?}"
 
 @using BlazingQuiz.Shared
+@using BlazingQuiz.Shared.DTOs
 @inject NavigationManager NavigationManager
 @inject IQuizApi QuizApi
 @inject ICategoryApi CategoryApi
@@ -179,9 +180,19 @@
                     else
                     {
                         <!-- Text Input Answer -->
-                        <h6>Correct Answer</h6>
+                        <h6>Possible Correct Answers</h6>
                         <div class="mb-3">
-                            <input type="text" class="form-control" placeholder="Enter the correct answer" @bind="q.TextAnswer"/>
+                            @if (q.TextAnswers != null)
+                            {
+                                @for (int i = 0; i < q.TextAnswers.Count; i++)
+                                {
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" placeholder="Enter a correct answer" @bind="q.TextAnswers[i].Text"/>
+                                        <button type="button" class="btn btn-outline-danger" @onclick="() => q.TextAnswers.RemoveAt(i)">X</button>
+                                    </div>
+                                }
+                            }
+                            <button type="button" class="btn btn-sm btn-info" @onclick="() => q.TextAnswers.Add(new TextAnswerDto())">+ Add Correct Answer</button>
                         </div>
                     }
                 </li>
@@ -260,6 +271,7 @@
     private QuestionDto GetDefaultEmptyQuestion() =>  new QuestionDto
         {
             Options = [new(), new()],
+            TextAnswers = [],
             IsTextAnswer = false
         };
 

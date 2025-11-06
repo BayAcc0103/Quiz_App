@@ -13,12 +13,12 @@ namespace BlazingQuiz.Api.Data.Entities
         public string? ImagePath { get; set; } // Path to the question image
         public string? AudioPath { get; set; } // Path to the question audio
         public bool IsTextAnswer { get; set; } = false; // True if it's a text input question
-        public string? TextAnswer { get; set; } // The correct text answer for text input questions
         public Guid QuizId { get; set; }
         [ForeignKey(nameof(QuizId))]
         public virtual Quiz Quiz { get; set; }
 
         public virtual ICollection<Option> Options { get; set; } = [];
+        public virtual ICollection<TextAnswer> TextAnswers { get; set; } = [];
         public virtual ICollection<StudentQuizQuestion> StudentQuizQuestions { get; set; } = [];
     }
 }
