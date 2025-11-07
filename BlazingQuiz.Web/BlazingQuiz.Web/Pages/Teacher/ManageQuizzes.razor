@@ -70,6 +70,7 @@
                                         <button type="button" class="btn btn-sm btn-info" @onclick="() => ViewQuestionsAsync(q)">View Questions</button>
                                         <a href="teacher/edit-quiz/@q.Id" type="button" class="btn btn-sm btn-primary">Edit</a>
                                         <button type="button" class="btn btn-sm btn-success" @onclick="() => ShowQuizFeedbackAsync(q)">View Rate and Comment</button>
+                                        <a href="teacher/createroom?quizId=@q.Id" type="button" class="btn btn-sm btn-warning">Create Room</a>
                                     </div>
                                 </td>
                             </tr>

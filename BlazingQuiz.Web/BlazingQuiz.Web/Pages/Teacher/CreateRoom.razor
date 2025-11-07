@@ -9,6 +9,12 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
+@code {
+    [Parameter] 
+    [SupplyParameterFromQuery]
+    public Guid? QuizId { get; set; }
+}
+
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
@@ -101,6 +107,12 @@
         
         // Load all available quizzes
         await LoadAvailableQuizzes();
+        
+        // If a quiz ID was provided in the URL, pre-select it
+        if (QuizId.HasValue)
+        {
+            await PreSelectQuiz(QuizId.Value);
+        }
     }
 
     private async Task HandleCreateRoom()
@@ -153,6 +165,41 @@
         {
             Console.WriteLine($"Error loading available quizzes: {ex.Message}");
         }
+    }
+
+    private async Task PreSelectQuiz(Guid quizId)
+    {
+        // Check if the quiz exists in the loaded list
+        var quiz = availableQuizzes.FirstOrDefault(q => q.Id == quizId);
+        if (quiz != null)
+        {
+            createRoomDto.QuizId = quizId;
+            SelectedQuizName = quiz.Name;
+        }
+        else
+        {
+            // If the quiz is not in the currently loaded list, try to fetch its details specifically
+            try
+            {
+                // Load all quizzes to see if the specific quiz exists
+                var allQuizzes = (await StudentQuizApi.GetActiveQuizesAsync(0)).ToList();
+                var specificQuiz = allQuizzes.FirstOrDefault(q => q.Id == quizId);
+                if (specificQuiz != null)
+                {
+                    // Update available quizzes and quiz names
+                    availableQuizzes = allQuizzes;
+                    quizNames = allQuizzes.ToDictionary(q => q.Id, q => q.Name);
+                    
+                    createRoomDto.QuizId = quizId;
+                    SelectedQuizName = specificQuiz.Name;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error pre-selecting quiz: {ex.Message}");
+            }
+        }
+        StateHasChanged();
     }
 
     private void OpenQuizSelectionModal()

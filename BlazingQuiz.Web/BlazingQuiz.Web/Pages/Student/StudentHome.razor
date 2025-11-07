@@ -120,6 +120,7 @@
                         <hr />
                         <div class="d-flex justify-content-between">
                             <button type="button" class="btn btn-sm btn-warning" @onclick="() => ShowQuizTypeSelection(q)">Start Quiz</button>
+                            <a href="student/createroom?quizId=@q.Id" type="button" class="btn btn-sm btn-primary">Create Room</a>
                             <button type="button" class="btn btn-sm btn-info me-1" @onclick="() => ShowQuizDetails(q.Id)">View Details</button>
                             <button type="button" class="btn btn-sm @(IsBookmarked(q.Id) ? "btn-success" : "btn-outline-success")" 
                                     @onclick="() => ToggleBookmarkAsync(q)" 
