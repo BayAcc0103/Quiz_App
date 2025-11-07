@@ -11,6 +11,7 @@
 @inject QuizAudioService QuizAudioService
 @inject QuestionAudioService QuestionAudioService
 @inject QuizAuthStateProvider QuizAuthStateProvider
+@inject IJSRuntime JSRuntime
 
 @layout QuizPageLayout 
 
@@ -300,6 +301,7 @@ else
             // Set up SignalR connection
             QuizHubService.OnQuizStarted += HandleQuizStarted;
             QuizHubService.OnQuizEnded += HandleQuizEnded; // Add event handler for when quiz ends for all
+            QuizHubService.OnUserRemovedFromRoom += HandleUserRemovedFromRoom; // Add event handler for when user is removed from room
             
             // Join the room in SignalR
             await QuizHubService.JoinRoomAsync(roomCode);
@@ -309,6 +311,9 @@ else
             {
                 await InitializeQuizAsync();
             }
+            
+            // Start polling to check if user is still in room
+            _ = CheckIfUserStillInRoom(); // Fire and forget
             
             isLoading = false;
         }
@@ -680,11 +685,71 @@ else
         // Unsubscribe from SignalR events
         QuizHubService.OnQuizStarted -= HandleQuizStarted;
         QuizHubService.OnQuizEnded -= HandleQuizEnded; // Remove the event handler that was added
+        QuizHubService.OnUserRemovedFromRoom -= HandleUserRemovedFromRoom; // Remove the event handler that was added
         
         // Leave the room in SignalR
         if (!string.IsNullOrEmpty(roomCode))
         {
             _ = QuizHubService.LeaveRoomAsync(roomCode); // Fire and forget to prevent blocking disposal
+        }
+    }
+
+    private async void HandleUserRemovedFromRoom(string roomCode, string roomName, string hostName)
+    {
+        await InvokeAsync(async () =>
+        {
+            // Show notification that user was removed from the room
+            await ShowAlertAsync($"You have been removed from room '{roomName}' by {hostName}.", "Removed from Room");
+
+            // Leave the room in SignalR before navigating away
+            if (!string.IsNullOrEmpty(this.roomCode))
+            {
+                await QuizHubService.LeaveRoomAsync(this.roomCode);
+            }
+
+            // Navigate to home page
+            NavigationManager.NavigateTo("/student/home");
+        });
+    }
+
+    private async Task ShowAlertAsync(string message, string title = "Error") =>
+        await JSRuntime.InvokeVoidAsync("alert", $"{title}\n{message}");
+
+    private async Task CheckIfUserStillInRoom()
+    {
+        // Check every 5 seconds if the user is still in the room
+        while (true)
+        {
+            await Task.Delay(5000); // Wait 5 seconds before checking again
+
+            try
+            {
+                var participants = await RoomApi.GetRoomParticipantsAsync(RoomId);
+                var currentUser = participants.FirstOrDefault(p => p.UserId == QuizAuthStateProvider.User.Id);
+
+                // If the current user is no longer in the room, redirect to home
+                if (currentUser == null)
+                {
+                    await InvokeAsync(async () =>
+                    {
+                        // Leave the room in SignalR before navigating away
+                        if (!string.IsNullOrEmpty(this.roomCode))
+                        {
+                            await QuizHubService.LeaveRoomAsync(this.roomCode);
+                        }
+
+                        // Navigate to home page
+                        NavigationManager.NavigateTo("/student/home");
+                    });
+                    
+                    break; // Stop polling
+                }
+            }
+            catch
+            {
+                // If there's an error checking, continue polling
+                continue;
+            }
         }
     }
 }

@@ -8,6 +8,9 @@ namespace BlazingQuiz.Api.Hubs
         // Store connections by room ID
         private static readonly Dictionary<string, HashSet<string>> _roomConnections = new Dictionary<string, HashSet<string>>();
         
+        // Store user ID to connection ID mapping for direct user messaging
+        private static readonly Dictionary<string, string> _userConnections = new Dictionary<string, string>();
+
         public async Task JoinRoom(string roomCode)
         {
             // Add the connection to the room
@@ -15,10 +18,20 @@ namespace BlazingQuiz.Api.Hubs
             {
                 _roomConnections[roomCode] = new HashSet<string>();
             }
-            
+
             _roomConnections[roomCode].Add(Context.ConnectionId);
             await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
-            
+
+            // Store user ID to connection mapping if available in the context
+            var userId = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(userId))
+            {
+                _userConnections[userId] = Context.ConnectionId;
+                
+                // Add user to their personal group to enable direct messaging
+                await Groups.AddToGroupAsync(Context.ConnectionId, $"User-{userId}");
+            }
+
             await Clients.Caller.SendAsync("JoinedRoom", roomCode);
         }
 
@@ -33,8 +46,16 @@ namespace BlazingQuiz.Api.Hubs
                     _roomConnections.Remove(roomCode);
                 }
             }
-            
+
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomCode);
+            
+            // Remove user from their personal group as well
+            var userId = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(userId))
+            {
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"User-{userId}");
+            }
+            
             await Clients.Caller.SendAsync("LeftRoom", roomCode);
         }
 
@@ -89,7 +110,17 @@ namespace BlazingQuiz.Api.Hubs
                     await Groups.RemoveFromGroupAsync(Context.ConnectionId, room.Key);
                 }
             }
-            
+
+            // Remove user connection mapping if it exists
+            var userId = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(userId) && _userConnections.ContainsKey(userId))
+            {
+                _userConnections.Remove(userId);
+                
+                // Also remove from personal user group
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"User-{userId}");
+            }
+
             await base.OnDisconnectedAsync(exception);
         }
     }

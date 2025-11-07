@@ -499,6 +499,25 @@ namespace BlazingQuiz.Api.Endpoints
                 return Results.Ok(new { Message = "Room and all associated participants and answers deleted successfully." });
             }).RequireAuthorization(policy => policy.RequireClaim(ClaimTypes.Role, "Admin"));
 
+            // Remove participant from room - host only
+            roomGroup.MapDelete("/{roomId:guid}/participants/{userId:int}", async (Guid roomId, int userId, HttpContext httpContext, RoomService service) =>
+            {
+                // Get the current user ID from the claims
+                var currentUserIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(currentUserIdString, out var currentUserId))
+                {
+                    return Results.BadRequest("Invalid user ID");
+                }
+
+                var success = await service.RemoveParticipantFromRoomAsync(roomId, userId, currentUserId);
+                if (!success)
+                {
+                    return Results.NotFound("Room not found, you are not the host, or participant not found in the room.");
+                }
+
+                return Results.Ok(new { Message = "Participant removed from room successfully." });
+            });
+
             return app;
         }
     }

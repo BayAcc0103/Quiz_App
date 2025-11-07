@@ -368,5 +368,50 @@ namespace BlazingQuiz.Api.Services
             // Send real-time update to all participants in the room that the quiz has ended
             await _hubContext.Clients.Group(roomCode).SendAsync("QuizEnded", roomCode);
         }
+
+        public async Task<bool> RemoveParticipantFromRoomAsync(Guid roomId, int userIdToRemove, int currentUserId)
+        {
+            // Get the room to verify it exists and check if current user is the host
+            var room = await _context.Rooms
+                .Include(r => r.CreatedByUser) // Include the host user to get their name
+                .FirstOrDefaultAsync(r => r.Id == roomId);
+            if (room == null)
+            {
+                return false;
+            }
+
+            // Check if the current user is the host (can remove any participant)
+            if (room.CreatedBy != currentUserId)
+            {
+                return false; // Only host can remove participants
+            }
+
+            // Find the participant to remove
+            var participantToRemove = await _context.RoomParticipants
+                .Include(rp => rp.User) // Include the user to get their name
+                .FirstOrDefaultAsync(rp => rp.RoomId == roomId && rp.UserId == userIdToRemove);
+                
+            if (participantToRemove == null)
+            {
+                return false; // Participant not found in the room
+            }
+
+            // Remove the participant
+            _context.RoomParticipants.Remove(participantToRemove);
+            await _context.SaveChangesAsync();
+
+            // Get the user who was removed to send them a notification
+            var removedUser = participantToRemove.User;
+
+            // Send real-time update to the removed user to redirect them to home
+            // Send directly to the user's personal group
+            await _hubContext.Clients.Group($"User-{removedUser.Id}").SendAsync("UserRemovedFromRoom", room.Code, room.Name, room.CreatedByUser?.Name ?? "the host");
+
+            // Send update to all other participants in the room that someone was removed
+            await _hubContext.Clients.GroupExcept(room.Code, new[] { removedUser.Id.ToString() })
+                .SendAsync("ParticipantRemoved", removedUser.Name, room.Code);
+
+            return true;
+        }
     }
 }
