@@ -50,5 +50,11 @@ namespace BlazingQuiz.Web.Apis
         
         [Get("/api/rooms/{roomId}/submission-status")]
         Task<RoomParticipantDto[]> GetSubmissionStatusAsync(Guid roomId);
+
+        [Get("/api/rooms/admin")]
+        Task<List<RoomDto>> GetRoomsForAdminAsync();
+
+        [Delete("/api/rooms/{roomId}")]
+        Task<ApiResponse<object>> DeleteRoomAsync(Guid roomId);
     }
 }

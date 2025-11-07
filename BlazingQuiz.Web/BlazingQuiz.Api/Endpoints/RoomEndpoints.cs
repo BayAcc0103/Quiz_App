@@ -463,6 +463,30 @@ namespace BlazingQuiz.Api.Endpoints
                 return Results.Ok(participantDtos);
             });
 
+            // Get all rooms for admin
+            roomGroup.MapGet("/admin", async (RoomService service) =>
+            {
+                var rooms = await service.GetRoomsForAdminAsync();
+                var roomDtos = rooms.Select(r => new RoomDto
+                {
+                    Id = r.Id,
+                    Code = r.Code,
+                    Name = r.Name,
+                    Description = r.Description,
+                    CreatedBy = r.CreatedBy,
+                    CreatedByName = r.CreatedByUser?.Name,
+                    QuizId = r.QuizId,
+                    QuizName = r.Quiz?.Name,
+                    CreatedAt = r.CreatedAt,
+                    StartedAt = r.StartedAt,
+                    EndedAt = r.EndedAt,
+                    IsActive = r.IsActive,
+                    MaxParticipants = r.MaxParticipants
+                }).ToList();
+
+                return Results.Ok(roomDtos);
+            }).RequireAuthorization(policy => policy.RequireClaim(ClaimTypes.Role, "Admin"));
+
             return app;
         }
     }

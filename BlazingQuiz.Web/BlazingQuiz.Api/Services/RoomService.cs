@@ -322,6 +322,15 @@ namespace BlazingQuiz.Api.Services
                 .ToListAsync();
         }
 
+        public async Task<List<Room>> GetRoomsForAdminAsync()
+        {
+            return await _context.Rooms
+                .Include(r => r.CreatedByUser)
+                .Include(r => r.Quiz)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+        }
+
         public async Task NotifyQuizEndedAsync(string roomCode)
         {
             // Send real-time update to all participants in the room that the quiz has ended
