@@ -3,6 +3,7 @@
 @using BlazingQuiz.Web.Services
 @inject IRoomApi RoomApi
 @inject IStorageService LocalStorage
+@inject IJSRuntime JSRuntime
 @attribute [Authorize(Roles = "Admin")]
 
 <PageTitle>Manage Rooms - Admin</PageTitle>
@@ -13,7 +14,7 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">Room Management</h5>
-            <button class="btn btn-sm btn-outline-primary" @onclick="RefreshRooms">
+            <button class="btn btn-sm btn-outline-primary" @onclick="RefreshRooms" disabled="@isDeleting">
                 <span class="bi bi-arrow-repeat"></span> Refresh
             </button>
         </div>
@@ -56,11 +57,19 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => ViewDetails(room.Id)">
+                                        <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => ViewDetails(room.Id)" disabled="@isDeleting">
                                             View
                                         </button>
-                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteRoom(room.Id)">
-                                            Delete
+                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteRoom(room.Id)" disabled="@isDeleting">
+                                            @if (isDeleting)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                                <span>Deleting...</span>
+                                            }
+                                            else
+                                            {
+                                                <span>Delete</span>
+                                            }
                                         </button>
                                     </td>
                                 </tr>
@@ -100,6 +109,7 @@
 @code {
     private List<RoomDto>? rooms;
     private bool isLoading = true;
+    private bool isDeleting = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -133,13 +143,16 @@
 
     private async Task DeleteRoom(Guid roomId)
     {
-        if (!await ConfirmDelete())
+        bool confirmed = await ConfirmDelete();
+        if (!confirmed)
         {
             return; // User cancelled the deletion
         }
 
         try
         {
+            isDeleting = true;
+            
             var response = await RoomApi.DeleteRoomAsync(roomId);
             if (response.IsSuccessStatusCode)
             {
@@ -157,6 +170,10 @@
             Console.WriteLine($"Error deleting room: {ex.Message}");
             // You might want to show an error message to the user
         }
+        finally
+        {
+            isDeleting = false;
+        }
     }
 
     private async Task RefreshRooms()
@@ -166,9 +183,6 @@
 
     private async Task<bool> ConfirmDelete()
     {
-        // This would use a JavaScript interop to show a confirmation dialog
-        // For now, return true to allow the deletion to proceed
-        // In a real application, you might want to use a modal confirmation
-        return true; // Simplified confirmation - in a real app use proper confirmation
+        return await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this room? This will also delete all participants and answers associated with this room.");
     }
 }

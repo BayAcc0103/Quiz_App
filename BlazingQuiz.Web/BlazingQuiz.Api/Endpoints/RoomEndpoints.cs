@@ -487,6 +487,18 @@ namespace BlazingQuiz.Api.Endpoints
                 return Results.Ok(roomDtos);
             }).RequireAuthorization(policy => policy.RequireClaim(ClaimTypes.Role, "Admin"));
 
+            // Delete room - admin only
+            roomGroup.MapDelete("/{roomId:guid}", async (Guid roomId, RoomService service) =>
+            {
+                var success = await service.DeleteRoomAsync(roomId);
+                if (!success)
+                {
+                    return Results.NotFound("Room not found.");
+                }
+
+                return Results.Ok(new { Message = "Room and all associated participants and answers deleted successfully." });
+            }).RequireAuthorization(policy => policy.RequireClaim(ClaimTypes.Role, "Admin"));
+
             return app;
         }
     }

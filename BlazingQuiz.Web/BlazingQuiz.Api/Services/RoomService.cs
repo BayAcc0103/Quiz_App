@@ -331,6 +331,38 @@ namespace BlazingQuiz.Api.Services
                 .ToListAsync();
         }
 
+        public async Task<bool> DeleteRoomAsync(Guid roomId)
+        {
+            var room = await _context.Rooms
+                .Include(r => r.Participants)
+                .Include(r => r.RoomAnswers)
+                .FirstOrDefaultAsync(r => r.Id == roomId);
+
+            if (room == null)
+            {
+                return false;
+            }
+
+            // Delete all room answers associated with this room
+            if (room.RoomAnswers.Any())
+            {
+                _context.RoomAnswers.RemoveRange(room.RoomAnswers);
+            }
+
+            // Delete all participants associated with this room
+            if (room.Participants.Any())
+            {
+                _context.RoomParticipants.RemoveRange(room.Participants);
+            }
+
+            // Delete the room itself
+            _context.Rooms.Remove(room);
+
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
         public async Task NotifyQuizEndedAsync(string roomCode)
         {
             // Send real-time update to all participants in the room that the quiz has ended
