@@ -29,6 +29,7 @@
                         <th>Image</th>
                         <th>Name</th>
                         <th>Category</th>
+                        <th>Level</th>
                         <th>Number of Questions</th>
                         <th>Time (in minutes)</th>
                         <th></th>
@@ -54,6 +55,7 @@
                                 </td>
                                 <td>@q.Name</td>
                                 <td>@q.CategoryName</td>
+                                <td>@(string.IsNullOrEmpty(q.Level) ? "Not specified" : q.Level)</td>
                                 <td>@q.TotalQuestions questions</td>
                                 <td>@q.TimeInMinutes minutes</td>
                                 <td>

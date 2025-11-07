@@ -35,6 +35,7 @@ namespace BlazingQuiz.Api.Services
                     TimeInMinutes = q.TimeInMinutes,
                     TotalQuestions = q.Questions.Count,
                     Id = q.Id,
+                    Level = q.Level, // Include the level
                     ImagePath = q.ImagePath,
                     AudioPath = q.AudioPath,
                     CreatedByName = q.CreatedByUser != null ? q.CreatedByUser.Name : "Unknown"
@@ -492,6 +493,7 @@ namespace BlazingQuiz.Api.Services
                         TotalQuestions = q.Questions.Count,
                         TimeInMinutes = q.TimeInMinutes,
                         IsActive = q.IsActive,
+                        Level = q.Level, // Include the level
                         ImagePath = q.ImagePath,
                         AudioPath = q.AudioPath,
                         CreatedByName = q.CreatedByUser != null ? q.CreatedByUser.Name : "Unknown",

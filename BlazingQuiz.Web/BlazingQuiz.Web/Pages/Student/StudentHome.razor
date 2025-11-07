@@ -102,6 +102,14 @@
                             </tr>
                             <tr>
                                 <td>
+                                    <label class="fw-bold">Level</label>
+                                </td>
+                                <td>
+                                    <span>@(string.IsNullOrEmpty(q.Level) ? "Not specified" : q.Level)</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
                                     <label class="fw-bold">Total Time</label>
                                 </td>
                                 <td>
@@ -169,6 +177,10 @@
                     <tr>
                         <td><strong>Questions:</strong></td>
                         <td>@_quizDetails.TotalQuestions</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Level:</strong></td>
+                        <td>@(_quizDetails.Level ?? "Not specified")</td>
                     </tr>
                     <tr>
                         <td><strong>Time:</strong></td>

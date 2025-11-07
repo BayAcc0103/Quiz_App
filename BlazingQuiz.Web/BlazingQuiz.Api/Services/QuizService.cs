@@ -45,6 +45,7 @@ namespace BlazingQuiz.Api.Services
                     TotalQuestions = dto.TotalQuestions,
                     TimeInMinutes = dto.TimeInMinutes,
                     IsActive = dto.IsActive,
+                    Level = dto.Level, // Set the level
                     CreatedBy = userId, // Set the creator ID
                     ImagePath = dto.ImagePath, // Set the image path
                     AudioPath = dto.AudioPath, // Set the audio path
@@ -74,6 +75,7 @@ namespace BlazingQuiz.Api.Services
                 dbQuiz.TotalQuestions = dto.TotalQuestions;
                 dbQuiz.TimeInMinutes = dto.TimeInMinutes;
                 dbQuiz.IsActive = dto.IsActive;
+                dbQuiz.Level = dto.Level; // Set the level
                 dbQuiz.ImagePath = dto.ImagePath; // Set the image path
                 dbQuiz.AudioPath = dto.AudioPath; // Set the audio path
                 dbQuiz.Questions = questions;
@@ -111,6 +113,7 @@ namespace BlazingQuiz.Api.Services
                 TotalQuestions = q.TotalQuestions,
                 TimeInMinutes = q.TimeInMinutes,
                 IsActive = q.IsActive,
+                Level = q.Level, // Include the level
                 CategoryId = q.CategoryId,
                 ImagePath = q.ImagePath
             })
@@ -160,6 +163,7 @@ namespace BlazingQuiz.Api.Services
                 TotalQuestions = qz.TotalQuestions,
                 TimeInMinutes = qz.TimeInMinutes,
                 IsActive = qz.IsActive,
+                Level = qz.Level, // Include the level
                 ImagePath = qz.ImagePath,
                 AudioPath = qz.AudioPath,
                 Questions = qz.Questions.Select(q => new QuestionDto

@@ -10,6 +10,7 @@
         public int TotalQuestions { get; set; }
         public int TimeInMinutes { get; set; }
         public bool IsActive { get; set; }
+        public string? Level { get; set; } // Level of the quiz (e.g., Easy, Medium, Hard)
         public string? ImagePath { get; set; }
         public string? AudioPath { get; set; }
         public string? CreatedByName { get; set; }

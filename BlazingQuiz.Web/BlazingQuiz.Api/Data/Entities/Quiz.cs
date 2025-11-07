@@ -17,6 +17,7 @@ namespace BlazingQuiz.Api.Data.Entities
         public int? CreatedBy { get; set; } // Teacher ID who created the quiz (nullable for existing quizzes)
         public string? ImagePath { get; set; } // Path to the quiz image
         public string? AudioPath { get; set; } // Path to the quiz audio
+        public string? Level { get; set; } // Level of the quiz (e.g., Easy, Medium, Hard)
 
         [ForeignKey(nameof(CategoryId))]
         public virtual Category Category { get; set; }

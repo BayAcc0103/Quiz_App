@@ -21,6 +21,7 @@ namespace BlazingQuiz.Shared.DTOs
         [Range(1, 120, ErrorMessage = "Please provide valid time in minutes")]
         public int TimeInMinutes { get; set; }
         public bool IsActive { get; set; }
+        public string? Level { get; set; } // Level of the quiz (e.g., Easy, Medium, Hard)
         public string? ImagePath { get; set; }
         public string? AudioPath { get; set; }
         public List<QuestionDto> Questions { get; set; } = [];
