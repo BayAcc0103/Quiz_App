@@ -558,12 +558,40 @@ else
         {
             AppState.ShowLoader("Submitting quiz...");
             
-            var result = await StudentQuizApi.SubmitQuizAsync(studentQuizId);
-            if (!result.IsSuccess)
+            // var result = await StudentQuizApi.SubmitQuizAsync(studentQuizId);
+
+            // Ensure the final answer is saved to RoomAnswer table if there's a current question
+            if (currentQuestion != null && (selectedOptionId != 0 || (!string.IsNullOrWhiteSpace(textAnswer) && currentQuestion.IsTextAnswer)))
             {
-                errorMessage = result.ErrorMessage ?? "Failed to submit quiz";
-                return;
+                // Check if this answer has already been saved (to prevent duplicates)
+                var existingAnswers = await RoomApi.GetRoomAnswersForUserAsync(RoomId, QuizAuthStateProvider.User.Id);
+                var hasSavedCurrentAnswer = existingAnswers.Any(ra => ra.QuestionId == currentQuestion.Id);
+
+                if (!hasSavedCurrentAnswer)
+                {
+                    var roomAnswerDto = new RoomAnswerDto
+                    {
+                        RoomId = RoomId,
+                        UserId = QuizAuthStateProvider.User.Id,
+                        QuestionId = currentQuestion.Id,
+                        OptionId = currentQuestion.IsTextAnswer ? null : selectedOptionId,
+                        TextAnswer = currentQuestion.IsTextAnswer ? textAnswer : null,
+                        AnsweredAt = DateTime.UtcNow
+                    };
+
+                    var roomResult = await RoomApi.SubmitAnswerAsync(roomAnswerDto, RoomId);
+                    if (!roomResult.IsSuccessStatusCode)
+                    {
+                        errorMessage = "Failed to record final answer in room: " + roomResult.Error?.Message;
+                        return;
+                    }
+                }
             }
+            // if (!roomResult.IsSuccess)
+            // {
+            //     errorMessage = roomResult.ErrorMessage ?? "Failed to submit quiz";
+            //     return;
+            // }
 
             // Mark that this participant has submitted
             hasSubmitted = true;

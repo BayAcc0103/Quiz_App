@@ -156,6 +156,12 @@ namespace BlazingQuiz.Api.Services
                 .ToListAsync();
         }
 
+        public async Task<bool> IsUserRoomParticipantAsync(Guid roomId, int userId)
+        {
+            return await _context.RoomParticipants
+                .AnyAsync(rp => rp.RoomId == roomId && rp.UserId == userId);
+        }
+
         public async Task<bool> SetParticipantReadyStatusAsync(Guid roomId, int userId, bool isReady)
         {
             var roomParticipant = await _context.RoomParticipants
@@ -239,17 +245,35 @@ namespace BlazingQuiz.Api.Services
 
         public async Task<bool> RecordRoomAnswerAsync(Guid roomId, int userId, int questionId, int? optionId, string? textAnswer)
         {
-            var roomAnswer = new RoomAnswer
+            // Check if user already answered this question in this room to prevent duplicates
+            var existingAnswer = await _context.RoomAnswers
+                .FirstOrDefaultAsync(ra => ra.RoomId == roomId && ra.UserId == userId && ra.QuestionId == questionId);
+            
+            RoomAnswer roomAnswer;
+            if (existingAnswer != null)
             {
-                RoomId = roomId,
-                UserId = userId,
-                QuestionId = questionId,
-                OptionId = optionId,
-                TextAnswer = textAnswer,
-                AnsweredAt = DateTime.UtcNow
-            };
+                // Update the existing answer instead of creating a new one
+                existingAnswer.OptionId = optionId;
+                existingAnswer.TextAnswer = textAnswer;
+                existingAnswer.AnsweredAt = DateTime.UtcNow;
+                roomAnswer = existingAnswer;
+            }
+            else
+            {
+                // Create a new answer
+                roomAnswer = new RoomAnswer
+                {
+                    RoomId = roomId,
+                    UserId = userId,
+                    QuestionId = questionId,
+                    OptionId = optionId,
+                    TextAnswer = textAnswer,
+                    AnsweredAt = DateTime.UtcNow
+                };
+                
+                _context.RoomAnswers.Add(roomAnswer);
+            }
 
-            _context.RoomAnswers.Add(roomAnswer);
             await _context.SaveChangesAsync();
 
             return true;

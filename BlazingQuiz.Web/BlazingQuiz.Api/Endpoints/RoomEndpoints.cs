@@ -1,7 +1,9 @@
+using BlazingQuiz.Api.Data;
 using BlazingQuiz.Api.Services;
 using BlazingQuiz.Shared;
 using BlazingQuiz.Shared.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace BlazingQuiz.Api.Endpoints
@@ -313,7 +315,7 @@ namespace BlazingQuiz.Api.Endpoints
             });
 
             // Submit answer for a room quiz
-            roomGroup.MapPost("/{roomId:guid}/answers", async (RoomAnswerDto dto, Guid roomId, HttpContext httpContext, RoomService service) =>
+            roomGroup.MapPost("/{roomId:guid}/answers", async (RoomAnswerDto dto, Guid roomId, HttpContext httpContext, RoomService service, QuizContext context) =>
             {
                 // Get the current user ID from the claims
                 var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -323,10 +325,42 @@ namespace BlazingQuiz.Api.Endpoints
                 }
 
                 // Verify that the user is a participant in the room
-                var participants = await service.GetRoomParticipantsAsync(roomId);
-                if (!participants.Any(p => p.Id == userId))
+                var isParticipant = await service.IsUserRoomParticipantAsync(roomId, userId);
+                if (!isParticipant)
                 {
                     return Results.BadRequest("User is not a participant in this room.");
+                }
+
+                // Verify that the question exists
+                var question = await context.Questions
+                    .FirstOrDefaultAsync(q => q.Id == dto.QuestionId);
+                if (question == null)
+                {
+                    return Results.BadRequest("Question does not exist.");
+                }
+
+                // Verify that if it's a multiple choice question, the selected option is valid
+                if (dto.OptionId.HasValue)
+                {
+                    var option = await context.Options
+                        .FirstOrDefaultAsync(o => o.Id == dto.OptionId && o.QuestionId == dto.QuestionId);
+                    if (option == null)
+                    {
+                        return Results.BadRequest("Selected option is not valid for this question.");
+                    }
+                }
+
+                // Verify that the room is still active (not ended)
+                var room = await context.Rooms
+                    .FirstOrDefaultAsync(r => r.Id == roomId);
+                if (room == null)
+                {
+                    return Results.BadRequest("Room does not exist.");
+                }
+                
+                if (room.EndedAt.HasValue)
+                {
+                    return Results.BadRequest("Quiz in this room has already ended.");
                 }
 
                 // Record the answer
