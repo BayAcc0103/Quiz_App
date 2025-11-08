@@ -558,9 +558,37 @@ else
         {
             AppState.ShowLoader("Submitting quiz...");
             
-            // var result = await StudentQuizApi.SubmitQuizAsync(studentQuizId);
+            // Ensure the final answer is saved to StudentQuizQuestion table if there's a current question
+            if (currentQuestion != null && (selectedOptionId != 0 || (!string.IsNullOrWhiteSpace(textAnswer) && currentQuestion.IsTextAnswer)))
+            {
+                // Save the answer to StudentQuizQuestion table using the existing API
+                StudentQuizQuestionResponseDto responseDto;
+                if (currentQuestion.IsTextAnswer)
+                {
+                    responseDto = new StudentQuizQuestionResponseDto(studentQuizId, currentQuestion.Id, 0, textAnswer);
+                }
+                else
+                {
+                    responseDto = new StudentQuizQuestionResponseDto(studentQuizId, currentQuestion.Id, selectedOptionId);
+                }
 
-            // Ensure the final answer is saved to RoomAnswer table if there's a current question
+                var saveResult = await StudentQuizApi.SaveQuestionResponseAsync(studentQuizId, responseDto);
+                if (!saveResult.IsSuccess)
+                {
+                    errorMessage = saveResult.ErrorMessage ?? "Failed to save final answer";
+                    return;
+                }
+            }
+
+            // Call the API to update the status to 'Completed' in the database
+            var result = await StudentQuizApi.SubmitQuizAsync(studentQuizId);
+            if (!result.IsSuccess)
+            {
+                errorMessage = result.ErrorMessage ?? "Failed to submit quiz";
+                return;
+            }
+
+            // Ensure the final answer is also saved to RoomAnswer table if there's a current question
             if (currentQuestion != null && (selectedOptionId != 0 || (!string.IsNullOrWhiteSpace(textAnswer) && currentQuestion.IsTextAnswer)))
             {
                 // Check if this answer has already been saved (to prevent duplicates)
