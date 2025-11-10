@@ -28,17 +28,43 @@
         <div class="col-sm-3">
             <div class="mb-3">
                 <label class="form-label">Categories</label>
-                <div class="border p-2 rounded" style="max-height: 150px; overflow-y: auto;">
-                    @foreach (var category in _categories)
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        @if (_quiz.CategoryIds.Count == 0)
+                        {
+                            <span>Select categories...</span>
+                        }
+                        else
+                        {
+                            <span>@_quiz.CategoryIds.Count selected</span>
+                        }
+                    </button>
+                    <ul class="dropdown-menu w-100" aria-labelledby="categoryDropdown">
+                        @foreach (var category in _categories)
+                        {
+                            <li>
+                                <a class="dropdown-item" href="javascript:void(0);" @onclick="() => OnCategorySelectionChanged(category.Id)">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="cat_@category.Id" checked="@(_quiz.CategoryIds.Contains(category.Id))" />
+                                        <label class="form-check-label" for="cat_@category.Id">@category.Name</label>
+                                    </div>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+                <!-- Display selected categories as tags -->
+                <div class="mt-2">
+                    @foreach (var catId in _quiz.CategoryIds.ToList())
                     {
-                        <div class="form-check">
-                            <input type="checkbox" 
-                                   class="form-check-input" 
-                                   id="cat_@category.Id" 
-                                   checked="@(_quiz.CategoryIds.Contains(category.Id))"
-                                   @onchange="@(e => OnCategorySelectionChanged(category.Id, e.Value))" />
-                            <label class="form-check-label" for="cat_@category.Id">@category.Name</label>
-                        </div>
+                        var category = _categories.FirstOrDefault(c => c.Id == catId);
+                        if (category != null)
+                        {
+                            <span class="badge bg-primary me-1 mb-1">
+                                @category.Name
+                                <button type="button" class="btn-close btn-close-white ms-2" style="font-size: 0.6em;" @onclick="() => RemoveCategory(catId)"></button>
+                            </span>
+                        }
                     }
                 </div>
                 <ValidationMessage For="() => _quiz.CategoryIds" />
@@ -594,17 +620,22 @@
         StateHasChanged();
     }
 
-    private void OnCategorySelectionChanged(int categoryId, object value)
+    private void OnCategorySelectionChanged(int categoryId)
     {
-        var isChecked = (bool)value;
-        if (isChecked && !_quiz.CategoryIds.Contains(categoryId))
+        if (!_quiz.CategoryIds.Contains(categoryId))
         {
             _quiz.CategoryIds.Add(categoryId);
         }
-        else if (!isChecked && _quiz.CategoryIds.Contains(categoryId))
+        else
         {
             _quiz.CategoryIds.Remove(categoryId);
         }
+        StateHasChanged();
+    }
+
+    private void RemoveCategory(int categoryId)
+    {
+        _quiz.CategoryIds.Remove(categoryId);
         StateHasChanged();
     }
 
