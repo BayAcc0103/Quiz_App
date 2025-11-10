@@ -14,8 +14,7 @@ namespace BlazingQuiz.Shared.DTOs
         public string Name { get; set; }
         [MaxLength(500)]
         public string? Description { get; set; } // Description of the quiz
-        [Range(1, int.MaxValue, ErrorMessage = "Category is required")]
-        public int CategoryId { get; set; }
+        public List<int> CategoryIds { get; set; } = new List<int>();
         [Range(1, int.MaxValue, ErrorMessage = "Please provide valid number of questions")]
         public int TotalQuestions { get; set; }
         [Range(1, 120, ErrorMessage = "Please provide valid time in minutes")]
@@ -28,6 +27,11 @@ namespace BlazingQuiz.Shared.DTOs
 
         public string? Validate() 
         {
+            if (CategoryIds == null || CategoryIds.Count == 0)
+            {
+                return "At least one category is required.";
+            }
+            
             if (TotalQuestions != Questions.Count)
             {
                 return "Total Questions must be equal to the number of questions added.";

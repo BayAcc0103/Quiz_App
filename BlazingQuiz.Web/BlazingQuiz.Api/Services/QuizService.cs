@@ -41,7 +41,7 @@ namespace BlazingQuiz.Api.Services
                 {
                     Name = dto.Name,
                     Description = dto.Description,
-                    CategoryId = dto.CategoryId,
+                    CategoryId = dto.CategoryIds != null && dto.CategoryIds.Any() ? dto.CategoryIds.First() : (int?)null, // Keep first as primary for backward compatibility
                     TotalQuestions = dto.TotalQuestions,
                     TimeInMinutes = dto.TimeInMinutes,
                     IsActive = dto.IsActive,
@@ -51,12 +51,26 @@ namespace BlazingQuiz.Api.Services
                     AudioPath = dto.AudioPath, // Set the audio path
                     Questions = questions
                 };
-                _context.Quizzes.Add(quiz);
+                await _context.SaveChangesAsync(); // Save to get the quiz ID
+                
+                // Add quiz-category relationships
+                if (dto.CategoryIds != null && dto.CategoryIds.Any())
+                {
+                    var quizCategories = dto.CategoryIds.Select(catId => new QuizCategory
+                    {
+                        QuizId = quiz.Id,
+                        CategoryId = catId
+                    }).ToList();
+                    
+                    _context.QuizCategories.AddRange(quizCategories);
+                }
             }
             else
             {
                 // Update existing quiz - check if the current user is the creator (if they're not an admin)
-                var dbQuiz = await _context.Quizzes.FirstOrDefaultAsync(q => q.Id == dto.Id);
+                var dbQuiz = await _context.Quizzes
+                    .Include(q => q.QuizCategories) // Include existing quiz-category relationships
+                    .FirstOrDefaultAsync(q => q.Id == dto.Id);
                 if (dbQuiz == null)
                 {
                     // Quiz does not exist, throw error or return some response
@@ -71,7 +85,7 @@ namespace BlazingQuiz.Api.Services
                 
                 dbQuiz.Name = dto.Name;
                 dbQuiz.Description = dto.Description;
-                dbQuiz.CategoryId = dto.CategoryId;
+                dbQuiz.CategoryId = dto.CategoryIds != null && dto.CategoryIds.Any() ? dto.CategoryIds.First() : (int?)null; // Keep first as primary for backward compatibility
                 dbQuiz.TotalQuestions = dto.TotalQuestions;
                 dbQuiz.TimeInMinutes = dto.TimeInMinutes;
                 dbQuiz.IsActive = dto.IsActive;
@@ -79,6 +93,23 @@ namespace BlazingQuiz.Api.Services
                 dbQuiz.ImagePath = dto.ImagePath; // Set the image path
                 dbQuiz.AudioPath = dto.AudioPath; // Set the audio path
                 dbQuiz.Questions = questions;
+                
+                // Update quiz-category relationships
+                if (dbQuiz.QuizCategories != null)
+                {
+                    _context.QuizCategories.RemoveRange(dbQuiz.QuizCategories);
+                }
+                
+                if (dto.CategoryIds != null && dto.CategoryIds.Any())
+                {
+                    var quizCategories = dto.CategoryIds.Select(catId => new QuizCategory
+                    {
+                        QuizId = dbQuiz.Id,
+                        CategoryId = catId
+                    }).ToList();
+                    
+                    _context.QuizCategories.AddRange(quizCategories);
+                }
             }
 
             try
@@ -96,20 +127,26 @@ namespace BlazingQuiz.Api.Services
         public async Task<QuizListDto[]> GetQuizesAsync(int userId, bool isAdmin)
         {
             //TODO: Implement paging and server side filter (if required)
-            IQueryable<Quiz> query = _context.Quizzes;
-            
+            IQueryable<Quiz> query = _context.Quizzes
+                .Include(q => q.QuizCategories)
+                .ThenInclude(qc => qc.Category);
+
             // If the user is not an admin, only return quizzes created by this user
             if (!isAdmin)
             {
                 query = query.Where(q => q.CreatedBy == userId && q.CreatedBy.HasValue);
             }
-            
+
             return await query.Select(q => new QuizListDto
             {
                 Id = q.Id,
                 Name = q.Name,
                 Description = q.Description,
-                CategoryName = q.Category.Name,
+                CategoryName = q.CategoryId.HasValue ? 
+                    q.QuizCategories.Any(qc => qc.CategoryId == q.CategoryId) ? 
+                        q.QuizCategories.First(qc => qc.CategoryId == q.CategoryId).Category.Name : 
+                        "No Category" : 
+                    q.QuizCategories.Any() ? string.Join(", ", q.QuizCategories.Select(qc => qc.Category.Name)) : "No Category",
                 TotalQuestions = q.TotalQuestions,
                 TimeInMinutes = q.TimeInMinutes,
                 IsActive = q.IsActive,
@@ -146,47 +183,45 @@ namespace BlazingQuiz.Api.Services
 
         public async Task<QuizSaveDto?> GetQuizToEditAsync(Guid quizId, int userId, bool isAdmin)
         {
-            var query = _context.Quizzes.Where(q => q.Id == quizId);
+            var quiz = await _context.Quizzes
+                .Include(q => q.QuizCategories)
+                .Where(q => q.Id == quizId)
             
-            // If the user is not an admin, ensure they can only access their own quizzes
-            if (!isAdmin)
-            {
-                query = query.Where(q => q.CreatedBy == userId && q.CreatedBy.HasValue);
-            }
-            
-            var quiz = await query.Select(qz => new QuizSaveDto
-            {
-                Id = qz.Id,
-                Name = qz.Name,
-                Description = qz.Description,
-                CategoryId = qz.CategoryId,
-                TotalQuestions = qz.TotalQuestions,
-                TimeInMinutes = qz.TimeInMinutes,
-                IsActive = qz.IsActive,
-                Level = qz.Level, // Include the level
-                ImagePath = qz.ImagePath,
-                AudioPath = qz.AudioPath,
-                Questions = qz.Questions.Select(q => new QuestionDto
+                // If the user is not an admin, ensure they can only access their own quizzes
+                .Where(q => !isAdmin || q.CreatedBy == userId && q.CreatedBy.HasValue)
+                .Select(qz => new QuizSaveDto
                 {
-                    Id = q.Id,
-                    Text = q.Text,
-                    AnswerExplanation = q.AnswerExplanation,
-                    ImagePath = q.ImagePath,
-                    AudioPath = q.AudioPath,
-                    IsTextAnswer = q.IsTextAnswer,
-                    Options = q.Options.Select(o => new OptionDto
+                    Id = qz.Id,
+                    Name = qz.Name,
+                    Description = qz.Description,
+                    CategoryIds = qz.QuizCategories != null ? qz.QuizCategories.Select(qc => qc.CategoryId).ToList() : new List<int>(),
+                    TotalQuestions = qz.TotalQuestions,
+                    TimeInMinutes = qz.TimeInMinutes,
+                    IsActive = qz.IsActive,
+                    Level = qz.Level, // Include the level
+                    ImagePath = qz.ImagePath,
+                    AudioPath = qz.AudioPath,
+                    Questions = qz.Questions.Select(q => new QuestionDto
                     {
-                        Id = o.Id,
-                        Text = o.Text,
-                        IsCorrect = o.IsCorrect
-                    }).ToList(),
-                    TextAnswers = q.IsTextAnswer ? q.TextAnswers.Select(ta => new TextAnswerDto
-                    {
-                        Id = ta.Id,
-                        Text = ta.Text
-                    }).ToList() : new List<TextAnswerDto>()
-                }).ToList()
-            }).FirstOrDefaultAsync();
+                        Id = q.Id,
+                        Text = q.Text,
+                        AnswerExplanation = q.AnswerExplanation,
+                        ImagePath = q.ImagePath,
+                        AudioPath = q.AudioPath,
+                        IsTextAnswer = q.IsTextAnswer,
+                        Options = q.Options.Select(o => new OptionDto
+                        {
+                            Id = o.Id,
+                            Text = o.Text,
+                            IsCorrect = o.IsCorrect
+                        }).ToList(),
+                        TextAnswers = q.IsTextAnswer ? q.TextAnswers.Select(ta => new TextAnswerDto
+                        {
+                            Id = ta.Id,
+                            Text = ta.Text
+                        }).ToList() : new List<TextAnswerDto>()
+                    }).ToList()
+                }).FirstOrDefaultAsync();
             
             return quiz;
         }

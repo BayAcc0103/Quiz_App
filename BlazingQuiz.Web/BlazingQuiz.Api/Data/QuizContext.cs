@@ -30,6 +30,7 @@ namespace BlazingQuiz.Api.Data
         public DbSet<RoomParticipant> RoomParticipants { get; set; }
         public DbSet<RoomAnswer> RoomAnswers { get; set; }
         public DbSet<TextAnswer> TextAnswers { get; set; }
+        public DbSet<QuizCategory> QuizCategories { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -126,6 +127,22 @@ namespace BlazingQuiz.Api.Data
                 .HasOne(ta => ta.Question)
                 .WithMany(q => q.TextAnswers)
                 .HasForeignKey(ta => ta.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure many-to-many relationship between Quiz and Category through QuizCategory
+            modelBuilder.Entity<QuizCategory>()
+                .HasKey(qc => new { qc.Id });
+
+            modelBuilder.Entity<QuizCategory>()
+                .HasOne(qc => qc.Quiz)
+                .WithMany(q => q.QuizCategories)
+                .HasForeignKey(qc => qc.QuizId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<QuizCategory>()
+                .HasOne(qc => qc.Category)
+                .WithMany()
+                .HasForeignKey(qc => qc.CategoryId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);

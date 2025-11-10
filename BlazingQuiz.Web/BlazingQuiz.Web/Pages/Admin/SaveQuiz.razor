@@ -24,15 +24,21 @@
     <div class="row">
         <div class="col-sm-3">
             <div class="mb-3">
-                <label class="form-label">Category</label>
-                <InputSelect @bind-Value="_quiz.CategoryId" class="form-control">
-                    <option value="0">Select a category</option>
+                <label class="form-label">Categories</label>
+                <div class="border p-2 rounded" style="max-height: 150px; overflow-y: auto;">
                     @foreach (var category in _categories)
                     {
-                        <option value="@category.Id">@category.Name</option>
+                        <div class="form-check">
+                            <input type="checkbox" 
+                                   class="form-check-input" 
+                                   id="cat_@category.Id" 
+                                   checked="@(_quiz.CategoryIds.Contains(category.Id))"
+                                   @onchange="@(e => OnCategorySelectionChanged(category.Id, e.Value))" />
+                            <label class="form-check-label" for="cat_@category.Id">@category.Name</label>
+                        </div>
                     }
-                </InputSelect>
-                <ValidationMessage For="() => _quiz.CategoryId" />
+                </div>
+                <ValidationMessage For="() => _quiz.CategoryIds" />
             </div>
         </div>
         <div class="col-sm-3">
@@ -246,6 +252,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        AppState.ShowLoader("Loading categories");
+        _categories = await CategoryApi.GetCategoriesAsync();
+        AppState.HideLoader();
+
         if (IsEditCase)
         {
             //Fetch _quiz from API
@@ -265,9 +275,6 @@
             var question = GetDefaultEmptyQuestion();
             _quiz.Questions = [question];
         }
-        AppState.ShowLoader("Loading categories");
-        _categories = await CategoryApi.GetCategoriesAsync();
-        AppState.HideLoader();
     }
 
     protected override void OnParametersSet()
@@ -583,6 +590,20 @@
                 question.Options.Add(new OptionDto());
                 question.Options.Add(new OptionDto());
             }
+        }
+        StateHasChanged();
+    }
+
+    private void OnCategorySelectionChanged(int categoryId, object value)
+    {
+        var isChecked = (bool)value;
+        if (isChecked && !_quiz.CategoryIds.Contains(categoryId))
+        {
+            _quiz.CategoryIds.Add(categoryId);
+        }
+        else if (!isChecked && _quiz.CategoryIds.Contains(categoryId))
+        {
+            _quiz.CategoryIds.Remove(categoryId);
         }
         StateHasChanged();
     }

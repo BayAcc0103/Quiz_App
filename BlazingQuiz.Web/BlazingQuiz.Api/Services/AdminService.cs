@@ -70,8 +70,17 @@ namespace BlazingQuiz.Api.Services
             if (fetchQuizInfo)
             {
                 var quizInfo = await context.Quizzes
+                    .Include(q => q.QuizCategories)
+                    .ThenInclude(qc => qc.Category)
                     .Where(q => q.Id == quizId)
-                    .Select(q => new { QuizName = q.Name, CategoryName = q.Category.Name })
+                    .Select(q => new { 
+                        QuizName = q.Name, 
+                        CategoryName = q.CategoryId.HasValue ? 
+                            q.QuizCategories.Any(qc => qc.CategoryId == q.CategoryId) ? 
+                                q.QuizCategories.First(qc => qc.CategoryId == q.CategoryId).Category.Name : 
+                                "No Category" : 
+                            q.QuizCategories.Any() ? string.Join(", ", q.QuizCategories.Select(qc => qc.Category.Name)) : "No Category" 
+                    })
                     .FirstOrDefaultAsync();
 
                 if(quizInfo == null)

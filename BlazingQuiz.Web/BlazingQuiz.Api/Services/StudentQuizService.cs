@@ -18,18 +18,23 @@ namespace BlazingQuiz.Api.Services
         {
             var query = _context.Quizzes
                 .Include(q => q.CreatedByUser)
-                .Include(q => q.Category)
+                .Include(q => q.QuizCategories)
+                .ThenInclude(qc => qc.Category)
                 .Where(q => q.IsActive);
 
             if(categoryId > 0)
             {
-                query = query.Where(q => q.CategoryId == categoryId);
+                query = query.Where(q => q.CategoryId == categoryId || q.QuizCategories.Any(qc => qc.CategoryId == categoryId));
             }
             var quizzes = await query
                 .Select(q => new QuizListDto
                 {
                     CategoryId = q.CategoryId,
-                    CategoryName = q.Category.Name,
+                    CategoryName = q.CategoryId.HasValue ? 
+                        q.QuizCategories.Any(qc => qc.CategoryId == q.CategoryId) ? 
+                            q.QuizCategories.First(qc => qc.CategoryId == q.CategoryId).Category.Name : 
+                            "No Category" : 
+                        q.QuizCategories.Any() ? string.Join(", ", q.QuizCategories.Select(qc => qc.Category.Name)) : "No Category",
                     Name = q.Name,
                     Description = q.Description,
                     TimeInMinutes = q.TimeInMinutes,
@@ -302,7 +307,11 @@ namespace BlazingQuiz.Api.Services
                     StudentId = q.StudentId,
                     QuizId = q.QuizId,
                     QuizName = q.Quiz.Name,
-                    CategoryName = q.Quiz.Category.Name,
+                    CategoryName = q.Quiz.CategoryId.HasValue ? 
+                        q.Quiz.QuizCategories.Any(qc => qc.CategoryId == q.Quiz.CategoryId) ? 
+                            q.Quiz.QuizCategories.First(qc => qc.CategoryId == q.Quiz.CategoryId).Category.Name : 
+                            "No Category" : 
+                        q.Quiz.QuizCategories.Any() ? string.Join(", ", q.Quiz.QuizCategories.Select(qc => qc.Category.Name)) : "No Category",
                     StartedOn = q.StartedOn,
                     CompletedOn = q.CompletedOn,
                     Status = q.Status,
@@ -481,7 +490,8 @@ namespace BlazingQuiz.Api.Services
                 // Get the quiz with its details
                 var quiz = await _context.Quizzes
                     .Include(q => q.CreatedByUser)
-                    .Include(q => q.Category)
+                    .Include(q => q.QuizCategories)
+                    .ThenInclude(qc => qc.Category)
                     .Where(q => q.Id == quizId && q.IsActive)
                     .Select(q => new QuizDetailsDto
                     {
@@ -489,7 +499,11 @@ namespace BlazingQuiz.Api.Services
                         Name = q.Name,
                         Description = q.Description,
                         CategoryId = q.CategoryId,
-                        CategoryName = q.Category.Name,
+                        CategoryName = q.CategoryId.HasValue ? 
+                            q.QuizCategories.Any(qc => qc.CategoryId == q.CategoryId) ? 
+                                q.QuizCategories.First(qc => qc.CategoryId == q.CategoryId).Category.Name : 
+                                "No Category" : 
+                            q.QuizCategories.Any() ? string.Join(", ", q.QuizCategories.Select(qc => qc.Category.Name)) : "No Category",
                         TotalQuestions = q.Questions.Count,
                         TimeInMinutes = q.TimeInMinutes,
                         IsActive = q.IsActive,
@@ -634,7 +648,11 @@ namespace BlazingQuiz.Api.Services
                     StudentId = sq.StudentId,
                     QuizId = sq.QuizId,
                     QuizName = sq.Quiz.Name,
-                    CategoryName = sq.Quiz.Category.Name,
+                    CategoryName = sq.Quiz.CategoryId.HasValue ? 
+                        sq.Quiz.QuizCategories.Any(qc => qc.CategoryId == sq.Quiz.CategoryId) ? 
+                            sq.Quiz.QuizCategories.First(qc => qc.CategoryId == sq.Quiz.CategoryId).Category.Name : 
+                            "No Category" : 
+                        sq.Quiz.QuizCategories.Any() ? string.Join(", ", sq.Quiz.QuizCategories.Select(qc => qc.Category.Name)) : "No Category",
                     StartedOn = sq.StartedOn,
                     CompletedOn = sq.CompletedOn,
                     Status = sq.Status,
