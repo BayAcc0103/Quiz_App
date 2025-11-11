@@ -230,9 +230,11 @@
                             {
                                 @for (int i = 0; i < q.TextAnswers.Count; i++)
                                 {
+                                    var index = i; // Capture the current index
+                                    var textAnswer = q.TextAnswers[index]; // Capture the text answer to prevent index issues
                                     <div class="input-group mb-2">
-                                        <input type="text" class="form-control" placeholder="Enter a correct answer" @bind="q.TextAnswers[i].Text"/>
-                                        <button type="button" class="btn btn-outline-danger" @onclick="() => q.TextAnswers.RemoveAt(i)">X</button>
+                                        <input type="text" class="form-control" placeholder="Enter a correct answer" @bind="textAnswer.Text"/>
+                                        <button type="button" class="btn btn-outline-danger" @onclick="() => RemoveTextAnswer(q, index)">X</button>
                                     </div>
                                 }
                             }
@@ -532,6 +534,15 @@
             _quiz.Questions.Remove(question);
             // Update TotalQuestions to reflect the actual count
             _quiz.TotalQuestions = _quiz.Questions.Count;
+        }
+    }
+
+    private void RemoveTextAnswer(QuestionDto question, int index)
+    {
+        if (question.TextAnswers != null && index >= 0 && index < question.TextAnswers.Count)
+        {
+            question.TextAnswers.RemoveAt(index);
+            StateHasChanged();
         }
     }
 
