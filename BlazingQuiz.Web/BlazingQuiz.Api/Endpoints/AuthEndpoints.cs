@@ -26,7 +26,7 @@ namespace BlazingQuiz.Api.Endpoints
                 {
                     return Results.NotFound();
                 }
-                
+
                 var userDto = new UserDto(dbUser.Id, dbUser.Name, dbUser.Email, dbUser.Phone, dbUser.IsApproved, dbUser.AvatarPath);
                 return Results.Ok(userDto);
             });
@@ -39,12 +39,12 @@ namespace BlazingQuiz.Api.Endpoints
                 {
                     return Results.NotFound();
                 }
-                
+
                 // Update user properties
                 dbUser.Name = userDto.Name;
                 dbUser.Email = userDto.Email;
                 dbUser.Phone = userDto.Phone;
-                
+
                 await context.SaveChangesAsync();
                 return Results.Ok();
             });
@@ -57,18 +57,57 @@ namespace BlazingQuiz.Api.Endpoints
                 {
                     return Results.NotFound();
                 }
-                
+
                 // Verify current password
                 var passwordResult = passwordHasher.VerifyHashedPassword(dbUser, dbUser.PasswordHash, dto.CurrentPassword);
                 if (passwordResult == PasswordVerificationResult.Failed)
                 {
                     return Results.BadRequest("Current password is incorrect.");
                 }
-                
+
                 // Set new password
                 dbUser.PasswordHash = passwordHasher.HashPassword(dbUser, dto.NewPassword);
                 await context.SaveChangesAsync();
                 return Results.Ok();
+            });
+
+            app.MapPost("/api/auth/send-reset-code", async (ForgotPasswordDto dto, PasswordResetService passwordResetService, OtpService otpService) =>
+            {
+                var result = await passwordResetService.SendResetCodeAsync(dto, otpService);
+                if (result.IsSuccess)
+                {
+                    return Results.Ok(result);
+                }
+                else
+                {
+                    return Results.BadRequest(result);
+                }
+            });
+
+            app.MapPost("/api/auth/reset-password", async (ResetPasswordDto dto, PasswordResetService passwordResetService, OtpService otpService) =>
+            {
+                var result = await passwordResetService.ResetPasswordAsync(dto, otpService);
+                if (result.IsSuccess)
+                {
+                    return Results.Ok(result);
+                }
+                else
+                {
+                    return Results.BadRequest(result);
+                }
+            });
+
+            app.MapPost("/api/auth/verify-otp", async (VerifyOtpDto dto, PasswordResetService passwordResetService, OtpService otpService) =>
+            {
+                var result = await passwordResetService.VerifyOtpAsync(dto, otpService);
+                if (result.IsSuccess)
+                {
+                    return Results.Ok(result);
+                }
+                else
+                {
+                    return Results.BadRequest(result);
+                }
             });
 
             return app;       

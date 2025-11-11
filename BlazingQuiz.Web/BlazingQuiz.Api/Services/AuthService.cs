@@ -100,5 +100,60 @@ namespace BlazingQuiz.Api.Services
             var token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
             return token;
         }
+
+        public async Task<QuizApiResponse> SendResetCodeAsync(ForgotPasswordDto dto, OtpService otpService, EmailService emailService)
+        {
+            // Check if user exists
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == dto.Email.ToLower());
+            if (user == null)
+            {
+                // Return success even if email doesn't exist to prevent email enumeration attacks
+                return QuizApiResponse.Success();
+            }
+
+            // Additional checks can be added here if needed
+            if (!user.IsApproved)
+            {
+                return QuizApiResponse.Failure("Account is not activated. Contact administrators.");
+            }
+
+            // Send OTP via email
+            var otpSent = await otpService.SendOtpAsync(dto.Email);
+            if (!otpSent)
+            {
+                return QuizApiResponse.Failure("Failed to send OTP. Please try again later.");
+            }
+
+            return QuizApiResponse.Success();
+        }
+
+        public async Task<QuizApiResponse> ResetPasswordAsync(ResetPasswordDto dto, OtpService otpService)
+        {
+            // Validate OTP first
+            if (string.IsNullOrWhiteSpace(dto.Otp))
+            {
+                return QuizApiResponse.Failure("OTP is required.");
+            }
+
+            // Check if user exists
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == dto.Email.ToLower());
+            if (user == null)
+            {
+                return QuizApiResponse.Failure("Invalid email or OTP.");
+            }
+
+            // Validate OTP using the OTP service
+            var otpValidated = otpService.ValidateOtp(dto.Email, dto.Otp);
+            if (!otpValidated)
+            {
+                return QuizApiResponse.Failure("Invalid or expired OTP.");
+            }
+
+            // Update password
+            user.PasswordHash = _passwordHasher.HashPassword(user, dto.NewPassword);
+            await _context.SaveChangesAsync();
+
+            return QuizApiResponse.Success();
+        }
     }
 }

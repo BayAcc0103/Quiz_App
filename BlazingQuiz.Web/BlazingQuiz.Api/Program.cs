@@ -115,7 +115,10 @@ builder.Services.AddTransient<AuthService>()
                 .AddTransient<StudentQuizService>()
                 .AddTransient<BookmarkService>()
                 .AddTransient<IImageUploadService, ImageUploadService>()
-                .AddTransient<IAudioUploadService, AudioUploadService>();
+                .AddTransient<IAudioUploadService, AudioUploadService>()
+                .AddTransient<PasswordResetService>()
+                .AddTransient<OtpService>()
+                .AddTransient<GmailOtpService>();
 
 // Add SignalR
 builder.Services.AddSignalR();

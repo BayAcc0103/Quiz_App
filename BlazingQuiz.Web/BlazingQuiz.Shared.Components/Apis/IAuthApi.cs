@@ -20,5 +20,14 @@ namespace BlazingQuiz.Web.Apis
         
         [Put("/api/auth/changepassword")]
         Task ChangePasswordAsync(ChangePasswordDto dto);
+        
+        [Post("/api/auth/send-reset-code")]
+        Task<QuizApiResponse> SendResetCodeAsync(ForgotPasswordDto dto);
+        
+        [Post("/api/auth/reset-password")]
+        Task<QuizApiResponse> ResetPasswordAsync(ResetPasswordDto dto);
+        
+        [Post("/api/auth/verify-otp")]
+        Task<QuizApiResponse> VerifyOtpAsync(VerifyOtpDto dto);
     }
 }
