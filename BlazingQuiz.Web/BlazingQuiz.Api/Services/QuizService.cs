@@ -188,7 +188,7 @@ namespace BlazingQuiz.Api.Services
                 .Where(q => q.Id == quizId)
             
                 // If the user is not an admin, ensure they can only access their own quizzes
-                .Where(q => !isAdmin || q.CreatedBy == userId && q.CreatedBy.HasValue)
+                .Where(q => isAdmin || (q.CreatedBy == userId && q.CreatedBy.HasValue))
                 .Select(qz => new QuizSaveDto
                 {
                     Id = qz.Id,
