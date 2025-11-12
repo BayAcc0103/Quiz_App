@@ -1,4 +1,5 @@
 using BlazingQuiz.Api.Data;
+using BlazingQuiz.Api.Data.Entities;
 using BlazingQuiz.Api.Services;
 using BlazingQuiz.Shared;
 using BlazingQuiz.Shared.DTOs;
@@ -550,6 +551,55 @@ namespace BlazingQuiz.Api.Endpoints
                 }
 
                 return Results.Ok(new { Message = "Participant removed from room successfully." });
+            });
+
+            // Get leaderboard for a room
+            roomGroup.MapGet("/{roomId:guid}/leaderboard", async (Guid roomId, QuizContext context) =>
+            {
+                var studentQuizzes = await context.StudentQuizzesForRoom
+                    .Where(sqfr => sqfr.RoomId == roomId && sqfr.Status == "Completed")
+                    .Include(sqfr => sqfr.Student)
+                    .ToListAsync();
+
+                if (!studentQuizzes.Any())
+                {
+                    return Results.Ok(new List<QuizRoomLeaderboardEntryDto>());
+                }
+
+                // Calculate completion time for each student
+                var leaderboardEntries = studentQuizzes.Select(sqfr =>
+                {
+                    TimeSpan? completionTime = null;
+                    if (sqfr.StartedOn != DateTime.MinValue && sqfr.CompletedOn.HasValue)
+                    {
+                        completionTime = sqfr.CompletedOn.Value - sqfr.StartedOn;
+                    }
+
+                    return new QuizRoomLeaderboardEntryDto
+                    {
+                        StudentId = sqfr.StudentId,
+                        StudentName = sqfr.Student?.Name ?? "Unknown",
+                        StudentAvatarPath = sqfr.Student?.AvatarPath,
+                        Total = sqfr.Total,
+                        CompletionTime = completionTime,
+                        StartedOn = sqfr.StartedOn,
+                        CompletedOn = sqfr.CompletedOn
+                    };
+                }).ToList();
+
+                // Sort by Total (descending) then by CompletionTime (ascending) if available
+                var sortedLeaderboard = leaderboardEntries
+                    .OrderByDescending(entry => entry.Total)
+                    .ThenBy(entry => entry.CompletionTime ?? TimeSpan.MaxValue)
+                    .ToList();
+
+                // Assign ranks
+                for (int i = 0; i < sortedLeaderboard.Count; i++)
+                {
+                    sortedLeaderboard[i].Rank = i + 1;
+                }
+
+                return Results.Ok(sortedLeaderboard);
             });
 
             return app;

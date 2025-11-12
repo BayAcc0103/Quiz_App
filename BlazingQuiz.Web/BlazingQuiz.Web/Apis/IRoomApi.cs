@@ -59,5 +59,8 @@ namespace BlazingQuiz.Web.Apis
 
         [Delete("/api/rooms/{roomId}/participants/{userId}")]
         Task<ApiResponse<object>> RemoveParticipantAsync(Guid roomId, int userId);
+
+        [Get("/api/rooms/{roomId}/leaderboard")]
+        Task<List<QuizRoomLeaderboardEntryDto>> GetRoomLeaderboardAsync(Guid roomId);
     }
 }

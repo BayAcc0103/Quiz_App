@@ -88,6 +88,8 @@ namespace BlazingQuiz.Api.Services
         {
             return await _context.Rooms
                 .Include(r => r.CreatedByUser)
+                .Include(r => r.StudentQuizzesForRoom)
+                .ThenInclude(sqfr => sqfr.Student)
                 .FirstOrDefaultAsync(r => r.Id == id && r.IsActive);
         }
 

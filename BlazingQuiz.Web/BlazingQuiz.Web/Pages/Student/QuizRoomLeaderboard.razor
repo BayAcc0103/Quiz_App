@@ -1,9 +1,7 @@
 @page "/student/quiz/{QuizId:guid}/room/{RoomId:guid}/leaderboard"
-@using BlazingQuiz.Web.Services.SignalR
 @using BlazingQuiz.Shared.DTOs
 @inject NavigationManager NavigationManager
 @inject IRoomApi RoomApi
-@inject IStudentQuizApi StudentQuizApi
 @inject QuizAuthStateProvider QuizAuthStateProvider
 
 @layout QuizPageLayout
@@ -38,64 +36,71 @@ else
                                     <tr>
                                         <th style="width: 10%">Xếp hạng</th>
                                         <th>Học viên</th>
-                                        <th>Số câu đúng</th>
-                                        <th>Tổng số câu</th>
-                                        <th>Tỷ lệ (%)</th>
+                                        <th>Điểm số</th>
                                         <th>Thời gian hoàn thành</th>
+                                        <th>Thời gian nộp bài</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @for (int i = 0; i < leaderboardResults.Count; i++)
+                                    @for (int i = 0; i < leaderboardEntries.Count; i++)
                                     {
-                                        var result = leaderboardResults[i];
+                                        var entry = leaderboardEntries[i];
                                         var rank = i + 1;
-                                        var isCurrentUser = result.UserId == QuizAuthStateProvider.User.Id;
+                                        var isCurrentUser = entry.StudentId == QuizAuthStateProvider.User.Id;
+                                        var rowClass = isCurrentUser ? "table-info" : "";
                                         
-                                        <tr class="@(isCurrentUser ? "table-info" : "")">
+                                        <tr class="@rowClass">
                                             <td>
-                                                <span class="badge @(rank == 1 ? "bg-warning text-dark" : rank == 2 ? "bg-secondary" : rank == 3 ? "bg-tertiary text-dark" : "bg-primary")">
-                                                    @rank
-                                                </span>
+                                                <span class="badge @(rank <= 3 ? "bg-warning text-dark" : "bg-secondary")">@rank</span>
+                                                @if (rank == 1)
+                                                {
+                                                    <span class="ms-1">🏆</span>
+                                                }
+                                                else if (rank == 2)
+                                                {
+                                                    <span class="ms-1">🥈</span>
+                                                }
+                                                else if (rank == 3)
+                                                {
+                                                    <span class="ms-1">🥉</span>
+                                                }
                                             </td>
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    @if (!string.IsNullOrEmpty(result.UserAvatarPath))
+                                                    @if (!string.IsNullOrEmpty(entry.StudentAvatarPath))
                                                     {
-                                                        <img src="@result.UserAvatarPath" alt="Avatar" class="rounded-circle me-2" style="width: 30px; height: 30px;" />
+                                                        <img src="@entry.StudentAvatarPath" alt="Avatar" class="rounded-circle me-2" style="width: 30px; height: 30px;" />
                                                     }
                                                     else
                                                     {
                                                         <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
-                                                            <span class="text-white">@result.UserName.Substring(0, 1).ToUpper()</span>
+                                                            <span class="text-white">@entry.StudentName.Substring(0, 1).ToUpper()</span>
                                                         </div>
                                                     }
-                                                    <span class="@(isCurrentUser ? "fw-bold" : "")">@result.UserName @(isCurrentUser ? "(Bạn)" : "")</span>
+                                                    <span class="@(isCurrentUser ? "fw-bold" : "")">@entry.StudentName @(isCurrentUser ? "(Bạn)" : "")</span>
                                                 </div>
                                             </td>
                                             <td>
-                                                <strong>@result.CorrectAnswers</strong>
+                                                <strong>@entry.Total</strong>
                                             </td>
-                                            <td>@result.TotalQuestions</td>
                                             <td>
-                                                @if (result.TotalQuestions > 0)
+                                                @if (entry.CompletionTime.HasValue)
                                                 {
-                                                    <span class="badge bg-@(result.Percentage >= 80 ? "success" : result.Percentage >= 60 ? "warning text-dark" : "danger")">
-                                                        @(Math.Round(result.Percentage, 1))%
-                                                    </span>
+                                                    @entry.CompletionTime.Value.ToString(@"mm\:ss")
                                                 }
                                                 else
                                                 {
-                                                    <span>0%</span>
+                                                    <em>Chưa hoàn thành</em>
                                                 }
                                             </td>
                                             <td>
-                                                @if (result.CompletionTime.HasValue)
+                                                @if (entry.CompletedOn.HasValue)
                                                 {
-                                                    <span>@FormatTimeSpan(result.CompletionTime.Value)</span>
+                                                    @entry.CompletedOn.Value.ToString("HH:mm:ss")
                                                 }
                                                 else
                                                 {
-                                                    <span>Không xác định</span>
+                                                    <em>Chưa hoàn thành</em>
                                                 }
                                             </td>
                                         </tr>
@@ -103,11 +108,10 @@ else
                                 </tbody>
                             </table>
                         </div>
-                        
+
                         <div class="mt-4 d-flex justify-content-between">
                             <button type="button" class="btn btn-secondary" @onclick="GoToHome">Về trang chủ</button>
                             <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-outline-primary" @onclick="GoToQuizResult" disabled="@(currentUserStudentQuizId == null)">Xem kết quả quiz</button>
                                 <button type="button" class="btn btn-primary" @onclick="GoToRoom">Quay lại phòng</button>
                             </div>
                         </div>
@@ -122,15 +126,15 @@ else
     .table th {
         vertical-align: middle;
     }
-    
+
     .table td {
         vertical-align: middle;
     }
-    
+
     .badge {
         font-size: 1em;
     }
-    
+
     .table-info {
         background-color: rgba(13, 110, 253, 0.1) !important;
     }
@@ -139,35 +143,34 @@ else
 @code {
     [Parameter]
     public Guid QuizId { get; set; }
-    
+
     [Parameter]
     public Guid RoomId { get; set; }
-    
+
     private bool isLoading = true;
     private string? errorMessage;
     private string? roomName;
     private string? roomCode;
-    private List<RoomParticipantLeaderboardResult> leaderboardResults = new();
-    private int? currentUserStudentQuizId;
-    
+    private List<QuizRoomLeaderboardEntryDto> leaderboardEntries = new();
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
             // Get room details
-            var room = await RoomApi.GetRoomByIdAsync(RoomId);
-            if (room == null)
+            var roomResponse = await RoomApi.GetRoomByIdAsync(RoomId);
+            if (roomResponse == null)
             {
                 errorMessage = "Không tìm thấy phòng quiz.";
                 isLoading = false;
                 return;
             }
-            
-            roomName = room.Name;
-            roomCode = room.Code;
-            
-            // Get quiz results for all participants in the room
-            leaderboardResults = await GetRoomLeaderboardResultsAsync();
+
+            roomName = roomResponse.Name;
+            roomCode = roomResponse.Code;
+
+            // Get leaderboard data from the new API endpoint that uses StudentQuizzesForRoom
+            leaderboardEntries = await RoomApi.GetRoomLeaderboardAsync(RoomId) ?? new List<QuizRoomLeaderboardEntryDto>();
         }
         catch (Exception ex)
         {
@@ -179,125 +182,6 @@ else
         }
     }
 
-    private async Task<List<RoomParticipantLeaderboardResult>> GetRoomLeaderboardResultsAsync()
-    {
-        var results = new List<RoomParticipantLeaderboardResult>();
-        
-        try
-        {
-            // Get all participants in the room
-            var participants = await RoomApi.GetRoomParticipantsAsync(RoomId);
-            
-            // Get all completed student quizzes for this quiz
-            var allStudentQuizzes = await StudentQuizApi.GetStudentQuizzesByQuizIdAsync(QuizId);
-            var quizDetails = await StudentQuizApi.GetQuizDetailsAsync(QuizId);
-            var totalQuestions = quizDetails?.Data?.TotalQuestions ?? 0;
-            
-            foreach (var participant in participants)
-            {
-                // Find the student quiz for this participant
-                var studentQuiz = allStudentQuizzes.FirstOrDefault(sq => sq.StudentId == participant.UserId);
-                
-                if (studentQuiz != null)
-                {
-                    var completionTime = studentQuiz.CompletedOn.HasValue
-                        ? studentQuiz.CompletedOn.Value - studentQuiz.StartedOn
-                        : (TimeSpan?)null;
-                    
-                    double percentage = totalQuestions > 0 ? (double)studentQuiz.Total / totalQuestions * 100 : 0;
-                    
-                    var result = new RoomParticipantLeaderboardResult
-                    {
-                        UserId = participant.UserId,
-                        UserName = participant.UserName,
-                        UserAvatarPath = participant.AvatarPath,
-                        CorrectAnswers = studentQuiz.Total, // Correct answers are stored in Total property
-                        TotalQuestions = totalQuestions,
-                        Percentage = percentage,
-                        CompletionTime = completionTime
-                    };
-                    
-                    // Track the current user's student quiz ID
-                    if (participant.UserId == QuizAuthStateProvider.User.Id)
-                    {
-                        currentUserStudentQuizId = studentQuiz.Id;
-                    }
-                    
-                    results.Add(result);
-                }
-                else
-                {
-                    // Participant didn't take the quiz
-                    var result = new RoomParticipantLeaderboardResult
-                    {
-                        UserId = participant.UserId,
-                        UserName = participant.UserName,
-                        UserAvatarPath = participant.AvatarPath,
-                        CorrectAnswers = 0,
-                        TotalQuestions = totalQuestions,
-                        Percentage = 0,
-                        CompletionTime = null
-                    };
-                    
-                    results.Add(result);
-                }
-            }
-            
-            // Sort by correct answers (descending), then by completion time (ascending) for tie-breaking
-            results.Sort((x, y) =>
-            {
-                var correctAnswerComparison = y.CorrectAnswers.CompareTo(x.CorrectAnswers);
-                if (correctAnswerComparison != 0)
-                {
-                    return correctAnswerComparison; // Sort by correct answers descending
-                }
-                
-                // If correct answers are the same, sort by completion time ascending (faster is better)
-                if (x.CompletionTime.HasValue && y.CompletionTime.HasValue)
-                {
-                    return x.CompletionTime.Value.CompareTo(y.CompletionTime.Value);
-                }
-                
-                // If only one has completion time, prioritize the one that completed
-                if (x.CompletionTime.HasValue && !y.CompletionTime.HasValue)
-                    return 1;
-                if (!x.CompletionTime.HasValue && y.CompletionTime.HasValue)
-                    return -1;
-                
-                // If neither has completion time, they are equal
-                return 0;
-            });
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Lỗi khi lấy kết quả: {ex.Message}";
-        }
-        
-        return results;
-    }
-
-    private string FormatTimeSpan(TimeSpan? timeSpan)
-    {
-        if (!timeSpan.HasValue)
-        {
-            return "N/A";
-        }
-        
-        var time = timeSpan.Value;
-        if (time.TotalMinutes < 1)
-        {
-            return $"{time.Seconds} giây";
-        }
-        else if (time.TotalHours < 1)
-        {
-            return $"{(int)time.TotalMinutes} phút {time.Seconds} giây";
-        }
-        else
-        {
-            return $"{(int)time.TotalHours} giờ {(int)time.Minutes} phút";
-        }
-    }
-
     private void GoToHome()
     {
         NavigationManager.NavigateTo("/student/home");
@@ -306,13 +190,5 @@ else
     private void GoToRoom()
     {
         NavigationManager.NavigateTo($"/student/quiz/{QuizId}/room/{RoomId}");
-    }
-
-    private void GoToQuizResult()
-    {
-        if (currentUserStudentQuizId.HasValue)
-        {
-            NavigationManager.NavigateTo($"/student/quiz-result/{currentUserStudentQuizId.Value}");
-        }
     }
 }
