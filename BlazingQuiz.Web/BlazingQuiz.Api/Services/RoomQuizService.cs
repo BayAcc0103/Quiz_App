@@ -287,7 +287,7 @@ namespace BlazingQuiz.Api.Services
                 .Include(sq => sq.Quiz)
                     .ThenInclude(q => q.Questions)
                         .ThenInclude(q => q.TextAnswers)
-                .Include(sq => sq.StudentQuizQuestions)
+                .Include(sq => sq.StudentQuizQuestionsForRoom)
                 .FirstOrDefaultAsync(sq => sq.Id == studentQuizForRoomId);
 
             if (studentQuiz == null)
@@ -322,9 +322,9 @@ namespace BlazingQuiz.Api.Services
                         Id = ta.Id,
                         Text = ta.Text
                     }).ToList() : new List<TextAnswerDto>(),
-                    SelectedOptionId = studentQuiz.StudentQuizQuestions
+                    SelectedOptionId = studentQuiz.StudentQuizQuestionsForRoom
                         .FirstOrDefault(sqq => sqq.QuestionId == q.Id)?.OptionId ?? 0,
-                    SelectedTextAnswer = studentQuiz.StudentQuizQuestions
+                    SelectedTextAnswer = studentQuiz.StudentQuizQuestionsForRoom
                         .FirstOrDefault(sqq => sqq.QuestionId == q.Id)?.TextAnswer,
                     CorrectOptionId = q.IsTextAnswer ? 0 : q.Options.FirstOrDefault(o => o.IsCorrect)?.Id ?? 0 // For text questions, there's no correct option ID
                 }).ToList()

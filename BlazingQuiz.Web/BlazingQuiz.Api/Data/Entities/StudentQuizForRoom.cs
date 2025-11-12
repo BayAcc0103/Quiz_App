@@ -38,7 +38,7 @@ namespace BlazingQuiz.Api.Data.Entities
         [ForeignKey(nameof(RoomId))]
         public virtual Room Room { get; set; }
         
-        public virtual ICollection<StudentQuizQuestion> StudentQuizQuestions { get; set; } = [];
+
         
         public virtual ICollection<StudentQuizQuestionForRoom> StudentQuizQuestionsForRoom { get; set; } = [];
     }

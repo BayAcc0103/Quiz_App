@@ -236,6 +236,34 @@ namespace BlazingQuiz.Api.Services
 
             // All conditions met, start the room
             room.StartedAt = DateTime.UtcNow;
+            
+            // Create StudentQuizForRoom records for all participants
+            if (room.QuizId.HasValue)
+            {
+                var participants = room.Participants.ToList(); // Convert to list to avoid multiple enumeration
+                foreach (var participant in participants)
+                {
+                    // Check if a StudentQuizForRoom already exists for this participant
+                    var existingStudentQuiz = await _context.StudentQuizzesForRoom
+                        .Where(sqfr => sqfr.StudentId == participant.UserId && sqfr.RoomId == roomId && sqfr.QuizId == room.QuizId)
+                        .OrderByDescending(sqfr => sqfr.StartedOn)
+                        .FirstOrDefaultAsync();
+
+                    if (existingStudentQuiz == null)
+                    {
+                        var studentQuizForRoom = new StudentQuizForRoom
+                        {
+                            QuizId = room.QuizId.Value,
+                            StudentId = participant.UserId,
+                            RoomId = roomId,
+                            Status = nameof(StudentQuizStatus.Started),
+                            StartedOn = DateTime.UtcNow,
+                        };
+                        _context.StudentQuizzesForRoom.Add(studentQuizForRoom);
+                    }
+                }
+            }
+            
             await _context.SaveChangesAsync();
 
             // Send real-time update to all participants in the room that the room has started

@@ -9,6 +9,8 @@ namespace BlazingQuiz.Api.Endpoints
 {
     public static class RoomQuizEndpoints
     {
+        public static int GetStudentIdForRoom(this ClaimsPrincipal principal) =>
+           Convert.ToInt32(principal.FindFirstValue(ClaimTypes.NameIdentifier));
         public static IEndpointRouteBuilder MapRoomQuizEndpoints(this IEndpointRouteBuilder app)
         {
             var group = app.MapGroup("/api/room-quiz")
@@ -19,7 +21,7 @@ namespace BlazingQuiz.Api.Endpoints
             // Start room quiz - creates a StudentQuizForRoom record for the student
             quizGroup.MapPost("/{roomId:guid}/start", async (Guid roomId, ClaimsPrincipal principal, RoomQuizService quizService, QuizContext context) =>
             {
-                var studentId = principal.GetStudentId();
+                var studentId = principal.GetStudentIdForRoom();
                 
                 // Verify that the student is part of the room
                 var roomParticipants = await context.RoomParticipants
@@ -44,31 +46,31 @@ namespace BlazingQuiz.Api.Endpoints
 
             // Get next question for room quiz
             quizGroup.MapGet("/{studentQuizForRoomId:int}/next-question", async (int studentQuizForRoomId, ClaimsPrincipal principal, RoomQuizService quizService) =>
-                Results.Ok(await quizService.GetNextQuestionForQuizAsync(studentQuizForRoomId, principal.GetStudentId())));
+                Results.Ok(await quizService.GetNextQuestionForQuizAsync(studentQuizForRoomId, principal.GetStudentIdForRoom())));
 
             // Save response for room quiz
             quizGroup.MapPost("/{studentQuizForRoomId:int}/save-response", async (int studentQuizForRoomId, StudentQuizQuestionResponseDto dto, ClaimsPrincipal principal, RoomQuizService quizService) =>
             {
                 if(studentQuizForRoomId != dto.StudentQuizId)
                     return Results.Unauthorized();
-                return Results.Ok(await quizService.SaveQuestionResponseAsync(dto, principal.GetStudentId()));
+                return Results.Ok(await quizService.SaveQuestionResponseAsync(dto, principal.GetStudentIdForRoom()));
             });
 
             // Submit room quiz
             quizGroup.MapPost("/{studentQuizForRoomId:int}/submit", async (int studentQuizForRoomId, ClaimsPrincipal principal, RoomQuizService quizService) =>
-                Results.Ok(await quizService.SubmitQuizAsync(studentQuizForRoomId, principal.GetStudentId())));
+                Results.Ok(await quizService.SubmitQuizAsync(studentQuizForRoomId, principal.GetStudentIdForRoom())));
 
             // Auto-submit room quiz
             quizGroup.MapPost("/{studentQuizForRoomId:int}/auto-submit", async (int studentQuizForRoomId, ClaimsPrincipal principal, RoomQuizService quizService) =>
-                Results.Ok(await quizService.AutoSubmitQuizAsync(studentQuizForRoomId, principal.GetStudentId())));
+                Results.Ok(await quizService.AutoSubmitQuizAsync(studentQuizForRoomId, principal.GetStudentIdForRoom())));
 
             // Exit room quiz
             quizGroup.MapPost("/{studentQuizForRoomId:int}/exit", async (int studentQuizForRoomId, ClaimsPrincipal principal, RoomQuizService quizService) =>
-                Results.Ok(await quizService.ExitQuizAsync(studentQuizForRoomId, principal.GetStudentId())));
+                Results.Ok(await quizService.ExitQuizAsync(studentQuizForRoomId, principal.GetStudentIdForRoom())));
 
             // Get room quiz result
             quizGroup.MapGet("/{studentQuizForRoomId:int}/result", async (int studentQuizForRoomId, ClaimsPrincipal principal, RoomQuizService quizService) =>
-                Results.Ok(await quizService.GetQuizResultAsync(studentQuizForRoomId, principal.GetStudentId())));
+                Results.Ok(await quizService.GetQuizResultAsync(studentQuizForRoomId, principal.GetStudentIdForRoom())));
 
             return app;
         }

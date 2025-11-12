@@ -251,7 +251,7 @@ else
     private int selectedOptionId = 0;
     private string? textAnswer;
     private bool isLastQuestion = false;
-    private int studentQuizId = 0;
+    private int studentQuizForRoomId = 0;
     private List<RoomParticipantDto> roomParticipants = new();
     private int unsubmittedCount = 0;
 
@@ -398,13 +398,15 @@ else
             
             // Initialize quiz state - this returns the studentQuizId
             var quizResponse = await StudentQuizApi.StartQuizAsync(QuizId);
-            if (!quizResponse.IsSuccess || quizResponse.Data == 0) // studentQuizId should not be 0
+            // Initialize quiz state for room - this returns the studentQuizForRoomId
+            var quizResponse = await RoomQuizApi.StartQuizForRoomAsync(RoomId);
+            if (!quizResponse.IsSuccess || quizResponse.Data == 0) // studentQuizForRoomId should not be 0
             {
                 errorMessage = "Failed to start quiz: " + quizResponse.ErrorMessage;
                 return;
             }
 
-            studentQuizId = quizResponse.Data;
+            studentQuizForRoomId = quizResponse.Data;
 
             // Get quiz details to get time and total questions
             var quizDetailsResponse = await StudentQuizApi.GetQuizDetailsAsync(QuizId);
@@ -436,7 +438,7 @@ else
         {
             AppState.ShowLoader("Loading question...");
             
-            var result = await RoomQuizApi.GetNextQuestionForRoomQuizAsync(studentQuizId);
+            var result = await RoomQuizApi.GetNextQuestionForRoomQuizAsync(studentQuizForRoomId);
             if (!result.IsSuccess || result.Data == null)
             {
                 errorMessage = result.ErrorMessage ?? "Failed to load question";
@@ -499,14 +501,14 @@ else
             StudentQuizQuestionResponseDto responseDto;
             if (currentQuestion.IsTextAnswer)
             {
-                responseDto = new StudentQuizQuestionResponseDto(studentQuizId, currentQuestion.Id, 0, textAnswer);
+                responseDto = new StudentQuizQuestionResponseDto(studentQuizForRoomId, currentQuestion.Id, 0, textAnswer);
             }
             else
             {
-                responseDto = new StudentQuizQuestionResponseDto(studentQuizId, currentQuestion.Id, selectedOptionId);
+                responseDto = new StudentQuizQuestionResponseDto(studentQuizForRoomId, currentQuestion.Id, selectedOptionId);
             }
 
-            var result = await RoomQuizApi.SaveQuestionResponseForRoomQuizAsync(studentQuizId, responseDto);
+            var result = await RoomQuizApi.SaveQuestionResponseForRoomQuizAsync(studentQuizForRoomId, responseDto);
             if (!result.IsSuccess)
             {
                 errorMessage = result.ErrorMessage ?? "Failed to save answer";
@@ -566,14 +568,14 @@ else
                 StudentQuizQuestionResponseDto responseDto;
                 if (currentQuestion.IsTextAnswer)
                 {
-                    responseDto = new StudentQuizQuestionResponseDto(studentQuizId, currentQuestion.Id, 0, textAnswer);
+                    responseDto = new StudentQuizQuestionResponseDto(studentQuizForRoomId, currentQuestion.Id, 0, textAnswer);
                 }
                 else
                 {
-                    responseDto = new StudentQuizQuestionResponseDto(studentQuizId, currentQuestion.Id, selectedOptionId);
+                    responseDto = new StudentQuizQuestionResponseDto(studentQuizForRoomId, currentQuestion.Id, selectedOptionId);
                 }
 
-                var saveResult = await RoomQuizApi.SaveQuestionResponseForRoomQuizAsync(studentQuizId, responseDto);
+                var saveResult = await RoomQuizApi.SaveQuestionResponseForRoomQuizAsync(studentQuizForRoomId, responseDto);
                 if (!saveResult.IsSuccess)
                 {
                     errorMessage = saveResult.ErrorMessage ?? "Failed to save final answer";
@@ -582,7 +584,7 @@ else
             }
 
             // Call the API to update the status to 'Completed' in the database
-            var result = await RoomQuizApi.SubmitRoomQuizAsync(studentQuizId);
+            var result = await RoomQuizApi.SubmitRoomQuizAsync(studentQuizForRoomId);
             if (!result.IsSuccess)
             {
                 errorMessage = result.ErrorMessage ?? "Failed to submit quiz";
@@ -626,7 +628,7 @@ else
             hasSubmitted = true;
 
             // Notify the room that this user has submitted
-            var submitResult = await RoomApi.SubmitQuizToRoomAsync(new SubmitQuizToRoomRequest { StudentQuizId = studentQuizId }, RoomId);
+            var submitResult = await RoomApi.SubmitQuizToRoomAsync(new SubmitQuizToRoomRequest { StudentQuizId = studentQuizForRoomId }, RoomId);
             if (!submitResult.IsSuccessStatusCode)
             {
                 errorMessage = "Failed to record submission in room: " + submitResult.Error?.Message;
