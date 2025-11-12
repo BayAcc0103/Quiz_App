@@ -396,8 +396,6 @@ else
         {
             AppState.ShowLoader("Preparing quiz...");
             
-            // Initialize quiz state - this returns the studentQuizId
-            var quizResponse = await StudentQuizApi.StartQuizAsync(QuizId);
             // Initialize quiz state for room - this returns the studentQuizForRoomId
             var quizResponse = await RoomQuizApi.StartQuizForRoomAsync(RoomId);
             if (!quizResponse.IsSuccess || quizResponse.Data == 0) // studentQuizForRoomId should not be 0
