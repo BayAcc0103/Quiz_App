@@ -5,6 +5,7 @@
 @inject QuizState QuizState
 @inject IStudentQuizApi StudentQuizApi
 @inject IRoomApi RoomApi
+@inject IRoomQuizApi RoomQuizApi
 @inject QuizHubService QuizHubService
 @inject IAppState AppState
 @inject QuestionImageService QuestionImageService
@@ -435,7 +436,7 @@ else
         {
             AppState.ShowLoader("Loading question...");
             
-            var result = await StudentQuizApi.GetNextQuestionForQuizAsync(studentQuizId);
+            var result = await RoomQuizApi.GetNextQuestionForRoomQuizAsync(studentQuizId);
             if (!result.IsSuccess || result.Data == null)
             {
                 errorMessage = result.ErrorMessage ?? "Failed to load question";
@@ -505,7 +506,7 @@ else
                 responseDto = new StudentQuizQuestionResponseDto(studentQuizId, currentQuestion.Id, selectedOptionId);
             }
 
-            var result = await StudentQuizApi.SaveQuestionResponseAsync(studentQuizId, responseDto);
+            var result = await RoomQuizApi.SaveQuestionResponseForRoomQuizAsync(studentQuizId, responseDto);
             if (!result.IsSuccess)
             {
                 errorMessage = result.ErrorMessage ?? "Failed to save answer";
@@ -572,7 +573,7 @@ else
                     responseDto = new StudentQuizQuestionResponseDto(studentQuizId, currentQuestion.Id, selectedOptionId);
                 }
 
-                var saveResult = await StudentQuizApi.SaveQuestionResponseAsync(studentQuizId, responseDto);
+                var saveResult = await RoomQuizApi.SaveQuestionResponseForRoomQuizAsync(studentQuizId, responseDto);
                 if (!saveResult.IsSuccess)
                 {
                     errorMessage = saveResult.ErrorMessage ?? "Failed to save final answer";
@@ -581,7 +582,7 @@ else
             }
 
             // Call the API to update the status to 'Completed' in the database
-            var result = await StudentQuizApi.SubmitQuizAsync(studentQuizId);
+            var result = await RoomQuizApi.SubmitRoomQuizAsync(studentQuizId);
             if (!result.IsSuccess)
             {
                 errorMessage = result.ErrorMessage ?? "Failed to submit quiz";

@@ -89,6 +89,9 @@ static void ConfigureRefit(IServiceCollection services)
     services.AddRefitClient<IRoomApi>(GetRefitSettings)
         .ConfigureHttpClient(SetHttpClient);
 
+    services.AddRefitClient<IRoomQuizApi>(GetRefitSettings)
+        .ConfigureHttpClient(SetHttpClient);
+
     static void SetHttpClient(HttpClient httpClient) =>
         httpClient.BaseAddress = new Uri(ApiBaseUrl);
     static RefitSettings GetRefitSettings(IServiceProvider sp)

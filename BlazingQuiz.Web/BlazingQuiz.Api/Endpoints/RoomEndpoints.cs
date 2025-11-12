@@ -274,7 +274,7 @@ namespace BlazingQuiz.Api.Endpoints
             });
 
             // Start quiz in room (for host only)
-            roomGroup.MapPost("/{roomId:guid}/start-quiz", async (Guid roomId, HttpContext httpContext, RoomService service) =>
+            roomGroup.MapPost("/{roomId:guid}/start-quiz", async (Guid roomId, HttpContext httpContext, RoomService service, QuizContext context) =>
             {
                 // Get the current user ID from the claims
                 var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

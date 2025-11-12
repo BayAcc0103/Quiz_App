@@ -20,5 +20,6 @@ namespace BlazingQuiz.Api.Data.Entities
         public virtual ICollection<Option> Options { get; set; } = [];
         public virtual ICollection<TextAnswer> TextAnswers { get; set; } = [];
         public virtual ICollection<StudentQuizQuestion> StudentQuizQuestions { get; set; } = [];
+        public virtual ICollection<StudentQuizQuestionForRoom> StudentQuizQuestionsForRoom { get; set; } = [];
     }
 }

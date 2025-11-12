@@ -113,6 +113,7 @@ builder.Services.AddTransient<AuthService>()
                 .AddTransient<QuizService>()
                 .AddTransient<AdminService>()
                 .AddTransient<StudentQuizService>()
+                .AddTransient<RoomQuizService>()
                 .AddTransient<BookmarkService>()
                 .AddTransient<IImageUploadService, ImageUploadService>()
                 .AddTransient<IAudioUploadService, AudioUploadService>()
@@ -156,6 +157,7 @@ app.MapQuestionAudioEndpoints();
 app.MapQuestionImageEndpoints();
 app.MapAdminEndpoints();
 app.MapStudentQuizEndpoints();
+app.MapRoomQuizEndpoints();
 app.MapBookmarkEndpoints();
 app.MapRoomEndpoints();
 app.MapGeneralAudioEndpoints();

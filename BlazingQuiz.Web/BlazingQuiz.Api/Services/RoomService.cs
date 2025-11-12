@@ -80,6 +80,7 @@ namespace BlazingQuiz.Api.Services
         {
             return await _context.Rooms
                 .Include(r => r.CreatedByUser)
+                .Include(r => r.Quiz) // Include quiz for room details
                 .FirstOrDefaultAsync(r => r.Code == code && r.IsActive);
         }
 
@@ -391,6 +392,47 @@ namespace BlazingQuiz.Api.Services
         {
             // Send real-time update to all participants in the room that the quiz has ended
             await _hubContext.Clients.Group(roomCode).SendAsync("QuizEnded", roomCode);
+        }
+
+        public async Task<int> CreateStudentQuizForRoomAsync(Guid roomId, int studentId)
+        {
+            var room = await _context.Rooms
+                .FirstOrDefaultAsync(r => r.Id == roomId);
+            
+            if (room == null)
+            {
+                throw new InvalidOperationException("Room not found.");
+            }
+
+            if (!room.QuizId.HasValue)
+            {
+                throw new InvalidOperationException("No quiz assigned to this room.");
+            }
+
+            var studentQuizForRoom = new StudentQuizForRoom
+            {
+                QuizId = room.QuizId.Value,
+                StudentId = studentId,
+                RoomId = roomId,
+                Status = nameof(StudentQuizStatus.Started),
+                StartedOn = DateTime.UtcNow,
+            };
+
+            _context.StudentQuizzesForRoom.Add(studentQuizForRoom);
+            await _context.SaveChangesAsync();
+
+            return studentQuizForRoom.Id;
+        }
+
+        public async Task<int?> GetStudentQuizForRoomIdAsync(Guid roomId, int studentId, Guid quizId)
+        {
+            var studentQuizForRoom = await _context.StudentQuizzesForRoom
+                .Where(sqfr => sqfr.RoomId == roomId && sqfr.StudentId == studentId && sqfr.QuizId == quizId)
+                .OrderByDescending(sqfr => sqfr.StartedOn) // Get the most recent one
+                .Select(sqfr => sqfr.Id)
+                .FirstOrDefaultAsync();
+
+            return studentQuizForRoom;
         }
 
         public async Task<bool> RemoveParticipantFromRoomAsync(Guid roomId, int userIdToRemove, int currentUserId)

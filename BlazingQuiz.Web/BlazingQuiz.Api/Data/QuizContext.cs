@@ -19,8 +19,10 @@ namespace BlazingQuiz.Api.Data
         public DbSet<Question> Questions { get; set; }
         public DbSet<Quiz> Quizzes { get; set; }
         public DbSet<StudentQuiz> StudentQuizzes { get; set; }
+        public DbSet<StudentQuizForRoom> StudentQuizzesForRoom { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<StudentQuizQuestion> StudentQuizQuestions { get; set; }
+        public DbSet<StudentQuizQuestionForRoom> StudentQuizQuestionsForRoom { get; set; }
         public DbSet<QuizBookmark> QuizBookmarks { get; set; }
         public DbSet<QuizFeedback> QuizFeedbacks { get; set; }
         public DbSet<Rating> Ratings { get; set; }
@@ -144,6 +146,57 @@ namespace BlazingQuiz.Api.Data
                 .WithMany()
                 .HasForeignKey(qc => qc.CategoryId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure StudentQuizForRoom entity
+            modelBuilder.Entity<StudentQuizForRoom>()
+                .HasOne(sqfr => sqfr.Student)
+                .WithMany()
+                .HasForeignKey(sqfr => sqfr.StudentId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<StudentQuizForRoom>()
+                .HasOne(sqfr => sqfr.Quiz)
+                .WithMany()
+                .HasForeignKey(sqfr => sqfr.QuizId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<StudentQuizForRoom>()
+                .HasOne(sqfr => sqfr.Room)
+                .WithMany(r => r.StudentQuizzesForRoom)
+                .HasForeignKey(sqfr => sqfr.RoomId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure StudentQuizQuestion entity (for regular quizzes)
+            modelBuilder.Entity<StudentQuizQuestion>()
+                .HasKey(s => new { s.StudentQuizId, s.QuestionId });
+
+            modelBuilder.Entity<StudentQuizQuestion>()
+                .HasOne(s => s.StudentQuiz)
+                .WithMany(s => s.StudentQuizQuestions)
+                .HasForeignKey(s => s.StudentQuizId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<StudentQuizQuestion>()
+                .HasOne(s => s.Question)
+                .WithMany(q => q.StudentQuizQuestions)
+                .HasForeignKey(s => s.QuestionId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure StudentQuizQuestionForRoom entity
+            modelBuilder.Entity<StudentQuizQuestionForRoom>()
+                .HasKey(s => new { s.StudentQuizForRoomId, s.QuestionId });
+
+            modelBuilder.Entity<StudentQuizQuestionForRoom>()
+                .HasOne(s => s.StudentQuizForRoom)
+                .WithMany(s => s.StudentQuizQuestionsForRoom)
+                .HasForeignKey(s => s.StudentQuizForRoomId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<StudentQuizQuestionForRoom>()
+                .HasOne(s => s.Question)
+                .WithMany(q => q.StudentQuizQuestionsForRoom)
+                .HasForeignKey(s => s.QuestionId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             base.OnModelCreating(modelBuilder);
             var adminUser = new User

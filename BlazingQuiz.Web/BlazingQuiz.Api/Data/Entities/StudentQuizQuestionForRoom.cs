@@ -1,12 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BlazingQuiz.Api.Data.Entities
 {
-    public class StudentQuizQuestion
+    public class StudentQuizQuestionForRoom
     {
         [Key]
-        public int StudentQuizId { get; set; }
+        public int StudentQuizForRoomId { get; set; }
         
         [Key]
         public int QuestionId { get; set; }
@@ -14,7 +14,7 @@ namespace BlazingQuiz.Api.Data.Entities
         public int OptionId { get; set; }
         public string? TextAnswer { get; set; }
 
-        public virtual StudentQuiz StudentQuiz { get; set; }
+        public virtual StudentQuizForRoom StudentQuizForRoom { get; set; }
 
         public virtual Question Question { get; set; }
     }
