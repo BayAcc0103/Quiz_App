@@ -8,12 +8,12 @@
     text-align: center;
     transition: all 0.2s ease;
     overflow: hidden;
-    border-radius: 6px;
+    border-radius: 25px; /* Rounded corners */
     cursor: pointer;
     outline: none;
     box-shadow: 
         0 6px 0 0 var(--shadow-color, #0d5c22), /* Default shadow color */
-        0 10px 20px rgba(0, 0, 0, 0.3); /* Depth shadow */
+        0 5px 10px rgba(0, 0, 0, 0.3); /* Depth shadow */
     transform: translateY(0);
 }
 
@@ -30,7 +30,7 @@
     transform: translateY(-2px); /* Slightly lift on hover */
     box-shadow: 
         0 8px 0 0 var(--shadow-color, #0d5c22),
-        0 14px 25px rgba(0, 0, 0, 0.35); /* Deeper shadow on hover */
+        0 7px 15px rgba(0, 0, 0, 0.35); /* Deeper shadow on hover */
 }
 
 /* Specific 3D button styles for different Bootstrap types */
