@@ -1,16 +1,16 @@
 using BlazingQuiz.Shared.DTOs;
 using System.Net.Http.Headers;
-using BlazingQuiz.Web.Auth;
+using BlazingQuiz.Shared.Components.Auth;
 using Microsoft.AspNetCore.Components.Forms;
 
-namespace BlazingQuiz.Web.Services
+namespace BlazingQuiz.Shared.Components.Services
 {
     public class UserAvatarService
     {
         private readonly HttpClient _httpClient;
         private readonly QuizAuthStateProvider _authStateProvider;
 
-        private const string ApiServer = "https://localhost:7048"; 
+        private const string ApiServer = "https://localhost:7048"; // Default fallback
 
         public UserAvatarService(HttpClient httpClient, QuizAuthStateProvider authStateProvider)
         {
@@ -48,7 +48,8 @@ namespace BlazingQuiz.Web.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    return QuizApiResponse<string>.Success(responseContent); // Return path to uploaded file
+                    // Assuming the API returns the path to the uploaded file
+                    return QuizApiResponse<string>.Success(responseContent); // or parse the JSON to extract the path
                 }
                 else
                 {

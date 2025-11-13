@@ -1,0 +1,95 @@
+@page "/student/bookmarks"
+@using BlazingQuiz.Shared
+@using BlazingQuiz.Shared.Components.Services
+@using BlazingQuiz.Shared.DTOs
+@inject IBookmarkApi BookmarkApi
+@inject IStudentQuizApi StudentQuizApi
+@inject NavigationManager NavigationManager
+@inject QuizImageService QuizImageService
+@inject QuizAuthStateProvider QuizAuthStateProvider
+@inject IAppState AppState
+
+<BackButton />
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12">
+            <h3 class="mb-4">Bookmarked Quizzes</h3>
+
+            @if (_isLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else if (_bookmarks.Count == 0)
+            {
+                <div class="col-sm-12 text-center">
+                    <h5 class="text-muted">You haven't bookmarked any quizzes yet.</h5>
+                    <p>Go to the <a href="/student/home">Quiz Home</a> page to find quizzes to bookmark.</p>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var bookmark in _bookmarks)
+                    {
+                        <div class="col-sm-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">@bookmark.QuizName</h5>
+                                    <p class="card-text">
+                                        <span class="badge bg-secondary">@bookmark.CategoryName</span>
+                                    </p>
+                                    <p class="card-text small text-muted">
+                                        Bookmarked on: @bookmark.BookmarkedOn.ToString("MMM dd, yyyy")
+                                    </p>
+                                    <button class="btn btn-primary" @onclick="() => StartQuiz(bookmark.QuizId)">Start Quiz</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<QuizBookmarkDto> _bookmarks = new();
+    private bool _isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            var userId = QuizAuthStateProvider.User?.Id;
+
+            if (userId != null && userId > 0)
+            {
+                var result = await BookmarkApi.GetBookmarksAsync(userId.Value);
+                if (result.IsSuccess && result.Data != null)
+                {
+                    _bookmarks = result.Data.ToList();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle error appropriately
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task StartQuiz(Guid quizId)
+    {
+        // Navigate to quiz type selection page
+        NavigationManager.NavigateTo($"/student/quiz-type-selection?quizId={quizId}");
+    }
+}

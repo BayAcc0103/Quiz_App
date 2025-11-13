@@ -1,17 +1,115 @@
-﻿@page "/student/home"
+@page "/student/home"
 
-@inject IAppState AppState  
+@using BlazingQuiz.Shared
+@using BlazingQuiz.Shared.Components.Services
+@inject IAppState AppState
 @inject ICategoryApi CategoryApi
 @inject IStudentQuizApi StudentQuizApi
+@inject IBookmarkApi BookmarkApi
 @inject NavigationManager NavigationManager
 @inject QuizState QuizState
+@inject QuizImageService QuizImageService
+@inject QuizAuthStateProvider QuizAuthStateProvider
+
+<style>
+    .hero-card {
+        background: white;
+        color: #333;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid #e9ecef;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .hero-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(79, 172, 254, 0.15);
+    }
+
+    .hero-card h4 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+    }
+
+    .category-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .quiz-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .quiz-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .quiz-card .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .quiz-card .quiz-details {
+        flex-grow: 1;
+    }
+
+    .category-icon {
+        color: #3498db;
+    }
+
+/*     (max-width: 768px) {
+        .hero-card {
+            padding: 1.5rem;
+        }
+        
+        .col-md-3 {
+            flex: 0 0 auto;
+            width: 50%;
+        }
+    } */
+</style>
 
 <div class="container">
-    <div class="row">
-        <div class="col-sm-3 ms-auto mb-sm-0">
+    <!-- Hero Section -->
+    <div class="hero-card">
+        <h4 class="mb-3">Welcome to the Quiz Platform, Student!</h4>
+        <p class="mb-0">Select a category to start exploring quizzes or browse all available quizzes below.</p>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="row mb-4">
+        <div class="col-md-4 ms-auto">
             <label class="form-label">Select Category</label>
-            <select class="form-control" @bind="_selectedCategoryId" @bind:after="OnSelectedCategoryChanged">
-                <option value="0">Select Category</option>
+            <select class="form-select" @bind="_selectedCategoryId" @bind:after="OnSelectedCategoryChanged">
+                <option value="0">All Categories</option>
                 @foreach (var category in _categories)
                 {
                     <option value="@category.Id">@category.Name</option>
@@ -20,62 +118,71 @@
         </div>
     </div>
 
+    <!-- Category Cards Section -->
+    @if (_categories.Length > 0 && _selectedCategoryId == 0)
+    {
+        <div class="row mb-4">
+            @foreach (var category in _categories)
+            {
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="card category-card h-100" style="cursor: pointer;" @onclick="() => SelectCategory(category.Id)">
+                        <div class="card-body text-center">
+                            <div class="category-icon mb-3">
+                                <i class="bi bi-folder text-primary" style="font-size: 2.5rem;"></i>
+                            </div>
+                            <h5 class="card-title">@category.Name</h5>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Quiz List Section -->
     <div class="row">
         @if(!_isLoading && _quizes.Length == 0)
         {
-            var message = _selectedCategoryId == 0 ? "Select a category to view quizes." : "No quizes available for this category.";
-            <div class="col-sm-12 text-center">
-                <h5 class="text-danger">@message</h5>
+            var message = _selectedCategoryId == 0 ? "Select a category to view quizzes or browse all categories." : "No quizzes available for this category.";
+            <div class="col-12 text-center">
+                <h5 class="text-muted">@message</h5>
             </div>
         }
         else
         {
             @foreach (var q in _quizes)
             {
-                <div class="col-sm-4">
-                    <div class="box bg-white p-3">
-                        <h5 class="fw-bold">@q.Name</h5>
-                        <hr />
-                        <table class="table">
-                            <tr>
-                                <td>
-                                    <label class="fw-bold">Category</label>
-                                </td>
-                                <td>
-                                    <span>@q.CategoryName</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <label class="fw-bold">Created By</label>
-                                </td>
-                                <td>
-                                    <span>@q.CreatedByName</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <label class="fw-bold">Number of Questions</label>
-                                </td>
-                                <td>
-                                    <span>@q.TotalQuestions question(s)</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <label class="fw-bold">Total Time</label>
-                                </td>
-                                <td>
-                                    <span>@q.TimeInMinutes minute(s)</span>
-                                </td>
-                            </tr>
-                        </table>
-                        <hr />
-                        <button type="button" class="btn btn-sm btn-warning" @onclick="() => ShowQuizTypeSelection(q)">Start Quiz</button>
+                <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+                    <div class="card h-100 quiz-card">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title">@q.Name</h5>
+                                @* Bookmark functionality can be added here *@
+                            </div>
+                            
+                            <div class="quiz-details mb-3">
+                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                    <span class="badge bg-secondary">@q.CategoryName</span>
+                                    <span class="badge bg-info">@q.TotalQuestions questions</span>
+                                    <span class="badge bg-warning text-dark">@q.TimeInMinutes min</span>
+                                </div>
+                                
+                                <p class="small text-muted mb-1">
+                                    <i class="bi bi-person me-1"></i>Created by: @q.CreatedByName
+                                </p>
+                                
+                                <div class="mt-2">
+                                    <p class="card-text mb-0"><strong>Instructions:</strong> Complete all questions in the allotted time.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-auto">
+                                <button type="button" class="btn btn-primary w-100" @onclick="() => ShowQuizTypeSelection(q)">Start Quiz</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             }
-        }    
+        }
     </div>
 </div>
 
@@ -105,14 +212,15 @@
     private QuizListDto? _selectedQuizForType;
 
     private enum QuestionType { MCQ, Flashcard }
+    
     protected override async Task OnInitializedAsync()
     {
-        AppState.ShowLoader("Loading categories and quizes...");
+        AppState.ShowLoader("Loading categories and quizzes...");
         try
         {
             _isLoading = true;
             var categoriesTask = CategoryApi.GetCategoriesAsync();
-            //Load/Fetch quizes
+            //Load/Fetch quizzes
             _quizes = await StudentQuizApi.GetActiveQuizesAsync(_selectedCategoryId);
             _categories = await categoriesTask;
         }
@@ -126,11 +234,18 @@
             _isLoading = false;
         }
     }
+    
     private async Task OnSelectedCategoryChanged()
     {
-        AppState.ShowLoader("Loading quizes...");
+        AppState.ShowLoader("Loading quizzes...");
         _quizes = await StudentQuizApi.GetActiveQuizesAsync(_selectedCategoryId);
         AppState.HideLoader();
+    }
+
+    private void SelectCategory(int categoryId)
+    {
+        _selectedCategoryId = categoryId;
+        OnSelectedCategoryChanged();
     }
 
     private void ShowQuizTypeSelection(QuizListDto quiz)
@@ -141,7 +256,7 @@
     private async Task StartQuizWithMode(QuestionType type)
     {
         if (_selectedQuizForType == null) return;
-        
+
         AppState.ShowLoader("Preparing the quiz...");
         try
         {
@@ -154,7 +269,7 @@
             int studentQuizId = response.Data;
 
             QuizState.StartQuiz(_selectedQuizForType, studentQuizId);
-            
+
             // Navigate to appropriate quiz type based on selection
             switch (type)
             {

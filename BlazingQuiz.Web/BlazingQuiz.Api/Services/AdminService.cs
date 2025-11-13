@@ -43,11 +43,22 @@ namespace BlazingQuiz.Api.Services
                     query = query.Where(u => !u.IsApproved);
             }
             var total = await query.CountAsync();
-            var users = await query.OrderByDescending(u => u.Id)
+            var userData = await query.OrderByDescending(u => u.Id)
                 .Skip(startIndex)
                 .Take(pageSize)
-                .Select(u => new UserDto(u.Id, u.Name, u.Email, u.Phone, u.IsApproved, u.AvatarPath))
+                .Select(u => new
+                {
+                    Id = u.Id,
+                    Name = u.Name,
+                    Email = u.Email,
+                    Phone = u.Phone,
+                    IsApproved = u.IsApproved,
+                    AvatarPath = u.AvatarPath,
+                    Role = u.Role ?? ""
+                })
                 .ToArrayAsync();
+
+            var users = userData.Select(u => new UserDto(u.Id, u.Name, u.Email, u.Phone, u.IsApproved, u.AvatarPath, u.Role)).ToArray();
             return new PageResult<UserDto>(users, total);
         }
 
@@ -99,19 +110,28 @@ namespace BlazingQuiz.Api.Services
 
             var count = await query.CountAsync();
 
-            var students = await query
+            var studentData = await query
                 .OrderByDescending(s => s.StartedOn)
                 .Skip(startIndex)
                 .Take(pageSize)
-                .Select(q => new AdminQuizStudentDto
+                .Select(q => new
                 {
                     Name = q.Student.Name,
-                    StartedOn = DateTime.Now,
-                    CompletedOn = DateTime.Now,
+                    StartedOn = q.StartedOn,
+                    CompletedOn = q.CompletedOn,
                     Status = q.Status,
                     Total = q.Total
                 })
                 .ToArrayAsync();
+
+            var students = studentData.Select(s => new AdminQuizStudentDto
+            {
+                Name = s.Name,
+                StartedOn = s.StartedOn,
+                CompletedOn = s.CompletedOn,
+                Status = s.Status,
+                Total = s.Total
+            }).ToArray();
 
             var pageResult = new PageResult<AdminQuizStudentDto>(students, count);
             result.Students = pageResult;

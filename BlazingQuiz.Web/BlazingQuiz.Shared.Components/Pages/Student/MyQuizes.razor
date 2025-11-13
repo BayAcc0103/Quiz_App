@@ -3,60 +3,62 @@
 @inject IAppState AppState
 @inject IStudentQuizApi StudentQuizApi
 @inject IPlatform Platform
+@inject NavigationManager NavigationManager
+
+<BackButton />
+
 <h3>MyQuizes</h3>
 
-<div class="container-fluid">
-    <div class="row">
-        <QuickGrid ItemsProvider="_itemsProvider" Pagination="_paginationState" Class="table table-striped table-hover">
-            <PropertyColumn Property="q => q.QuizName" Title="Quiz Name" />
-            <PropertyColumn Property="q => q.CategoryName" Title="Category Name" />
-            <PropertyColumn Property="q => q.Status" />
-            <PropertyColumn Property="q => q.StartedOn" Title="Started" Format="dd MM yyyy hh:mm" />
-            <TemplateColumn Title="Completed">
-                @if (context.CompletedOn.HasValue)
+<div class="container">
+    <QuickGrid ItemsProvider="_itemsProvider" Pagination="_paginationState" Class="table table-striped table-hover">
+        <PropertyColumn Property="q => q.QuizName" Title="Quiz Name"/>
+        <PropertyColumn Property="q => q.CategoryName" Title="Category Name" />
+        <PropertyColumn Property="q => q.Status"/>
+        <PropertyColumn Property="q => q.StartedOn" Title="Started" Format="dd MM yyyy hh:mm" />
+        <TemplateColumn Title="Completed">
+            @if (context.CompletedOn.HasValue)
+            {
+                <span>@context.CompletedOn.Value.ToString("dd MM yyyy hh:mm")</span>
+            }
+            else
+            {
+                if (context.Status == "Exited")
                 {
-                    <span>@context.CompletedOn.Value.ToString("dd MM yyyy hh:mm")</span>
+                    <span>Quiz Exited</span>
                 }
                 else
                 {
-                    if (context.Status == "Exited")
-                    {
-                        <span>Quiz Exited</span>
-                    }
-                    else
-                    {
-                        <span>-</span>
-                    }
+                    <span>-</span>
                 }
-            </TemplateColumn>
-            <PropertyColumn Property="q => q.Total" Class="text-center" />
-            <TemplateColumn Title="Result">
-                @if (context.Status == "Completed")
-                {
-                    <a href="/student/quiz-result/@context.Id" class="btn btn-sm btn-primary">Result</a>
-                }
-            </TemplateColumn>
-        </QuickGrid>
-        <Paginator State="_paginationState" />
-    </div>
+            }
+        </TemplateColumn>
+        <PropertyColumn Property="q => q.Total" Class="text-center"/>
+        <TemplateColumn Title="Result">
+            @if (context.Status == "Completed")
+            {
+                <a href="/student/quiz-result/@context.Id" class="btn btn-sm btn-primary">Result</a>
+            }
+        </TemplateColumn>
+    </QuickGrid>
+    <Paginator State="_paginationState" />
 </div>
 @code {
-    private int _defaultPageSize = 10;
+    private const int DefaultPageSize = 10;
     private GridItemsProvider<StudentQuizDto>? _itemsProvider;
 
-    private PaginationState _paginationState = new ();
+    private PaginationState _paginationState = new PaginationState { ItemsPerPage = DefaultPageSize };
     protected override void OnInitialized()
     {
-        if(Platform.IsMobileApp)
+        // Adjust page size for mobile
+        if (Platform.IsMobileApp)
         {
-            _defaultPageSize = 8;
+            _paginationState.ItemsPerPage = 8;
         }
-        _paginationState.ItemsPerPage = _defaultPageSize;
 
         _itemsProvider = async (request) =>
         {
             AppState.ShowLoader("Loading quizes");
-            var pageResult = await StudentQuizApi.GetStudentQuizesAsync(request.StartIndex, request.Count ?? _defaultPageSize);
+            var pageResult = await StudentQuizApi.GetStudentQuizesAsync(request.StartIndex, request.Count ?? _paginationState.ItemsPerPage);
             AppState.HideLoader();
             return GridItemsProviderResult.From(pageResult.Records, pageResult.TotalCount);
         };

@@ -49,7 +49,10 @@ namespace BlazingQuiz.Api.Services
             }
             // Gen JWT Token
             var jwt = GenerateJwtToken(user);
-            var loggedInUser = new LoggedInUser(user.Id, user.Name, user.Role, jwt);
+            var loggedInUser = new LoggedInUser(user.Id, user.Name, user.Email, user.Role, jwt, user.AvatarPath)
+            {
+                FullName = user.Name
+            };
             return new AuthResponseDto(loggedInUser);
         }
         public async Task<QuizApiResponse> RegisterAsync(RegisterDto dto)

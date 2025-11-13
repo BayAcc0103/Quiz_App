@@ -2,6 +2,7 @@
 using BlazingQuiz.Shared;
 using BlazingQuiz.Shared.Components.Apis;
 using BlazingQuiz.Shared.Components.Auth;
+using BlazingQuiz.Shared.Components.Services;
 using BlazingQuiz.Web.Apis;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Logging;
@@ -44,7 +45,44 @@ namespace BlazingQuiz.Mobile
             builder.Services.AddSingleton<IStorageService, StorageService>()
                 .AddSingleton<QuizState>()
                 .AddSingleton<IAppState, AppState>()
-                .AddSingleton<IPlatform, MobilePlatform>();
+                .AddSingleton<IPlatform, MobilePlatform>()
+                .AddSingleton<ProfileUpdateService>();
+
+            // Register services that depend on HttpClient and QuizAuthStateProvider
+            builder.Services.AddScoped(sp =>
+            {
+                var httpClient = sp.GetRequiredService<HttpClient>();
+                var authStateProvider = sp.GetRequiredService<QuizAuthStateProvider>();
+                return new QuizImageService(httpClient, authStateProvider);
+            });
+
+            builder.Services.AddScoped(sp =>
+            {
+                var httpClient = sp.GetRequiredService<HttpClient>();
+                var authStateProvider = sp.GetRequiredService<QuizAuthStateProvider>();
+                return new QuestionImageService(httpClient, authStateProvider);
+            });
+
+            builder.Services.AddScoped(sp =>
+            {
+                var httpClient = sp.GetRequiredService<HttpClient>();
+                var authStateProvider = sp.GetRequiredService<QuizAuthStateProvider>();
+                return new QuizAudioService(httpClient, authStateProvider);
+            });
+
+            builder.Services.AddScoped(sp =>
+            {
+                var httpClient = sp.GetRequiredService<HttpClient>();
+                var authStateProvider = sp.GetRequiredService<QuizAuthStateProvider>();
+                return new QuestionAudioService(httpClient, authStateProvider);
+            });
+
+            builder.Services.AddScoped(sp =>
+            {
+                var httpClient = sp.GetRequiredService<HttpClient>();
+                var authStateProvider = sp.GetRequiredService<QuizAuthStateProvider>();
+                return new UserAvatarService(httpClient, authStateProvider);
+            });
 
             ConfigureRefit(builder.Services);
             return builder.Build();
@@ -75,6 +113,9 @@ namespace BlazingQuiz.Mobile
                 .ConfigureHttpClient(SetHttpClient);
 
             services.AddRefitClient<IStudentQuizApi>(GetRefitSettings)
+                .ConfigureHttpClient(SetHttpClient);
+
+            services.AddRefitClient<IBookmarkApi>(GetRefitSettings)
                 .ConfigureHttpClient(SetHttpClient);
 
             void SetHttpClient(HttpClient httpClient) =>

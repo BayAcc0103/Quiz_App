@@ -1,0 +1,180 @@
+@page "/student/profile"
+@using BlazingQuiz.Shared
+@using BlazingQuiz.Shared.Components.Services
+@using BlazingQuiz.Shared.DTOs
+@inject IAuthApi AuthApi
+@inject UserAvatarService UserAvatarService
+@inject IAppState AppState
+@inject QuizAuthStateProvider QuizAuthStateProvider
+@inject NavigationManager NavigationManager
+@inject ProfileUpdateService ProfileUpdateService
+
+<BackButton />
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Student Profile</h4>
+                </div>
+                <div class="card-body">
+                    @if (_isLoading)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                    else if (_error != null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @_error
+                        </div>
+                    }
+                    else
+                    {
+                        <EditForm Model="_userDto" OnValidSubmit="UpdateProfileAsync">
+                            <DataAnnotationsValidator />
+
+                            <!-- Avatar Section -->
+                            <div class="mb-4">
+                                <label class="form-label">Profile Avatar</label>
+                                @if (!string.IsNullOrEmpty(_userDto.AvatarPath))
+                                {
+                                    <div class="mb-2">
+                                        @if (!string.IsNullOrEmpty(_userDto.AvatarPath))
+                                        {
+                                            <img src="@UserAvatarService.GetImageUrl(_userDto.AvatarPath)" alt="Profile Avatar" class="img-thumbnail rounded-circle" style="width: 100px; height: 100px; object-fit: cover;" />
+                                        }
+                                    </div>
+                                }
+                                <InputFile class="form-control" OnChange="@OnChangeAvatar" />
+                                <ValidationMessage For="@(() => _uploadFile)" />
+                            </div>
+
+                            <!-- Name Field -->
+                            <div class="mb-3">
+                                <label for="fullName" class="form-label">Full Name</label>
+                                <InputText id="fullName" class="form-control" @bind-Value="_userDto.FullName" />
+                                <ValidationMessage For="@(() => _userDto.FullName)" />
+                            </div>
+
+                            <!-- Email Field (Readonly) -->
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <InputText id="email" class="form-control" @bind-Value="_userDto.Email" readonly />
+                            </div>
+
+                            <!-- Role Field (Readonly) -->
+                            <div class="mb-3">
+                                <label for="role" class="form-label">Role</label>
+                                <InputText id="role" class="form-control" @bind-Value="_userDto.Role" readonly />
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <a href="/student/changepassword" class="btn btn-outline-secondary">Change Password</a>
+                                <button type="submit" class="btn btn-primary">Update Profile</button>
+                            </div>
+                        </EditForm>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private UserDto _userDto = new();
+    private IBrowserFile? _uploadFile;
+    private bool _isLoading = true;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var loggedInUser = QuizAuthStateProvider.User;
+            if (loggedInUser != null)
+            {
+                _userDto = new UserDto
+                {
+                    Id = loggedInUser.Id,
+                    Email = loggedInUser.Email,
+                    FullName = loggedInUser.FullName,
+                    Role = loggedInUser.Role,
+                    AvatarPath = loggedInUser.AvatarPath
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task UpdateProfileAsync()
+    {
+        if (_uploadFile != null)
+        {
+            AppState.ShowLoader("Uploading avatar...");
+            try
+            {
+                var uploadResult = await UserAvatarService.UploadAvatarAsync(_uploadFile);
+                if (uploadResult.IsSuccess && uploadResult.Data != null)
+                {
+                    _userDto.AvatarPath = uploadResult.Data;
+                }
+            }
+            catch (Exception ex)
+            {
+                AppState.ShowAlert(ex.Message, AlertType.Error);
+                return;
+            }
+            finally
+            {
+                AppState.HideLoader();
+            }
+        }
+
+        AppState.ShowLoader("Updating profile...");
+        try
+        {
+            await AuthApi.UpdateProfileAsync(_userDto);
+            AppState.ShowAlert("Profile updated successfully.", AlertType.Success);
+            // Update the local user information in QuizAuthStateProvider
+            var updatedUser = new LoggedInUser(
+                _userDto.Id,
+                _userDto.Name,
+                _userDto.Email,
+                _userDto.Role,
+                QuizAuthStateProvider.User?.Token ?? "",
+                _userDto.AvatarPath)
+            {
+                FullName = _userDto.FullName
+            };
+            await QuizAuthStateProvider.SetLoginAsync(updatedUser);
+
+            // Notify other components about avatar update
+            ProfileUpdateService.NotifyAvatarUpdated();
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowAlert(ex.Message, AlertType.Error);
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private async Task OnChangeAvatar(InputFileChangeEventArgs e)
+    {
+        _uploadFile = e.File;
+    }
+}

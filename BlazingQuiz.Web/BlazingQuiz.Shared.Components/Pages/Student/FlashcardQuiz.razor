@@ -20,41 +20,112 @@
                         <QuizTimer TotalMinutes="QuizState.Quiz.TimeInMinutes" OnTimerStop="AutoSubmitQuizAsync" />
                     </div>
                 </div>
-                
+
                 @if (_questions.Any())
                 {
-                    <Flashcard question="@_currentQuestion" 
-                               IsFlipped="@_isFlipped" 
-                               IsFlippedChanged="OnFlipChangedAsync" 
-                               OnFlipped="OnCardFlipped" />
-                    
-                    <div class="flashcard-navigation">
-                        <button class="flashcard-button flashcard-prev-btn" 
-                                @onclick="PreviousQuestion" 
-                                disabled="@(_currentIndex == 0)">
-                            Previous
-                        </button>
-                        
-                        <button class="flashcard-button flashcard-flip-btn" 
-                                @onclick="ToggleFlip">
-                            @_flipButtonText
-                        </button>
-                        
-                        @if (_currentIndex == _questions.Count - 1)
-                        {
-                            <button class="flashcard-button flashcard-next-btn" 
-                                    @onclick="SubmitQuizAsync">
-                                Submit Quiz
+                    @if (_isPageReady)
+                    {
+                        <div class="flip-card-container">
+                            <div class="flip-card @(IsFlipped ? "flipped" : "")" id="flip-card-@_currentIndex">
+                                <div class="card-face card-front">
+                                    <h5 class="card-question">@_currentQuestion.Text</h5>
+                                    @if (!_currentQuestion.IsTextAnswer && _currentQuestion.Options.Any())
+                                    {
+                                        <div class="card-options mt-3">
+                                            @foreach (var option in _currentQuestion.Options)
+                                            {
+                                                <div class="card-option">@option.Text</div>
+                                            }
+                                        </div>
+                                    }
+                                    <div class="card-hint flip-indicator">
+                                        <i class="bi bi-arrow-repeat"></i> Click card or button to flip
+                                    </div>
+                                </div>
+                                <div class="card-face card-back">
+                                    <h5 class="card-question">Answer</h5>
+                                    @if (_currentQuestion.IsTextAnswer)
+                                    {
+                                        <div class="card-answer mt-3">
+                                            @if (_currentQuestion.TextAnswers != null && _currentQuestion.TextAnswers.Any())
+                                            {
+                                                <ul class="list-unstyled">
+                                                    @foreach (var answer in _currentQuestion.TextAnswers)
+                                                    {
+                                                        <li class="mb-2">
+                                                            <span class="badge bg-success">@answer</span>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            }
+                                            else
+                                            {
+                                                <p class="text-muted">No answer provided</p>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="card-answer mt-3">
+                                            @if (_currentQuestion.Options != null && _currentQuestion.Options.Any())
+                                            {
+                                                var correctOptions = _currentQuestion.Options.Where(o => o.IsCorrect).ToList();
+                                                if (correctOptions.Any())
+                                                {
+                                                    <ul class="list-unstyled">
+                                                        @foreach (var option in correctOptions)
+                                                        {
+                                                            <li class="mb-2">
+                                                                <span class="badge bg-success">@option.Text</span>
+                                                            </li>
+                                                        }
+                                                    </ul>
+                                                }
+                                                else
+                                                {
+                                                    <p class="text-muted">No correct answer marked</p>
+                                                }
+                                            }
+                                        </div>
+                                    }
+                                    <div class="card-hint flip-indicator">
+                                        <i class="bi bi-arrow-repeat"></i> Click card or button to flip back
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <button class="btn btn-outline-secondary" @onclick="PreviousQuestion" disabled="@(_currentIndex == 0)">
+                                <i class="bi bi-chevron-left"></i> Previous
                             </button>
-                        }
-                        else
-                        {
-                            <button class="flashcard-button flashcard-next-btn" 
-                                    @onclick="NextQuestion">
-                                Next
+
+                            <button class="btn btn-primary" @onclick="ToggleFlip">
+                                <i class="bi bi-arrow-repeat"></i> @_flipButtonText
                             </button>
-                        }
-                    </div>
+
+                            @if (_currentIndex == _questions.Count - 1)
+                            {
+                                <button class="btn btn-success" @onclick="SubmitQuizAsync">
+                                    Submit Quiz <i class="bi bi-check2"></i>
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-outline-primary" @onclick="NextQuestion">
+                                    Next <i class="bi bi-chevron-right"></i>
+                                </button>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
                 }
             </div>
         </div>
@@ -95,6 +166,7 @@ else
     private string _flipButtonText = "Flip Card";
     private string? _errorMessage;
     private string? _submitQuizMessage;
+    private bool _isPageReady = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -103,7 +175,7 @@ else
             NavigationManager.NavigateTo("student/home", replace: true);
             return;
         }
-        
+
         AppState.ShowLoader("Loading questions...");
         try
         {
@@ -115,6 +187,7 @@ else
                 if (_questions.Any())
                 {
                     _currentQuestion = _questions[_currentIndex];
+                    _isPageReady = true;
                 }
                 else
                 {
@@ -135,6 +208,8 @@ else
             AppState.HideLoader();
         }
     }
+
+    private bool IsFlipped => _isFlipped;
 
     private void NextQuestion()
     {
@@ -229,3 +304,91 @@ else
         NavigationManager.NavigateTo("student/my-quizes", replace: true);
     }
 }
+
+<style>
+    .flip-card-container {
+        perspective: 1000px;
+        margin: 20px 0;
+        display: flex;
+        justify-content: center;
+    }
+
+    .flip-card {
+        width: 100%;
+        height: 300px;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.6s;
+        cursor: pointer;
+    }
+
+    .flip-card.flipped {
+        transform: rotateY(180deg);
+    }
+
+    .card-face {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    .card-front {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: white;
+    }
+
+    .card-back {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        transform: rotateY(180deg);
+    }
+
+    .card-question {
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .card-options, .card-answer {
+        width: 100%;
+    }
+
+    .card-option {
+        background: rgba(255,255,255,0.2);
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 5px;
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .card-hint {
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+        text-align: center;
+        font-size: 0.8em;
+        opacity: 0.7;
+    }
+
+    .flip-indicator {
+        color: rgba(255,255,255,0.8);
+    }
+
+    /* (max-width: 768px) {
+        .flip-card {
+            height: 250px;
+        }
+
+        .card-question {
+            font-size: 1.1rem;
+        }
+    } */
+</style>
