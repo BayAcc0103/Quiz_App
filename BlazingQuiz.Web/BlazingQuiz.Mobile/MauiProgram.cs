@@ -55,7 +55,7 @@ namespace BlazingQuiz.Mobile
             var apiBaseUrl = "https://localhost:7048";
             if(DeviceInfo.DeviceType == DeviceType.Physical || DeviceInfo.Platform == DevicePlatform.iOS)
             {
-                apiBaseUrl = "https://k3v52k87-7048.asse.devtunnels.ms";
+                apiBaseUrl = "https://vncs8w2r-7048.asse.devtunnels.ms/";
             }
             else if(DeviceInfo.Platform == DevicePlatform.Android)
                 {
