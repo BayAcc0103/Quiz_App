@@ -1,4 +1,4 @@
-﻿@page "/auth/login"
+@page "/auth/login"
 @layout EmptyLayout
 @using BlazingQuiz.Web.Apis
 @inject NavigationManager NavigationManager
@@ -55,12 +55,12 @@
                 <div class="mb-3 d-flex justify-content-between">
                     @if (!_isBusy)
                     {
-                        <a href="auth/register" class="btn btn-outline-primary">Register</a>
-                        <button type="submit" class="btn btn-success">Login</button>
+                        <a href="auth/register" class="btn login-btn-register register">Register</a>
+                        <button type="submit" class="btn login-btn login">Login</button>
                     }
                     else
                     {
-                        <button type="button" disabled class="btn btn-secondary">Logging-in...</button> 
+                        <button type="button" disabled class="btn btn-secondary">Logging-in...</button>
                     }
                 </div>
                 <div class="text-center mb-3">
@@ -111,7 +111,7 @@
         {
             _isBusy = false;
             AppState.HideLoader();
-        }   
+        }
     }
 
     private void RedirectToHome(bool replace = false)
