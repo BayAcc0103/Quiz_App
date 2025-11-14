@@ -2,7 +2,7 @@
 @inject NavigationManager NavigationManager
 @inject ExampleJsInterop JsInterop
 
-<button class="btn btn-secondary back-button" @onclick="GoBack" title="Back to previous page">
+<button class="btn btn-3d btn-3d-secondary back-button button-3d-raise" @onclick="GoBack" title="Back to previous page">
     <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
         <path d="M3.86 8.753l5.482 4.796c.646.566 1.658.106 1.658-.753V3.204a1 1 0 0 0-1.659-.753l-5.48 4.796a1 1 0 0 0 0 1.506z"/>
     </svg>
@@ -16,10 +16,26 @@
         gap: 0.25rem;
         padding: 0.375rem 0.75rem;
         margin-bottom: 1rem;
+        position: relative;
+        transition: all 0.3s ease;
+        border: none;
     }
-    
+
     .back-button svg {
         margin-right: 0.25rem;
+    }
+
+    .button-3d-raise {
+        transition: all 0.3s ease;
+        transform: translateZ(0);
+    }
+
+    .button-3d-raise:hover {
+        transform: translateY(-3px) translateZ(0);
+    }
+
+    .button-3d-raise:active {
+        transform: translateY(1px) translateZ(0);
     }
 </style>
 

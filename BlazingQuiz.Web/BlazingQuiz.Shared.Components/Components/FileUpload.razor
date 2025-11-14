@@ -1,17 +1,17 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components
 
-<div class="file-upload-component">
+<div class="file-upload-component" @attributes="AdditionalAttributes">
     <div class="@GetUploadAreaClass()"
-         @ondragover="OnDragOver" 
-         @ondragleave="OnDragLeave" 
+         @ondragover="OnDragOver"
+         @ondragleave="OnDragLeave"
          @ondrop="OnDrop"
          @onclick="TriggerFileSelect">
         <InputFile class="file-input"
                    OnChange="OnFileSelected"
                    accept="@AcceptedFileTypes"
                    multiple="@AllowMultiple" />
-        
+
         <div class="upload-content">
             @if (CurrentFile != null && PreviewUrl != null)
             {
@@ -27,13 +27,13 @@
                 <p class="upload-hint">@UploadHint</p>
             }
         </div>
-        
+
         @if (ShowFileSizeLimit && MaxFileSize > 0)
         {
             <small class="file-size-info">Max file size: @(MaxFileSize / (1024 * 1024))MB</small>
         }
     </div>
-    
+
     @if (CurrentFile != null)
     {
         <div class="file-info">
@@ -49,7 +49,7 @@
             }
         </div>
     }
-    
+
     @if (ShowProgress && IsUploading)
     {
         <div class="progress-container">
@@ -57,7 +57,7 @@
             <span class="progress-text">@ProgressPercentage%</span>
         </div>
     }
-    
+
     @if (!string.IsNullOrEmpty(ErrorMessage))
     {
         <div class="error-message">@ErrorMessage</div>
@@ -68,33 +68,33 @@
     .file-upload-component {
         width: 100%;
     }
-    
+
     .upload-area {
         border: 2px dashed #ccc;
         border-radius: 8px;
-        padding: 2rem;
+        padding: 1rem;
         text-align: center;
         cursor: pointer;
         transition: all 0.3s ease;
         position: relative;
-        min-height: 200px;
+        min-height: 120px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
     }
-    
+
     .upload-area.drag-over {
         border-color: #007bff;
         background-color: #f8f9ff;
         transform: scale(1.02);
     }
-    
+
     .upload-area.has-file {
         border-style: solid;
         background-color: #f9f9f9;
     }
-    
+
     .file-input {
         position: absolute;
         width: 100%;
@@ -104,120 +104,126 @@
         opacity: 0;
         cursor: pointer;
     }
-    
+
     .upload-content {
         display: flex;
         flex-direction: column;
         align-items: center;
     }
-    
+
     .upload-icons {
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
     }
-    
+
     .upload-icon, .cloud-icon {
-        font-size: 2.5rem;
+        font-size: 1.8rem;
         color: #6c757d;
         margin: 0 0.5rem;
     }
-    
+
     .upload-text {
-        font-size: 1.1rem;
-        margin: 0.5rem 0;
+        font-size: 0.9rem;
+        margin: 0.25rem 0;
         color: #495057;
     }
-    
+
     .upload-hint {
         margin: 0;
         color: #6c757d;
-        font-size: 0.9rem;
+        font-size: 0.75rem;
     }
-    
+
     .file-size-info {
         margin-top: 0.5rem;
         color: #6c757d;
-        font-size: 0.8rem;
+        font-size: 0.7rem;
     }
-    
+
     .preview-image {
         max-width: 100%;
-        max-height: 200px;
+        max-height: 120px;
         object-fit: contain;
         border-radius: 4px;
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
     }
-    
+
     .file-info {
         display: flex;
         justify-content: space-between;
         align-items: center;
         background: #f8f9fa;
-        padding: 0.75rem;
+        padding: 0.5rem;
         border-radius: 4px;
         margin-top: 0.5rem;
         border: 1px solid #dee2e6;
     }
-    
+
     .file-details {
         display: flex;
         flex-direction: column;
+        flex-grow: 1;
+        margin-right: 0.5rem;
     }
-    
+
     .file-name {
         font-weight: 500;
-        font-size: 0.9rem;
-    }
-    
-    .file-size {
         font-size: 0.8rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+
+    .file-size {
+        font-size: 0.7rem;
         color: #6c757d;
     }
-    
+
     .remove-btn {
         background: none;
         border: none;
         cursor: pointer;
         padding: 0.25rem;
         border-radius: 50%;
-        width: 30px;
-        height: 30px;
+        width: 24px;
+        height: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
-    
+
     .remove-btn:hover {
         background-color: #f8f9fa;
     }
-    
+
     .remove-icon {
-        font-size: 1.2rem;
+        font-size: 1rem;
         color: #dc3545;
     }
-    
+
     .progress-container {
-        margin-top: 1rem;
+        margin-top: 0.75rem;
         width: 100%;
     }
-    
+
     .progress-bar {
-        height: 8px;
+        height: 6px;
         background-color: #007bff;
-        border-radius: 4px;
+        border-radius: 3px;
         transition: width 0.3s ease;
     }
-    
+
     .progress-text {
         display: block;
         text-align: center;
         margin-top: 0.25rem;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         color: #6c757d;
     }
-    
+
     .error-message {
         color: #dc3545;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         margin-top: 0.5rem;
         text-align: center;
     }
@@ -242,6 +248,7 @@
     [Parameter] public string CloudIcon { get; set; } = "☁️";
     [Parameter] public bool IsUploading { get; set; } = false;
     [Parameter] public int ProgressPercentage { get; set; } = 0;
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
 
     public string? ErrorMessage { get; private set; }
 
@@ -320,6 +327,17 @@
         var classes = new List<string> { "upload-area" };
         if (isDragOver) classes.Add("drag-over");
         if (CurrentFile != null) classes.Add("has-file");
+
+        // Add additional CSS classes from AdditionalAttributes
+        if (AdditionalAttributes?.ContainsKey("class") == true)
+        {
+            var additionalClass = AdditionalAttributes["class"]?.ToString();
+            if (!string.IsNullOrEmpty(additionalClass))
+            {
+                classes.Add(additionalClass);
+            }
+        }
+
         return string.Join(" ", classes);
     }
 
