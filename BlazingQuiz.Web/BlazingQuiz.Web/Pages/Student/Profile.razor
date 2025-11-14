@@ -14,7 +14,7 @@
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card">
+            <div class="card card-3d-raised card-light">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">Student Profile</h4>
                 </div>
@@ -29,7 +29,7 @@
                     }
                     else if (_error != null)
                     {
-                        <div class="alert alert-danger" role="alert">
+                        <div class="alert alert-danger card-3d-raised" role="alert">
                             @_error
                         </div>
                     }
@@ -37,7 +37,7 @@
                     {
                         <EditForm Model="_userDto" OnValidSubmit="UpdateProfileAsync">
                             <DataAnnotationsValidator />
-                            
+
                             <!-- Avatar Section -->
                             <div class="mb-4">
                                 <label class="form-label">Profile Avatar</label>
@@ -46,33 +46,33 @@
                                     <div class="mb-2">
                                         @if (!string.IsNullOrEmpty(_userDto.AvatarPath))
                                         {
-                                            <img src="@UserAvatarService.GetImageUrl(_userDto.AvatarPath)" 
-                                                 alt="Avatar" 
-                                                 class="rounded-circle" 
+                                            <img src="@UserAvatarService.GetImageUrl(_userDto.AvatarPath)"
+                                                 alt="Avatar"
+                                                 class="rounded-circle"
                                                  style="width: 150px; height: 150px; object-fit: cover; border: 2px solid #dee2e6;" />
                                         }
                                         else
                                         {
-                                            <img src="@UserAvatarService.GetImageUrl("images/user-avatars/default-avatar.svg")" 
-                                                 alt="Avatar" 
-                                                 class="rounded-circle" 
+                                            <img src="@UserAvatarService.GetImageUrl("images/user-avatars/default-avatar.svg")"
+                                                 alt="Avatar"
+                                                 class="rounded-circle"
                                                  style="width: 150px; height: 150px; object-fit: cover; border: 2px solid #dee2e6;" />
                                         }
                                         <div class="mt-2">
-                                            <button type="button" class="btn btn-sm btn-danger" @onclick="RemoveAvatarAsync">Remove Avatar</button>
+                                            <button type="button" class="btn btn-3d btn-3d-secondary btn-sm" @onclick="RemoveAvatarAsync">Remove Avatar</button>
                                         </div>
                                     </div>
                                 }
                                 else
                                 {
                                     <div class="mb-2">
-                                        <img src="@UserAvatarService.GetImageUrl("images/user-avatars/default-avatar.svg")" 
-                                             alt="Default Avatar" 
-                                             class="rounded-circle" 
+                                        <img src="@UserAvatarService.GetImageUrl("images/user-avatars/default-avatar.svg")"
+                                             alt="Default Avatar"
+                                             class="rounded-circle"
                                              style="width: 150px; height: 150px; object-fit: cover; border: 2px solid #dee2e6;" />
                                     </div>
                                 }
-                                <FileUpload CurrentFile="@_selectedAvatarFile" 
+                                <FileUpload CurrentFile="@_selectedAvatarFile"
                                            OnFileChanged="OnAvatarFileChanged"
                                            MaxFileSize="5242880"
                                            ShowProgress="true"
@@ -81,7 +81,7 @@
                                            UploadText="Drag & drop your avatar here"
                                            UploadHint="or click to browse (JPG, PNG, GIF up to 5MB)" />
                             </div>
-                            
+
                             <!-- Profile Form -->
                             <div class="row">
                                 <div class="col-md-6 mb-3">
@@ -117,8 +117,8 @@
                                 </div>
                             </div>
                             <div class="d-flex justify-content-between">
-                                <button type="submit" class="btn btn-primary">Update Profile</button>
-                                <button type="button" class="btn btn-secondary" @onclick="ChangePassword">Change Password</button>
+                                <button type="submit" class="btn btn-3d btn-3d-primary">Update Profile</button>
+                                <button type="button" class="btn btn-3d btn-3d-secondary" @onclick="ChangePassword">Change Password</button>
                             </div>
                         </EditForm>
                     }
