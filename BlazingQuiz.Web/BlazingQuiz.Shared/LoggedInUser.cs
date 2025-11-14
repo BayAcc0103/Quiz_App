@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace BlazingQuiz.Shared
 {
+    //public record LoggedInUser(int Id, string Name, string Role, string Token)
     public record LoggedInUser(int Id, string Name, string Email, string Role, string Token, string? AvatarPath = null)
     {
         public string FullName { get; set; } = string.Empty; // For backward compatibility, FullName can be set and by default is the same as Name

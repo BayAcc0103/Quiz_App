@@ -43,7 +43,10 @@ namespace BlazingQuiz.Shared.Components.Services
                     _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 }
 
-                var response = await _httpClient.PostAsync("/api/user-avatars/upload", formData);
+                var uploadUrl = _httpClient.BaseAddress != null
+                    ? new Uri(_httpClient.BaseAddress, "api/user-avatars/upload").ToString()
+                    : $"{ApiServer}/api/user-avatars/upload";
+                var response = await _httpClient.PostAsync(uploadUrl, formData);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -73,7 +76,10 @@ namespace BlazingQuiz.Shared.Components.Services
                     _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 }
 
-                var response = await _httpClient.DeleteAsync("/api/user-avatars/remove");
+                var removeUrl = _httpClient.BaseAddress != null
+                    ? new Uri(_httpClient.BaseAddress, "api/user-avatars/remove").ToString()
+                    : $"{ApiServer}/api/user-avatars/remove";
+                var response = await _httpClient.DeleteAsync(removeUrl);
 
                 if (response.IsSuccessStatusCode)
                 {
