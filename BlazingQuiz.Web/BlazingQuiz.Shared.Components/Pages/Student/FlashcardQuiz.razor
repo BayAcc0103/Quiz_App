@@ -197,11 +197,14 @@ else
             else
             {
                 _errorMessage = allQuestionsResult.ErrorMessage ?? "Failed to load questions";
+                Console.WriteLine($"GetAllQuestionsForQuiz Error: {allQuestionsResult.ErrorMessage}"); // Log for debugging
             }
         }
         catch (Exception ex)
         {
-            _errorMessage = ex.Message;
+            _errorMessage = $"An error occurred while loading questions: {ex.Message}";
+            Console.WriteLine($"GetAllQuestionsForQuiz Exception: {ex.Message}\nStack Trace: {ex.StackTrace}"); // Log for debugging
+            AppState.ShowError($"Failed to load quiz questions: {ex.Message}");
         }
         finally
         {
@@ -258,15 +261,18 @@ else
             QuizApiResponse result = await StudentQuizApi.SubmitQuizAsync(QuizState.StudentQuizId);
             if(!result.IsSuccess)
             {
-                _errorMessage = result.ErrorMessage;
+                _errorMessage = result.ErrorMessage ?? "An error occurred while submitting the quiz";
+                Console.WriteLine($"Flashcard SubmitQuiz Error: {result.ErrorMessage}"); // Log for debugging
                 return;
             }
-            
+
             _submitQuizMessage = "Quiz submitted successfully";
         }
         catch (Exception ex)
         {
-            _errorMessage = ex.Message;
+            _errorMessage = $"An error occurred while submitting the quiz: {ex.Message}";
+            Console.WriteLine($"Flashcard SubmitQuiz Exception: {ex.Message}\nStack Trace: {ex.StackTrace}"); // Log for debugging
+            AppState.ShowError($"Quiz submission failed: {ex.Message}");
         }
         finally
         {
@@ -282,15 +288,18 @@ else
             QuizApiResponse result = await StudentQuizApi.AutoSubmitQuizAsync(QuizState.StudentQuizId);
             if(!result.IsSuccess)
             {
-                _errorMessage = result.ErrorMessage;
+                _errorMessage = result.ErrorMessage ?? "An error occurred while auto-submitting the quiz";
+                Console.WriteLine($"Flashcard AutoSubmitQuiz Error: {result.ErrorMessage}"); // Log for debugging
                 return;
             }
-            
+
             _submitQuizMessage = "Quiz submitted successfully";
         }
         catch (Exception ex)
         {
-            _errorMessage = ex.Message;
+            _errorMessage = $"An error occurred while auto-submitting the quiz: {ex.Message}";
+            Console.WriteLine($"Flashcard AutoSubmitQuiz Exception: {ex.Message}\nStack Trace: {ex.StackTrace}"); // Log for debugging
+            AppState.ShowError($"Quiz auto-submission failed: {ex.Message}");
         }
         finally
         {

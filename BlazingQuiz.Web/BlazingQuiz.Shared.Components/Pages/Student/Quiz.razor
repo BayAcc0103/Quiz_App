@@ -231,14 +231,15 @@
         var isResponseSaved = await SaveQuestionResponseAsync();
         if (isResponseSaved)
         {
-            AppState.ShowLoader("Sumitting the quiz");
+            AppState.ShowLoader("Submitting the quiz");
             try
             {
                 QuizApiResponse result = await StudentQuizApi.SubmitQuizAsync(QuizState.StudentQuizId);
                 if(!result.IsSuccess)
                 {
-                    //Show error alert
-                    _errorMessage = result.ErrorMessage;
+                    // Show error alert
+                    _errorMessage = result.ErrorMessage ?? "An error occurred while submitting the quiz";
+                    Console.WriteLine($"SubmitQuiz Error: {result.ErrorMessage}"); // Log for debugging
                     return;
                 }
                 //TODO: Show the result in Modal Popup or in a separate page
@@ -246,8 +247,10 @@
             }
             catch (Exception ex)
             {
-                //Show error alert
-                _errorMessage = ex.Message;
+                // Show error alert with more detailed information for debugging
+                _errorMessage = $"An error occurred while submitting the quiz: {ex.Message}";
+                Console.WriteLine($"SubmitQuiz Exception: {ex.Message}\nStack Trace: {ex.StackTrace}"); // Log for debugging
+                AppState.ShowError($"Quiz submission failed: {ex.Message}");
                 return;
             }
             finally
@@ -265,16 +268,19 @@
             QuizApiResponse result = await StudentQuizApi.ExitQuizAsync(QuizState.StudentQuizId);
             if (!result.IsSuccess)
             {
-                //Show error alert
-                _errorMessage = result.ErrorMessage;
+                // Show error alert
+                _errorMessage = result.ErrorMessage ?? "An error occurred while exiting the quiz";
+                Console.WriteLine($"ExitQuiz Error: {result.ErrorMessage}"); // Log for debugging
                 return;
             }
             RedirectToMyQuizes();
         }
         catch (Exception ex)
         {
-            //Show error alert
-            _errorMessage = ex.Message;
+            // Show error alert with more detailed information for debugging
+            _errorMessage = $"An error occurred while exiting the quiz: {ex.Message}";
+            Console.WriteLine($"ExitQuiz Exception: {ex.Message}\nStack Trace: {ex.StackTrace}"); // Log for debugging
+            AppState.ShowError($"Quiz exit failed: {ex.Message}");
         }
         finally
         {
@@ -285,7 +291,7 @@
     private async Task<bool> SaveQuestionResponseAsync()
     {
         _errorMessage = null;
-        
+
         if (_question.IsTextAnswer)
         {
             // For text answer questions, validate that an answer was provided
@@ -294,7 +300,7 @@
                 _errorMessage = "Please enter an answer";
                 return false;
             }
-            
+
             AppState.ShowLoader("Saving your response...");
             try
             {
@@ -302,8 +308,9 @@
                 QuizApiResponse result = await StudentQuizApi.SaveQuestionResponseAsync(QuizState.StudentQuizId, dto);
                 if (!result.IsSuccess)
                 {
-                    //Show error alert
-                    _errorMessage = result.ErrorMessage;
+                    // Show error alert
+                    _errorMessage = result.ErrorMessage ?? "An error occurred while saving your response";
+                    Console.WriteLine($"SaveQuestionResponse Error (Text): {result.ErrorMessage}"); // Log for debugging
                     return false;
                 }
                 _textAnswer = null; // Clear the answer after saving
@@ -311,8 +318,9 @@
             }
             catch (Exception ex)
             {
-                //Show error alert
-                _errorMessage = ex.Message;
+                // Show error alert with more detailed information for debugging
+                _errorMessage = $"An error occurred while saving your response: {ex.Message}";
+                Console.WriteLine($"SaveQuestionResponse Exception (Text): {ex.Message}\nStack Trace: {ex.StackTrace}"); // Log for debugging
                 return false;
             }
             finally
@@ -325,7 +333,7 @@
             // For multiple choice questions, validate that an option was selected
             if (_selectedOptionId == 0)
             {
-                //Show error alert
+                // Show error alert
                 _errorMessage = "Please select an option";
                 return false;
             }
@@ -337,8 +345,9 @@
                 QuizApiResponse result = await StudentQuizApi.SaveQuestionResponseAsync(QuizState.StudentQuizId, dto);
                 if (!result.IsSuccess)
                 {
-                    //Show error alert
-                    _errorMessage = result.ErrorMessage;
+                    // Show error alert
+                    _errorMessage = result.ErrorMessage ?? "An error occurred while saving your response";
+                    Console.WriteLine($"SaveQuestionResponse Error (MCQ): {result.ErrorMessage}"); // Log for debugging
                     return false;
                 }
                 _selectedOptionId = 0;
@@ -346,8 +355,9 @@
             }
             catch (Exception ex)
             {
-                //Show error alert
-                _errorMessage = ex.Message;
+                // Show error alert with more detailed information for debugging
+                _errorMessage = $"An error occurred while saving your response: {ex.Message}";
+                Console.WriteLine($"SaveQuestionResponse Exception (MCQ): {ex.Message}\nStack Trace: {ex.StackTrace}"); // Log for debugging
                 return false;
             }
             finally
@@ -365,8 +375,9 @@
             QuizApiResponse<QuestionDto?> result = await StudentQuizApi.GetNextQuestionForQuizAsync(QuizState.StudentQuizId);
             if (!result.IsSuccess || result.Data == null)
             {
-                //Show error alert
-                _errorMessage = result.ErrorMessage;
+                // Show error alert
+                _errorMessage = result.ErrorMessage ?? "An error occurred while loading the question";
+                Console.WriteLine($"LoadNextQuestion Error: {result.ErrorMessage}"); // Log for debugging
                 return;
             }
             _question = result.Data;
@@ -374,7 +385,9 @@
         }
         catch (Exception ex)
         {
-            _errorMessage = ex.Message;
+            _errorMessage = $"An error occurred while loading the question: {ex.Message}";
+            Console.WriteLine($"LoadNextQuestion Exception: {ex.Message}\nStack Trace: {ex.StackTrace}"); // Log for debugging
+            AppState.ShowError($"Failed to load question: {ex.Message}");
         }
         finally
         {
@@ -385,7 +398,7 @@
     private void RedirectToMyQuizes()
     {
         QuizState.StopQuiz();
-        NavigationManager.NavigateTo("student/my-quizes", replace: true);
+        NavigationManager.NavigateTo("student/home", replace: true);
     }
     
     private async Task NavigateToMcqQuiz()
@@ -409,8 +422,9 @@
             QuizApiResponse result = await StudentQuizApi.AutoSubmitQuizAsync(QuizState.StudentQuizId);
             if(!result.IsSuccess)
             {
-                //Show error alert
-                _errorMessage = result.ErrorMessage;
+                // Show error alert
+                _errorMessage = result.ErrorMessage ?? "An error occurred while auto-submitting the quiz";
+                Console.WriteLine($"AutoSubmitQuiz Error: {result.ErrorMessage}"); // Log for debugging
                 return;
             }
             //TODO: Show the result in Modal Popup or in a separate page
@@ -418,8 +432,10 @@
         }
         catch (Exception ex)
         {
-            //Show error alert
-            _errorMessage = ex.Message;
+            // Show error alert with more detailed information for debugging
+            _errorMessage = $"An error occurred while auto-submitting the quiz: {ex.Message}";
+            Console.WriteLine($"AutoSubmitQuiz Exception: {ex.Message}\nStack Trace: {ex.StackTrace}"); // Log for debugging
+            AppState.ShowError($"Quiz auto-submission failed: {ex.Message}");
         }
         finally
         {
