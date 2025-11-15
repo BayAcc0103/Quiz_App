@@ -1,95 +1,426 @@
 @page "/student/bookmarks"
 @using BlazingQuiz.Shared
-@using BlazingQuiz.Shared.Components.Services
 @using BlazingQuiz.Shared.DTOs
 @inject IBookmarkApi BookmarkApi
 @inject IStudentQuizApi StudentQuizApi
 @inject NavigationManager NavigationManager
+@inject QuizState QuizState
 @inject QuizImageService QuizImageService
 @inject QuizAuthStateProvider QuizAuthStateProvider
 @inject IAppState AppState
 
-<BackButton />
-
-<div class="container">
-    <div class="row">
-        <div class="col-sm-12">
-            <h3 class="mb-4">Bookmarked Quizzes</h3>
-
-            @if (_isLoading)
-            {
-                <div class="text-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
+<div class="container py-4">
+    <h3 class="mb-4 welcome-title">Bookmarked Quizzes</h3>
+    @if (_isLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (_bookmarks.Count == 0)
+    {
+        <div class="col-12">
+            <div class="empty-state">
+                <div class="mb-3">
+                    <i class="bi bi-bookmark-star fs-1 text-muted"></i>
                 </div>
-            }
-            else if (_bookmarks.Count == 0)
+                <h5>You haven't bookmarked any quizzes yet.</h5>
+                <p class="text-muted">Go to the <a href="/student/home">Quiz Home</a> page to find quizzes to bookmark.</p>
+            </div>
+        </div>
+    }
+    else if (_quizListData.Count == 0)
+    {
+        <div class="text-center">
+            <p class="text-muted">Loading quiz details...</p>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var quiz in _quizListData)
             {
-                <div class="col-sm-12 text-center">
-                    <h5 class="text-muted">You haven't bookmarked any quizzes yet.</h5>
-                    <p>Go to the <a href="/student/home">Quiz Home</a> page to find quizzes to bookmark.</p>
-                </div>
-            }
-            else
-            {
-                <div class="row">
-                    @foreach (var bookmark in _bookmarks)
-                    {
-                        <div class="col-sm-4 mb-3">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">@bookmark.QuizName</h5>
-                                    <p class="card-text">
-                                        <span class="badge bg-secondary">@bookmark.CategoryName</span>
-                                    </p>
-                                    <p class="card-text small text-muted">
-                                        Bookmarked on: @bookmark.BookmarkedOn.ToString("MMM dd, yyyy")
-                                    </p>
-                                    <button class="btn btn-primary" @onclick="() => StartQuiz(bookmark.QuizId)">Start Quiz</button>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="quiz-card position-relative">
+                        @if (!string.IsNullOrEmpty(quiz.ImagePath))
+                        {
+                            <img src="@QuizImageService.GetImageUrl(quiz.ImagePath)" alt="@quiz.Name" class="quiz-image" />
+                        }
+                        else
+                        {
+                            <div class="quiz-image bg-light d-flex align-items-center justify-content-center">
+                                <i class="bi bi-journal-text fs-1 text-muted"></i>
+                            </div>
+                        }
+
+                        <button type="button" class="btn btn-sm btn-bookmark btn-warning"
+                                @onclick="() => RemoveBookmarkAsync(quiz.Id)"
+                                title="Remove bookmark">
+                            ★
+                        </button>
+
+                        <div class="quiz-content">
+                            <span class="category-badge">@quiz.CategoryName</span>
+                            <h5 class="fw-bold mb-3">@quiz.Name</h5>
+
+                            <div class="quiz-stats">
+                                <div class="stat-item">
+                                    <div class="stat-value">@quiz.TotalQuestions</div>
+                                    <p class="stat-label mb-0">Questions</p>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">@quiz.TimeInMinutes min</div>
+                                    <p class="stat-label mb-0">Time</p>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">@quiz.Level</div>
+                                    <p class="stat-label mb-0">Level</p>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">@quiz.CreatedByName</div>
+                                    <p class="stat-label mb-0">Creator</p>
                                 </div>
                             </div>
                         </div>
-                    }
+
+                        <div class="quiz-meta">
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-quiz-action btn-warning" @onclick="() => StartQuizAsync(quiz.Id, quiz.Name)">Start Quiz</button>
+                                <a href="student/createroom?quizId=@quiz.Id" type="button" class="btn btn-quiz-action btn-primary">Create Room</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             }
         </div>
-    </div>
+    }
 </div>
+
+@if(_startingQuiz != null)
+{
+    var title = $"Starting Quiz: {_startingQuiz.Name}?";
+    <Modal Title="@title" OnCancelClick="() => _startingQuiz = null" OnActionButtonClick="ConfirmStartQuizAsync">
+        <p class="m-0 p-3">
+            Are you sure you want to start the quiz?<br/>
+            You will not able to pause the quiz
+        </p>
+    </Modal>
+}
+
+<style>
+    .welcome-title {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        color: #343a40;
+        position: relative;
+        display: inline-block;
+    }
+
+    .welcome-title:after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 2px;
+    }
+
+    .hero-card {
+        background: white;
+        color: #333;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid #e9ecef;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .hero-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(79, 172, 254, 0.15);
+    }
+
+    .hero-card h4 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+    }
+
+    .hero-card p {
+        color: #7f8c8d;
+        margin-bottom: 0;
+    }
+
+    .quiz-card {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        height: 100%;
+        background: white;
+        border: 1px solid #e9ecef;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .quiz-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(79, 172, 254, 0.15);
+        border-color: #4facfe;
+    }
+
+    .quiz-image {
+        height: 180px;
+        object-fit: cover;
+        width: 100%;
+        transition: transform 0.3s ease;
+    }
+
+    .quiz-card:hover .quiz-image {
+        transform: scale(1.03);
+    }
+
+    .quiz-content {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .quiz-meta {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-top: 1px solid #e9ecef;
+        margin-top: auto;
+    }
+
+    .category-badge {
+        display: inline-block;
+        background: #4facfe;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        box-shadow: 0 2px 8px rgba(79, 172, 254, 0.2);
+    }
+
+    .quiz-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .stat-value {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #495057;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+
+    .btn-quiz-action {
+        width: 100%;
+        margin-bottom: 0.25rem;
+        border-radius: 8px;
+        font-weight: 500;
+        padding: 0.5rem;
+    }
+
+    .btn-bookmark {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 10;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        padding: 0;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+        border: 1px solid #e9ecef;
+    }
+
+    .empty-state h5 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+    }
+</style>
 
 @code {
     private List<QuizBookmarkDto> _bookmarks = new();
+    private List<QuizListDto> _quizListData = new();
     private bool _isLoading = false;
+    private QuizListDto? _startingQuiz;
+    private Guid _quizIdToStart;
 
     protected override async Task OnInitializedAsync()
     {
-        _isLoading = true;
-        try
+        if (!QuizAuthStateProvider.IsLoggedIn)
         {
-            var userId = QuizAuthStateProvider.User?.Id;
+            NavigationManager.NavigateTo("auth/login");
+            return;
+        }
 
-            if (userId != null && userId > 0)
+        await LoadBookmarksAsync();
+    }
+
+    private async Task LoadBookmarksAsync()
+    {
+        _isLoading = true;
+        var result = await BookmarkApi.GetBookmarksAsync(QuizAuthStateProvider.User.Id);
+        if (result.IsSuccess)
+        {
+            _bookmarks = result.Data;
+
+            // For each bookmarked quiz, fetch the full details to display
+            _quizListData.Clear();
+            foreach (var bookmark in _bookmarks)
             {
-                var result = await BookmarkApi.GetBookmarksAsync(userId.Value);
-                if (result.IsSuccess && result.Data != null)
+                // Get the quiz from the list of all active quizzes
+                var allQuizzes = await StudentQuizApi.GetActiveQuizesAsync(0); // 0 means all categories
+                var quiz = allQuizzes.FirstOrDefault(q => q.Id == bookmark.QuizId);
+                if (quiz != null)
                 {
-                    _bookmarks = result.Data.ToList();
+                    _quizListData.Add(quiz);
                 }
             }
         }
-        catch (Exception ex)
+        _isLoading = false;
+    }
+
+    private async Task RemoveBookmarkAsync(Guid quizId)
+    {
+        var result = await BookmarkApi.RemoveBookmarkAsync(QuizAuthStateProvider.User.Id, quizId);
+        if (result.IsSuccess)
         {
-            // Handle error appropriately
-        }
-        finally
-        {
-            _isLoading = false;
+            _bookmarks.RemoveAll(b => b.QuizId == quizId);
+            _quizListData.RemoveAll(q => q.Id == quizId);
+            StateHasChanged(); // Refresh UI after removal
         }
     }
 
-    private async Task StartQuiz(Guid quizId)
+    private async Task StartQuizAsync(Guid quizId, string quizName)
     {
-        // Navigate to quiz type selection page
-        NavigationManager.NavigateTo($"/student/quiz-type-selection?quizId={quizId}");
+        // We need to get the full QuizListDto by fetching from the server
+        // For this, we'll temporarily store the quiz ID and show a confirmation modal
+        _quizIdToStart = quizId;
+
+        // We need to fetch the quiz details to store in QuizState
+        AppState.ShowLoader("Loading quiz details...");
+        try
+        {
+            // Get the quiz from the list of all active quizzes
+            var allQuizzes = await StudentQuizApi.GetActiveQuizesAsync(0); // 0 means all categories
+            var quiz = allQuizzes.FirstOrDefault(q => q.Id == quizId);
+            if (quiz != null)
+            {
+                _startingQuiz = quiz;
+            }
+            else
+            {
+                // Quiz might not be active anymore
+                _startingQuiz = new QuizListDto
+                {
+                    Id = quizId,
+                    Name = quizName
+                };
+            }
+        }
+        catch
+        {
+            throw;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private async Task ConfirmStartQuizAsync()
+    {
+        if (_startingQuiz == null)
+        {
+            return;
+        }
+
+        AppState.ShowLoader("Preparing the quiz...");
+        try
+        {
+            QuizApiResponse<int> response = await StudentQuizApi.StartQuizAsync(_startingQuiz.Id);
+            if (response.IsSuccess)
+            {
+                int studentQuizId = response.Data;
+                QuizState.StartQuiz(_startingQuiz, studentQuizId);
+                NavigationManager.NavigateTo("student/quiz");
+            }
+            else
+            {
+                // Handle error (show message to user)
+                Console.WriteLine($"Error starting quiz: {response.ErrorMessage}");
+            }
+        }
+        catch
+        {
+            throw;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private async Task RefreshBookmarksAsync()
+    {
+        await LoadBookmarksAsync();
+    }
+
+    private void ShowQuizDetails(Guid quizId)
+    {
+        // Navigate to quiz details page
+        NavigationManager.NavigateTo($"/student/quiz/{quizId}");
     }
 }

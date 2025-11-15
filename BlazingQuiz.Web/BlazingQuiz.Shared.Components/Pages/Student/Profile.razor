@@ -9,12 +9,10 @@
 @inject NavigationManager NavigationManager
 @inject ProfileUpdateService ProfileUpdateService
 
-<BackButton />
-
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card">
+            <div class="card card-3d-raised card-light">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">Student Profile</h4>
                 </div>
@@ -29,7 +27,7 @@
                     }
                     else if (_error != null)
                     {
-                        <div class="alert alert-danger" role="alert">
+                        <div class="alert alert-danger card-3d-raised" role="alert">
                             @_error
                         </div>
                     }
@@ -39,43 +37,71 @@
                             <DataAnnotationsValidator />
 
                             <!-- Avatar Section -->
-                            <div class="mb-4">
+                            <div class="mb-4 text-center">
                                 <label class="form-label">Profile Avatar</label>
-                                @if (!string.IsNullOrEmpty(_userDto.AvatarPath))
-                                {
-                                    <div class="mb-2">
+                                <div class="d-flex justify-content-center">
+                                    <div class="position-relative">
                                         @if (!string.IsNullOrEmpty(_userDto.AvatarPath))
                                         {
-                                            <img src="@UserAvatarService.GetImageUrl(_userDto.AvatarPath)" alt="Profile Avatar" class="img-thumbnail rounded-circle" style="width: 100px; height: 100px; object-fit: cover;" />
+                                            <img src="@UserAvatarService.GetImageUrl(_userDto.AvatarPath)"
+                                                 alt="Avatar"
+                                                 class="rounded-circle avatar-centered"
+                                                 style="width: 150px; height: 150px; object-fit: cover; border: 2px solid #dee2e6;" />
+                                        }
+                                        else
+                                        {
+                                            <img src="@UserAvatarService.GetImageUrl("images/user-avatars/default-avatar.svg")"
+                                                 alt="Avatar"
+                                                 class="rounded-circle avatar-centered"
+                                                 style="width: 150px; height: 150px; object-fit: cover; border: 2px solid #dee2e6;" />
                                         }
                                     </div>
-                                }
-                                <InputFile class="form-control" OnChange="@OnChangeAvatar" />
-                                <ValidationMessage For="@(() => _uploadFile)" />
+                                </div>
+                                <div class="mt-2">
+                                    @if (!string.IsNullOrEmpty(_userDto.AvatarPath))
+                                    {
+                                        <button type="button" class="btn btn-3d btn-3d-secondary btn-sm" @onclick="RemoveAvatarAsync">Remove Avatar</button>
+                                    }
+                                </div>
+                                <div class="file-upload-wrapper">
+                                    <FileUpload CurrentFile="@_selectedAvatarFile"
+                                                OnFileChanged="OnAvatarFileChanged"
+                                                MaxFileSize="5242880"
+                                                ShowProgress="true"
+                                                IsUploading="@_isUploading"
+                                                ProgressPercentage="@_uploadProgress"
+                                                UploadText="Drag & drop your avatar here"
+                                                UploadHint="or click to browse (JPG, PNG, GIF up to 5MB)" />
+                                </div>
                             </div>
 
-                            <!-- Name Field -->
-                            <div class="mb-3">
-                                <label for="fullName" class="form-label">Full Name</label>
-                                <InputText id="fullName" class="form-control" @bind-Value="_userDto.FullName" />
-                                <ValidationMessage For="@(() => _userDto.FullName)" />
+                            <!-- Profile Form -->
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="name" class="form-label">Name</label>
+                                    <InputText id="name" class="form-control" @bind-Value="_userDto.Name" />
+                                    <ValidationMessage For="@(() => _userDto.Name)" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <InputText id="email" type="email" class="form-control" @bind-Value="_userDto.Email" disabled="true" />
+                                    <ValidationMessage For="@(() => _userDto.Email)" />
+                                </div>
                             </div>
-
-                            <!-- Email Field (Readonly) -->
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <InputText id="email" class="form-control" @bind-Value="_userDto.Email" readonly />
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone" class="form-label">Phone</label>
+                                    <InputText id="phone" class="form-control" @bind-Value="_userDto.Phone" />
+                                    <ValidationMessage For="@(() => _userDto.Phone)" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="role" class="form-label">Role</label>
+                                    <InputText id="role" class="form-control" @bind-Value="_role" disabled="true" />
+                                </div>
                             </div>
-
-                            <!-- Role Field (Readonly) -->
-                            <div class="mb-3">
-                                <label for="role" class="form-label">Role</label>
-                                <InputText id="role" class="form-control" @bind-Value="_userDto.Role" readonly />
-                            </div>
-
                             <div class="d-flex justify-content-between">
-                                <a href="/student/changepassword" class="btn btn-outline-secondary">Change Password</a>
-                                <button type="submit" class="btn btn-primary">Update Profile</button>
+                                <button type="submit" class="btn btn-3d btn-3d-primary">Update Profile</button>
+                                <button type="button" class="btn btn-3d btn-3d-secondary" @onclick="ChangePassword">Change Password</button>
                             </div>
                         </EditForm>
                     }
@@ -86,31 +112,36 @@
 </div>
 
 @code {
-    private UserDto _userDto = new();
-    private IBrowserFile? _uploadFile;
+    private UserDto _userDto = new UserDto(0, "", "", "", false, null);
     private bool _isLoading = true;
+    private bool _isUploading = false;
+    private int _uploadProgress = 0;
     private string? _error;
+    private string _role = "";
+    private string _status = "";
+    private string _userId = "";
+    private IBrowserFile? _selectedAvatarFile;
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadProfileAsync();
+    }
+
+    private async Task LoadProfileAsync()
+    {
         try
         {
-            var loggedInUser = QuizAuthStateProvider.User;
-            if (loggedInUser != null)
-            {
-                _userDto = new UserDto
-                {
-                    Id = loggedInUser.Id,
-                    Email = loggedInUser.Email,
-                    FullName = loggedInUser.FullName,
-                    Role = loggedInUser.Role,
-                    AvatarPath = loggedInUser.AvatarPath
-                };
-            }
+            _isLoading = true;
+            _userDto = await AuthApi.GetProfileAsync();
+
+            // Set display values
+            _role = QuizAuthStateProvider.User?.Role ?? "Student";
+            _status = _userDto.IsApproved ? "Approved" : "Pending Approval";
+            _userId = _userDto.Id.ToString();
         }
         catch (Exception ex)
         {
-            _error = ex.Message;
+            _error = $"Error loading profile: {ex.Message}";
         }
         finally
         {
@@ -120,52 +151,16 @@
 
     private async Task UpdateProfileAsync()
     {
-        if (_uploadFile != null)
-        {
-            AppState.ShowLoader("Uploading avatar...");
-            try
-            {
-                var uploadResult = await UserAvatarService.UploadAvatarAsync(_uploadFile);
-                if (uploadResult.IsSuccess && uploadResult.Data != null)
-                {
-                    _userDto.AvatarPath = uploadResult.Data;
-                }
-            }
-            catch (Exception ex)
-            {
-                AppState.ShowAlert(ex.Message, AlertType.Error);
-                return;
-            }
-            finally
-            {
-                AppState.HideLoader();
-            }
-        }
-
-        AppState.ShowLoader("Updating profile...");
         try
         {
+            AppState.ShowLoader("Updating profile...");
             await AuthApi.UpdateProfileAsync(_userDto);
-            AppState.ShowAlert("Profile updated successfully.", AlertType.Success);
-            // Update the local user information in QuizAuthStateProvider
-            var updatedUser = new LoggedInUser(
-                _userDto.Id,
-                _userDto.Name,
-                _userDto.Email,
-                _userDto.Role,
-                QuizAuthStateProvider.User?.Token ?? "",
-                _userDto.AvatarPath)
-            {
-                FullName = _userDto.FullName
-            };
-            await QuizAuthStateProvider.SetLoginAsync(updatedUser);
-
-            // Notify other components about avatar update
-            ProfileUpdateService.NotifyAvatarUpdated();
+            ProfileUpdateService.NotifyAvatarUpdated(); // Notify other components about potential avatar update
+            AppState.ShowAlert("Profile updated successfully!", AlertType.Success);
         }
         catch (Exception ex)
         {
-            AppState.ShowAlert(ex.Message, AlertType.Error);
+            AppState.ShowAlert($"Error updating profile: {ex.Message}", AlertType.Error);
         }
         finally
         {
@@ -173,8 +168,108 @@
         }
     }
 
-    private async Task OnChangeAvatar(InputFileChangeEventArgs e)
+    private async Task OnAvatarFileChanged(IBrowserFile? file)
     {
-        _uploadFile = e.File;
+        _selectedAvatarFile = file;
+
+        // If a file is selected, automatically upload it
+        if (file != null)
+        {
+            await UploadAvatarAsync(file);
+        }
+    }
+
+    private async Task UploadAvatarAsync(IBrowserFile file)
+    {
+        if (file == null) return;
+
+        if (file.Size > 5 * 1024 * 1024) // 5MB limit
+        {
+            AppState.ShowAlert("File size must be less than 5MB", AlertType.Error);
+            return;
+        }
+
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+        var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+        if (!allowedExtensions.Contains(extension))
+        {
+            AppState.ShowAlert("Only image files (JPG, PNG, GIF, WebP) are allowed", AlertType.Error);
+            return;
+        }
+
+        try
+        {
+            _isUploading = true;
+
+            // Simulate progress tracking
+            _uploadProgress = 0;
+            StateHasChanged();
+
+            for (int i = 0; i <= 10; i++)
+            {
+                await Task.Delay(30); // Small delay to simulate progress
+                _uploadProgress = i * 10;
+                StateHasChanged();
+            }
+
+            var result = await UserAvatarService.UploadAvatarAsync(file);
+
+            if (result.IsSuccess)
+            {
+                _uploadProgress = 100; // Set to 100% on success
+                StateHasChanged();
+
+                // Reload profile to get the new avatar
+                await LoadProfileAsync();
+                ProfileUpdateService.NotifyAvatarUpdated(); // Notify other components about avatar update
+                AppState.ShowAlert("Avatar uploaded successfully!", AlertType.Success);
+
+                // Clear the selected file after successful upload
+                _selectedAvatarFile = null;
+            }
+            else
+            {
+                AppState.ShowAlert($"Failed to upload avatar: {result.ErrorMessage}", AlertType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowAlert($"Error uploading avatar: {ex.Message}", AlertType.Error);
+        }
+        finally
+        {
+            _isUploading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RemoveAvatarAsync()
+    {
+        try
+        {
+            var result = await UserAvatarService.RemoveAvatarAsync();
+            if (result.IsSuccess)
+            {
+                // Reload profile to update avatar display
+                await LoadProfileAsync();
+                ProfileUpdateService.NotifyAvatarUpdated(); // Notify other components about avatar update
+                AppState.ShowAlert("Avatar removed successfully!", AlertType.Success);
+            }
+            else
+            {
+                AppState.ShowAlert($"Failed to remove avatar: {result.ErrorMessage}", AlertType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowAlert($"Error removing avatar: {ex.Message}", AlertType.Error);
+        }
+    }
+
+    private void ChangePassword()
+    {
+        // Navigate to change password page
+        var currentUri = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.NavigateTo($"/student/changepassword");
     }
 }

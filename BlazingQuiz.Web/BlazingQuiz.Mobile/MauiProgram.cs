@@ -118,6 +118,16 @@ namespace BlazingQuiz.Mobile
             services.AddRefitClient<IBookmarkApi>(GetRefitSettings)
                 .ConfigureHttpClient(SetHttpClient);
 
+            services.AddRefitClient<IRoomApi>(GetRefitSettings)
+               .ConfigureHttpClient(SetHttpClient);
+
+            services.AddRefitClient<IRoomQuizApi>(GetRefitSettings)
+               .ConfigureHttpClient(SetHttpClient);
+
+            services.AddRefitClient<IUserAvatarApi>(GetRefitSettings)
+               .ConfigureHttpClient(SetHttpClient);
+
+
             void SetHttpClient(HttpClient httpClient) =>
                 httpClient.BaseAddress = new Uri(apiBaseUrl);
             static RefitSettings GetRefitSettings(IServiceProvider sp)

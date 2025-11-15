@@ -1,7 +1,6 @@
 @page "/student/home"
 
 @using BlazingQuiz.Shared
-@using BlazingQuiz.Shared.Components.Services
 @inject IAppState AppState
 @inject ICategoryApi CategoryApi
 @inject IStudentQuizApi StudentQuizApi
@@ -47,136 +46,456 @@
         color: #2c3e50;
     }
 
-    .category-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border: 1px solid #e0e0e0;
-        border-radius: 12px;
-        overflow: hidden;
-    }
-
-    .category-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    .hero-card p {
+        color: #7f8c8d;
+        margin-bottom: 0;
     }
 
     .quiz-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border: 1px solid #e0e0e0;
-        border-radius: 12px;
+        border-radius: 15px;
         overflow: hidden;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        height: 100%;
+        background: white;
+        border: 1px solid #e9ecef;
+        display: flex;
+        flex-direction: column;
     }
 
     .quiz-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(79, 172, 254, 0.15);
+        border-color: #4facfe;
     }
 
-    .quiz-card .card-title {
-        font-size: 1.25rem;
+    .quiz-image {
+        height: 180px;
+        object-fit: cover;
+        width: 100%;
+        transition: transform 0.3s ease;
+    }
+
+    .quiz-card:hover .quiz-image {
+        transform: scale(1.03);
+    }
+
+    .quiz-content {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .quiz-meta {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-top: 1px solid #e9ecef;
+        margin-top: auto;
+    }
+
+    .category-badge {
+        display: inline-block;
+        background: #4facfe;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        box-shadow: 0 2px 8px rgba(79, 172, 254, 0.2);
+    }
+
+    .quiz-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .stat-value {
         font-weight: 600;
+        font-size: 1rem;
+        color: #495057;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+
+    .btn-quiz-action {
+        width: 100%;
+        margin-bottom: 0.25rem;
+        border-radius: 8px;
+        font-weight: 500;
+        padding: 0.5rem;
+    }
+
+    .btn-bookmark {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 10;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        padding: 0;
+    }
+
+    .category-select-container {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+        border: 1px solid #e9ecef;
+    }
+
+    .category-select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #dee2e6;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background-color: white;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .category-select:focus {
+        border-color: #4facfe;
+        box-shadow: 0 0 0 0.2rem rgba(79, 172, 254, 0.2);
+        outline: none;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+        border: 1px solid #e9ecef;
+    }
+
+    .empty-state h5 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .quiz-type-card {
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        border-radius: 15px;
+    }
+
+    .quiz-type-card:hover {
+        border-color: #667eea;
+        transform: translateY(-3px);
+    }
+
+    .welcome-title {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        color: #343a40;
+        position: relative;
+        display: inline-block;
+    }
+
+    .welcome-title:after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 2px;
+    }
+
+    /* 3D Raised Button Styles */
+    .btn-3d {
+        position: relative;
+        display: inline-block;
+        padding: 12px 24px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        white-space: nowrap;
+        vertical-align: middle;
+        user-select: none;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 0 #2c3e50, 0 10px 20px rgba(0,0,0,0.2);
+        color: white;
+        background: linear-gradient(145deg, #3498db, #2980b9);
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .btn-3d:active {
+        transform: translateY(4px);
+        box-shadow: 0 2px 0 #2c3e50, 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .btn-3d:hover {
+        background: linear-gradient(145deg, #3ca0e3, #2c8bc7);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 0 #253544, 0 15px 20px rgba(0,0,0,0.3);
+    }
+
+    .btn-3d:active::after {
+        opacity: 0;
+    }
+
+    /* Primary 3D Button */
+    .btn-3d-primary {
+        background: linear-gradient(145deg, #3498db, #2980b9);
+        box-shadow: 0 6px 0 #1d608a, 0 10px 20px rgba(52, 152, 219, 0.4);
+    }
+
+    .btn-3d-primary:hover {
+        background: linear-gradient(145deg, #3ca0e3, #2c8bc7);
+        box-shadow: 0 8px 0 #1d608a, 0 15px 20px rgba(52, 152, 219, 0.5);
+    }
+
+    .btn-3d-primary:active {
+        box-shadow: 0 2px 0 #1d608a, 0 4px 8px rgba(52, 152, 219, 0.4);
+    }
+
+    /* Success 3D Button */
+    .btn-3d-success {
+        background: linear-gradient(145deg, #2ecc71, #27ae60);
+        box-shadow: 0 6px 0 #1e8449, 0 10px 20px rgba(46, 204, 113, 0.4);
+    }
+
+    .btn-3d-success:hover {
+        background: linear-gradient(145deg, #36d67e, #2db969);
+        box-shadow: 0 8px 0 #1e8449, 0 15px 20px rgba(46, 204, 113, 0.5);
+    }
+
+    .btn-3d-success:active {
+        box-shadow: 0 2px 0 #1e8449, 0 4px 8px rgba(46, 204, 113, 0.4);
+    }
+
+    /* Warning 3D Button */
+    .btn-3d-warning {
+        background: linear-gradient(145deg, #f39c12, #d35400);
+        box-shadow: 0 6px 0 #9c640c, 0 10px 20px rgba(243, 156, 18, 0.4);
+    }
+
+    .btn-3d-warning:hover {
+        background: linear-gradient(145deg, #f5a623, #e67e22);
+        box-shadow: 0 8px 0 #9c640c, 0 15px 20px rgba(243, 156, 18, 0.5);
+    }
+
+    .btn-3d-warning:active {
+        box-shadow: 0 2px 0 #9c640c, 0 4px 8px rgba(243, 156, 18, 0.4);
+    }
+
+    /* Info 3D Button */
+    .btn-3d-info {
+        background: linear-gradient(145deg, #1abc9c, #16a085);
+        box-shadow: 0 6px 0 #117a65, 0 10px 20px rgba(26, 188, 156, 0.4);
+    }
+
+    .btn-3d-info:hover {
+        background: linear-gradient(145deg, #1dd2af, #19b595);
+        box-shadow: 0 8px 0 #117a65, 0 15px 20px rgba(26, 188, 156, 0.5);
+    }
+
+    .btn-3d-info:active {
+        box-shadow: 0 2px 0 #117a65, 0 4px 8px rgba(26, 188, 156, 0.4);
+    }
+
+    /* Secondary 3D Button */
+    .btn-3d-secondary {
+        background: linear-gradient(145deg, #95a5a6, #7f8c8d);
+        box-shadow: 0 6px 0 #5d6d7e, 0 10px 20px rgba(149, 165, 166, 0.4);
+        color: white;
+    }
+
+    .btn-3d-secondary:hover {
+        background: linear-gradient(145deg, #a0b0b2, #8a9a9b);
+        box-shadow: 0 8px 0 #5d6d7e, 0 15px 20px rgba(149, 165, 166, 0.5);
+    }
+
+    .btn-3d-secondary:active {
+        box-shadow: 0 2px 0 #5d6d7e, 0 4px 8px rgba(149, 165, 166, 0.4);
+    }
+
+    /* Light 3D Button */
+    .btn-3d-light {
+        background: linear-gradient(145deg, #ecf0f1, #bdc3c7);
+        box-shadow: 0 6px 0 #aeb6bf, 0 10px 20px rgba(190, 190, 190, 0.4);
         color: #2c3e50;
     }
 
-    .quiz-card .quiz-details {
-        flex-grow: 1;
+    .btn-3d-light:hover {
+        background: linear-gradient(145deg, #f0f4f5, #c5cbd0);
+        box-shadow: 0 8px 0 #aeb6bf, 0 15px 20px rgba(190, 190, 190, 0.5);
     }
 
-    .category-icon {
-        color: #3498db;
+    .btn-3d-light:active {
+        box-shadow: 0 2px 0 #aeb6bf, 0 4px 8px rgba(190, 190, 190, 0.4);
     }
 
-/*     (max-width: 768px) {
-        .hero-card {
-            padding: 1.5rem;
-        }
-        
-        .col-md-3 {
-            flex: 0 0 auto;
-            width: 50%;
-        }
-    } */
+    /* Dark 3D Button */
+    .btn-3d-dark {
+        background: linear-gradient(145deg, #2c3e50, #1a252f);
+        box-shadow: 0 6px 0 #161f29, 0 10px 20px rgba(44, 62, 80, 0.4);
+        color: white;
+    }
+
+    .btn-3d-dark:hover {
+        background: linear-gradient(145deg, #34495e, #232f3d);
+        box-shadow: 0 8px 0 #161f29, 0 15px 20px rgba(44, 62, 80, 0.5);
+    }
+
+    .btn-3d-dark:active {
+        box-shadow: 0 2px 0 #161f29, 0 4px 8px rgba(44, 62, 80, 0.4);
+    }
+
+    /* 3D Button Focus */
+    .btn-3d:focus {
+        outline: none;
+        box-shadow: 0 6px 0 #2c3e50, 0 10px 20px rgba(0,0,0,0.2), 0 0 0 0.2rem rgba(52, 152, 219, 0.5);
+    }
 </style>
 
-<div class="container">
-    <!-- Hero Section -->
-    <div class="hero-card">
-        <h4 class="mb-3">Welcome to the Quiz Platform, Student!</h4>
-        <p class="mb-0">Select a category to start exploring quizzes or browse all available quizzes below.</p>
-    </div>
+<div class="container py-4">
+    <h2 class="welcome-title text-center">Welcome to Your Quiz Hub</h2>
 
-    <!-- Search and Filter Section -->
-    <div class="row mb-4">
-        <div class="col-md-4 ms-auto">
-            <label class="form-label">Select Category</label>
-            <select class="form-select" @bind="_selectedCategoryId" @bind:after="OnSelectedCategoryChanged">
-                <option value="0">All Categories</option>
-                @foreach (var category in _categories)
-                {
-                    <option value="@category.Id">@category.Name</option>
-                }
-            </select>
-        </div>
-    </div>
-
-    <!-- Category Cards Section -->
-    @if (_categories.Length > 0 && _selectedCategoryId == 0)
-    {
-        <div class="row mb-4">
-            @foreach (var category in _categories)
-            {
-                <div class="col-md-3 col-sm-6 mb-3">
-                    <div class="card category-card h-100" style="cursor: pointer;" @onclick="() => SelectCategory(category.Id)">
-                        <div class="card-body text-center">
-                            <div class="category-icon mb-3">
-                                <i class="bi bi-folder text-primary" style="font-size: 2.5rem;"></i>
-                            </div>
-                            <h5 class="card-title">@category.Name</h5>
-                        </div>
+    <!-- Hero Section for Room Actions -->
+    <div class="row mb-5">
+        <div class="col-md-6 mb-4">
+            <div class="hero-card">
+                <div class="d-flex flex-column align-items-center text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-plus-circle fs-1"></i>
                     </div>
+                    <h4>Create Your Own Room</h4>
+                    <p>Start a new quiz session and invite your friends to join</p>
+                    <a href="/student/createroom" class="btn btn-3d btn-3d-primary mt-3">Create Room</a>
                 </div>
-            }
+            </div>
         </div>
-    }
+        <div class="col-md-6 mb-4">
+            <div class="hero-card">
+                <div class="d-flex flex-column align-items-center text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-door-open fs-1"></i>
+                    </div>
+                    <h4>Join Existing Room</h4>
+                    <p>Enter a room code to participate in an active quiz session</p>
+                    <a href="/student/joinroom" class="btn btn-3d btn-3d-success mt-3">Join Room</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- Quiz List Section -->
+    <!-- Category Selection -->
+    <div class="category-select-container">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <label class="form-label fw-bold mb-0 fs-5">Select Category</label>
+            </div>
+            <div class="col-md-8">
+                <select class="category-select" @bind="_selectedCategoryId" @bind:after="OnSelectedCategoryChanged">
+                    <option value="0">All Categories</option>
+                    @foreach (var category in _categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Grid -->
     <div class="row">
         @if(!_isLoading && _quizes.Length == 0)
         {
-            var message = _selectedCategoryId == 0 ? "Select a category to view quizzes or browse all categories." : "No quizzes available for this category.";
-            <div class="col-12 text-center">
-                <h5 class="text-muted">@message</h5>
+            var message = _selectedCategoryId == 0 ? "Select a category to view quizzes." : "No quizzes available for this category.";
+            <div class="col-12">
+                <div class="empty-state">
+                    <div class="mb-3">
+                        <i class="bi bi-journal-x fs-1 text-muted"></i>
+                    </div>
+                    <h5>@message</h5>
+                    <p class="text-muted">Come back later or try a different category</p>
+                </div>
             </div>
         }
         else
         {
             @foreach (var q in _quizes)
             {
-                <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
-                    <div class="card h-100 quiz-card">
-                        <div class="card-body d-flex flex-column">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="card-title">@q.Name</h5>
-                                @* Bookmark functionality can be added here *@
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="quiz-card position-relative">
+                        @if (!string.IsNullOrEmpty(q.ImagePath))
+                        {
+                            <img src="https://localhost:7048/q.ImagePath" alt="@q.Name" class="quiz-image" />
+                        }
+                        else
+                        {
+                            <div class="quiz-image bg-light d-flex align-items-center justify-content-center">
+                                <i class="bi bi-journal-text fs-1 text-muted"></i>
                             </div>
-                            
-                            <div class="quiz-details mb-3">
-                                <div class="d-flex flex-wrap gap-2 mb-2">
-                                    <span class="badge bg-secondary">@q.CategoryName</span>
-                                    <span class="badge bg-info">@q.TotalQuestions questions</span>
-                                    <span class="badge bg-warning text-dark">@q.TimeInMinutes min</span>
+                        }
+
+                        <button type="button" class="btn btn-sm btn-3d btn-3d-warning @(IsBookmarked(q.Id) ? "btn-3d-warning" : "btn-3d-light")"
+                                @onclick="() => ToggleBookmarkAsync(q)"
+                                title="@(IsBookmarked(q.Id) ? "Remove bookmark" : "Add to bookmarks")">
+                            @(IsBookmarked(q.Id) ? "★" : "☆")
+                        </button>
+
+                        <div class="quiz-content">
+                            @* <span class="category-badge">@q.CategoryName</span> *@
+                            <h5 class="fw-bold mb-3">@q.Name</h5>
+
+                            <div class="quiz-stats">
+                                <div class="stat-item">
+                                    <div class="stat-value">@q.TotalQuestions</div>
+                                    <p class="stat-label mb-0">Questions</p>
                                 </div>
-                                
-                                <p class="small text-muted mb-1">
-                                    <i class="bi bi-person me-1"></i>Created by: @q.CreatedByName
-                                </p>
-                                
-                                <div class="mt-2">
-                                    <p class="card-text mb-0"><strong>Instructions:</strong> Complete all questions in the allotted time.</p>
+                                <div class="stat-item">
+                                    <div class="stat-value">@q.TimeInMinutes min</div>
+                                    <p class="stat-label mb-0">Time</p>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">@q.Level</div>
+                                    <p class="stat-label mb-0">Level</p>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">@q.CreatedByName</div>
+                                    <p class="stat-label mb-0">Creator</p>
                                 </div>
                             </div>
-                            
-                            <div class="mt-auto">
-                                <button type="button" class="btn btn-primary w-100" @onclick="() => ShowQuizTypeSelection(q)">Start Quiz</button>
+                        </div>
+
+                        <div class="quiz-meta">
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-3d btn-3d-warning" @onclick="() => ShowQuizTypeSelection(q)">Start Quiz</button>
+                                <a href="student/createroom?quizId=@q.Id" type="button" class="btn btn-3d btn-3d-primary">Create Room</a>
+                                <button type="button" class="btn btn-3d btn-3d-info" @onclick="() => ShowQuizDetails(q.Id)">View Details</button>
                             </div>
                         </div>
                     </div>
@@ -191,11 +510,11 @@
     <Modal Title="Select Quiz Type" OnCancelClick="() => _selectedQuizForType = null" OnActionButtonClick="() => {}" ActionButtonText="Close">
         <div class="quiz-type-selection">
             <div class="d-grid gap-3">
-                <button class="btn btn-lg btn-outline-primary p-3" @onclick="() => StartQuizWithMode(QuestionType.MCQ)">
+                <button class="btn btn-3d btn-3d-primary p-3 quiz-type-card" @onclick="() => StartQuizWithMode(QuestionType.MCQ)">
                     <h5><i class="bi bi-list-check me-2"></i>Multiple Choice Questions</h5>
                     <p class="mb-0">Answer questions with options, save and go to next, or submit the quiz when complete.</p>
                 </button>
-                <button class="btn btn-lg btn-outline-success p-3" @onclick="() => StartQuizWithMode(QuestionType.Flashcard)">
+                <button class="btn btn-3d btn-3d-success p-3 quiz-type-card" @onclick="() => StartQuizWithMode(QuestionType.Flashcard)">
                     <h5><i class="bi bi-card-text me-2"></i>Flashcards</h5>
                     <p class="mb-0">Review questions and answers by flipping cards. Navigate through questions at your own pace.</p>
                 </button>
@@ -204,29 +523,232 @@
     </Modal>
 }
 
+<BottomSheet IsOpen="@_showQuizDetails" Title="Quiz Details" IsOpenChanged="OnBottomSheetVisibilityChanged" OnCancelClick="() => _showQuizDetails = false" ShowFooter="false">
+    @if (_quizDetails != null)
+    {
+        <div class="quiz-details-content" style="max-height: 60vh; overflow-y: auto;">
+            <div class="quiz-info">
+                <h5 class="fw-bold">@_quizDetails.Name</h5>
+                @if (!string.IsNullOrEmpty(_quizDetails.Description))
+                {
+                    <p><strong>Description:</strong> @_quizDetails.Description</p>
+                }
+                else
+                {
+                    <p><em>No description provided</em></p>
+                }
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Category:</strong></td>
+                        <td>@_quizDetails.CategoryName</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Created By:</strong></td>
+                        <td>@_quizDetails.CreatedByName</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Questions:</strong></td>
+                        <td>@_quizDetails.TotalQuestions</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Level:</strong></td>
+                        <td>@(_quizDetails.Level ?? "Not specified")</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Time:</strong></td>
+                        <td>@_quizDetails.TimeInMinutes minutes</td>
+                    </tr>
+                </table>
+            </div>
+
+            @if (_quizDetails.RecentRatings.Any() || _quizDetails.RecentComments.Any())
+            {
+                <div class="recent-feedback mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6>Recent Feedback</h6>
+                        <button type="button" class="btn btn-3d btn-3d-primary btn-sm" @onclick="() => ShowAllFeedback(_quizDetails.Id)">View All Feedback</button>
+                    </div>
+                    @{
+                        // Create a dictionary to hold combined feedback
+                        var combinedFeedback = new Dictionary<int, dynamic>();
+
+                        // Add ratings to the dictionary
+                        foreach (var rating in _quizDetails.RecentRatings)
+                        {
+                            combinedFeedback[rating.StudentId] = new {
+                                StudentId = rating.StudentId,
+                                StudentName = rating.StudentName,
+                                Score = rating.Score,
+                                Comment = (string)null,
+                                CreatedOn = rating.CreatedOn
+                            };
+                        }
+
+                        // Add comments to the dictionary, combining with existing ratings if possible
+                        foreach (var comment in _quizDetails.RecentComments)
+                        {
+                            if (combinedFeedback.ContainsKey(comment.StudentId))
+                            {
+                                // Update existing entry with comment
+                                var existing = combinedFeedback[comment.StudentId];
+                                combinedFeedback[comment.StudentId] = new {
+                                    StudentId = comment.StudentId,
+                                    StudentName = comment.StudentName,
+                                    Score = existing.Score,
+                                    Comment = comment.Content,
+                                    CreatedOn = comment.CreatedOn
+                                };
+                            }
+                            else
+                            {
+                                // Add new entry with just comment
+                                combinedFeedback[comment.StudentId] = new {
+                                    StudentId = comment.StudentId,
+                                    StudentName = comment.StudentName,
+                                    Score = (string)null,
+                                    Comment = comment.Content,
+                                    CreatedOn = comment.CreatedOn
+                                };
+                            }
+                        }
+
+                        // Sort by date and take top 3
+                        var sortedFeedback = combinedFeedback.Values
+                            .OrderByDescending(f => f.CreatedOn)
+                            .Take(3)
+                            .ToList();
+                    }
+
+                    <div class="feedback-list">
+                        @foreach (var feedback in sortedFeedback)
+                        {
+                            <div class="feedback-item p-3 mb-2 border rounded">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <strong>@feedback.StudentName</strong>
+                                    @if (!string.IsNullOrEmpty(feedback.Score))
+                                    {
+                                        <span class="badge bg-primary">@GetRatingIcon(feedback.Score) @GetRatingDisplayText(feedback.Score)</span>
+                                    }
+                                </div>
+                                <small class="text-muted">@feedback.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
+
+                                @if (!string.IsNullOrEmpty(feedback.Comment))
+                                {
+                                    <div class="mt-2">
+                                        <p class="mb-0">@feedback.Comment</p>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="recent-feedback mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6>Recent Feedback</h6>
+                        <button type="button" class="btn btn-3d btn-3d-primary btn-sm" @onclick="() => ShowAllFeedback(_quizDetails.Id)">View All Feedback</button>
+                    </div>
+                    <p class="text-muted"><em>No feedback yet</em></p>
+                </div>
+            }
+        </div>
+    }
+    else if (_loadingDetails)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+</BottomSheet>
+
+<BottomSheet IsOpen="@_showAllFeedback" Title="All Feedback" IsOpenChanged="OnAllFeedbackBottomSheetVisibilityChanged" OnCancelClick="() => _showAllFeedback = false" ShowFooter="false">
+    @if (_allFeedback != null)
+    {
+        <div class="quiz-details-content" style="max-height: 60vh; overflow-y: auto;">
+            @if (_allFeedback.CombinedFeedback.Any())
+            {
+                <div class="feedback-list">
+                    @foreach (var feedback in _allFeedback.CombinedFeedback)
+                    {
+                        <div class="feedback-item p-3 mb-3 border rounded">
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>@feedback.StudentName</strong>
+                                @if (!string.IsNullOrEmpty(feedback.Score))
+                                {
+                                    <span class="badge bg-primary">@GetRatingIcon(feedback.Score) @GetRatingDisplayText(feedback.Score)</span>
+                                }
+                            </div>
+                            <small class="text-muted">@feedback.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
+
+                            @if (!string.IsNullOrEmpty(feedback.Comment))
+                            {
+                                <div class="mt-2">
+                                    <p class="mb-0">@feedback.Comment</p>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-3">
+                    <p class="text-muted mb-0">No feedback yet for this quiz</p>
+                </div>
+            }
+        </div>
+    }
+    else if (_loadingAllFeedback)
+    {
+        <div class="text-center py-3">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+</BottomSheet>
+
 @code {
     private CategoryDto[] _categories = [];
     private QuizListDto[] _quizes = [];
     private int _selectedCategoryId;
     private bool _isLoading;
     private QuizListDto? _selectedQuizForType;
+    private Dictionary<Guid, bool> _bookmarkedQuizes = new();
+
+    // For quiz details modal
+    private bool _showQuizDetails = false;
+    private QuizDetailsDto? _quizDetails;
+    private bool _loadingDetails = false;
+
+    // For all feedback modal
+    private bool _showAllFeedback = false;
+    private QuizAllFeedbackDto? _allFeedback;
+    private bool _loadingAllFeedback = false;
 
     private enum QuestionType { MCQ, Flashcard }
-    
+
     protected override async Task OnInitializedAsync()
     {
-        AppState.ShowLoader("Loading categories and quizzes...");
+        AppState.ShowLoader("Loading categories and quizes...");
         try
         {
             _isLoading = true;
             var categoriesTask = CategoryApi.GetCategoriesAsync();
-            //Load/Fetch quizzes
+            //Load/Fetch quizes
             _quizes = await StudentQuizApi.GetActiveQuizesAsync(_selectedCategoryId);
             _categories = await categoriesTask;
+
+            // Load bookmark status for each quiz
+            await LoadBookmarkStatusAsync();
         }
         catch (Exception ex)
         {
-            AppState.ShowError(ex.Message);
+            throw;
         }
         finally
         {
@@ -234,23 +756,185 @@
             _isLoading = false;
         }
     }
-    
+
     private async Task OnSelectedCategoryChanged()
     {
-        AppState.ShowLoader("Loading quizzes...");
+        AppState.ShowLoader("Loading quizes...");
         _quizes = await StudentQuizApi.GetActiveQuizesAsync(_selectedCategoryId);
+        await LoadBookmarkStatusAsync();
         AppState.HideLoader();
     }
 
-    private void SelectCategory(int categoryId)
+    // Removed old StartQuizAsync method - replaced with new quiz type selection functionality
+
+    private string GetRatingIcon(string? rating)
     {
-        _selectedCategoryId = categoryId;
-        OnSelectedCategoryChanged();
+        if (string.IsNullOrEmpty(rating)) return "😐";
+
+        return rating?.ToLower().Trim() switch
+        {
+            "very bad" => "😞",
+            "bad" => "😟",
+            "normal" => "😐",
+            "good" => "😄",
+            "very good" => "😁",
+            _ => "😐" // Default to neutral face for unknown ratings
+        };
+    }
+
+    private string GetRatingDisplayText(string? rating)
+    {
+        if (string.IsNullOrEmpty(rating)) return "";
+
+        return rating?.ToLower().Trim() switch
+        {
+            "very bad" => "Very Bad",
+            "bad" => "Bad",
+            "normal" => "Normal",
+            "good" => "Good",
+            "very good" => "Very Good",
+            _ => rating ?? "" // Default to original value for unknown ratings
+        };
+    }
+
+    private async Task LoadBookmarkStatusAsync()
+    {
+        if (!QuizAuthStateProvider.IsLoggedIn)
+        {
+            return;
+        }
+
+        _bookmarkedQuizes.Clear();
+        foreach (var quiz in _quizes)
+        {
+            var result = await BookmarkApi.IsBookmarkedAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = result.Data;
+            }
+        }
+    }
+
+    private async Task ToggleBookmarkAsync(QuizListDto quiz)
+    {
+        if (!QuizAuthStateProvider.IsLoggedIn)
+        {
+            NavigationManager.NavigateTo("auth/login");
+            return;
+        }
+
+        var isBookmarked = _bookmarkedQuizes.ContainsKey(quiz.Id) && _bookmarkedQuizes[quiz.Id];
+
+        if (isBookmarked)
+        {
+            // Remove bookmark
+            var result = await BookmarkApi.RemoveBookmarkAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = false;
+            }
+        }
+        else
+        {
+            // Add bookmark
+            var bookmarkDto = new QuizBookmarkDto
+            {
+                UserId = QuizAuthStateProvider.User.Id,
+                QuizId = quiz.Id,
+                QuizName = quiz.Name,
+                CategoryName = quiz.CategoryName
+            };
+
+            var result = await BookmarkApi.AddBookmarkAsync(bookmarkDto);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = true;
+            }
+        }
+    }
+
+    private bool IsBookmarked(Guid quizId)
+    {
+        return _bookmarkedQuizes.ContainsKey(quizId) && _bookmarkedQuizes[quizId];
     }
 
     private void ShowQuizTypeSelection(QuizListDto quiz)
     {
         _selectedQuizForType = quiz;
+    }
+
+    private async Task ShowQuizDetails(Guid quizId)
+    {
+        _loadingDetails = true;
+        _quizDetails = null;
+        _showQuizDetails = true;
+
+        try
+        {
+            var response = await StudentQuizApi.GetQuizDetailsAsync(quizId);
+            if (response.IsSuccess && response.Data != null)
+            {
+                _quizDetails = response.Data;
+            }
+            else
+            {
+                AppState.ShowError(response.ErrorMessage ?? "Failed to load quiz details");
+                _showQuizDetails = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading quiz details: {ex.Message}");
+            _showQuizDetails = false;
+        }
+        finally
+        {
+            _loadingDetails = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnBottomSheetVisibilityChanged(bool isVisible)
+    {
+        _showQuizDetails = isVisible;
+        StateHasChanged();
+    }
+
+    private async Task ShowAllFeedback(Guid quizId)
+    {
+        _loadingAllFeedback = true;
+        _allFeedback = null;
+        _showAllFeedback = true;
+
+        try
+        {
+            var response = await StudentQuizApi.GetAllFeedbackAsync(quizId);
+            if (response.IsSuccess && response.Data != null)
+            {
+                _allFeedback = response.Data;
+            }
+            else
+            {
+                AppState.ShowError(response.ErrorMessage ?? "Failed to load feedback");
+                _showAllFeedback = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading feedback: {ex.Message}");
+            _showAllFeedback = false;
+        }
+        finally
+        {
+            _loadingAllFeedback = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnAllFeedbackBottomSheetVisibilityChanged(bool isVisible)
+    {
+        _showAllFeedback = isVisible;
+        StateHasChanged();
     }
 
     private async Task StartQuizWithMode(QuestionType type)
