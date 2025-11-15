@@ -452,7 +452,7 @@
                     <div class="quiz-card position-relative">
                         @if (!string.IsNullOrEmpty(q.ImagePath))
                         {
-                            <img src="https://localhost:7048/q.ImagePath" alt="@q.Name" class="quiz-image" />
+                            <img src="@QuizImageService.GetImageUrl(q.ImagePath)" alt="@q.Name" class="quiz-image" />
                         }
                         else
                         {

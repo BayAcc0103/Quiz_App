@@ -10,7 +10,7 @@ public class QuestionImageService
 {
     private readonly HttpClient _httpClient;
     private readonly QuizAuthStateProvider _authStateProvider;
-    private const string ApiServer = "https://localhost:7048"; // Match the API server address
+    private const string ApiServer = "https://b861mvjb-7048.asse.devtunnels.ms"; // Match the API server address
 
     public QuestionImageService(HttpClient httpClient, QuizAuthStateProvider authStateProvider)
     {

@@ -10,7 +10,7 @@ namespace BlazingQuiz.Shared.Components.Services
         private readonly HttpClient _httpClient;
         private readonly QuizAuthStateProvider _authStateProvider;
 
-        private const string ApiServer = "https://localhost:7048"; // Default fallback
+        private const string ApiServer = "https://b861mvjb-7048.asse.devtunnels.ms"; // Default fallback
 
         public UserAvatarService(HttpClient httpClient, QuizAuthStateProvider authStateProvider)
         {
