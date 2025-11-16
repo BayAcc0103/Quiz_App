@@ -4,6 +4,7 @@ using BlazingQuiz.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazingQuiz.Api.Data.Migrations
 {
     [DbContext(typeof(QuizContext))]
-    partial class QuizContextModelSnapshot : ModelSnapshot
+    [Migration("20251116054540_AddCreatedAtToQuizzes")]
+    partial class AddCreatedAtToQuizzes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -150,7 +153,7 @@ namespace BlazingQuiz.Api.Data.Migrations
                     b.Property<int?>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("CreatedBy")
@@ -641,7 +644,7 @@ namespace BlazingQuiz.Api.Data.Migrations
                             Email = "admin@gmail.com",
                             IsApproved = true,
                             Name = "Admin",
-                            PasswordHash = "AQAAAAIAAYagAAAAEKd+KzfwrCU3GugEK6Dmgftrodu02btjU4BLF/aqAmNqNt2hDci7Zq6A+ycfawZ1RA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAELX2SS84huMMNukWZz35MTKxYBqFYqJUdWdrgJh7WXSYGln5sOn9CabofAgNxwuX0A==",
                             Phone = "0123456789",
                             Role = "Admin"
                         });

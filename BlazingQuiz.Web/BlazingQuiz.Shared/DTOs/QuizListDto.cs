@@ -21,5 +21,6 @@ namespace BlazingQuiz.Shared.DTOs
         public string? ImagePath { get; set; }
         public string? AudioPath { get; set; }
         public string? CreatedByName { get; set; }
+        public DateTime? CreatedAt { get; set; }
     }
 }

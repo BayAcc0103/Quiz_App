@@ -49,6 +49,7 @@ namespace BlazingQuiz.Api.Services
                     CreatedBy = userId, // Set the creator ID
                     ImagePath = dto.ImagePath, // Set the image path
                     AudioPath = dto.AudioPath, // Set the audio path
+                    CreatedAt = DateTime.UtcNow, // Set the creation date
                     Questions = questions
                 };
 
@@ -145,23 +146,25 @@ namespace BlazingQuiz.Api.Services
                 Id = q.Id,
                 Name = q.Name,
                 Description = q.Description,
-                CategoryName = q.CategoryId.HasValue ? 
-                    q.QuizCategories.Any(qc => qc.CategoryId == q.CategoryId) ? 
-                        q.QuizCategories.First(qc => qc.CategoryId == q.CategoryId).Category.Name : 
-                        "No Category" : 
+                CategoryName = q.CategoryId.HasValue ?
+                    q.QuizCategories.Any(qc => qc.CategoryId == q.CategoryId) ?
+                        q.QuizCategories.First(qc => qc.CategoryId == q.CategoryId).Category.Name :
+                        "No Category" :
                     q.QuizCategories.Any() ? string.Join(", ", q.QuizCategories.Select(qc => qc.Category.Name)) : "No Category",
                 TotalQuestions = q.TotalQuestions,
                 TimeInMinutes = q.TimeInMinutes,
                 IsActive = q.IsActive,
                 Level = q.Level, // Include the level
                 CategoryId = q.CategoryId,
-                ImagePath = q.ImagePath
+                ImagePath = q.ImagePath,
+                CreatedAt = q.CreatedAt
             })
             .ToArrayAsync();
         }
 
-        public async Task<QuestionDto[]> GetQuizQuestionsAsync(Guid quizId) =>
-            await _context.Questions.Where(q => q.QuizId == quizId)
+        public async Task<QuestionDto[]> GetQuizQuestionsAsync(Guid quizId)
+        {
+            return await _context.Questions.Where(q => q.QuizId == quizId)
                 .Select(q => new QuestionDto
                 {
                     Id = q.Id,
@@ -183,6 +186,7 @@ namespace BlazingQuiz.Api.Services
                     }).ToList() : new List<TextAnswerDto>()
                 })
                 .ToArrayAsync();
+        }
 
         public async Task<QuizSaveDto?> GetQuizToEditAsync(Guid quizId, int userId, bool isAdmin)
         {

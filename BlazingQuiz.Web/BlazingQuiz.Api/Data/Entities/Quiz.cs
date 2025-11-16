@@ -21,7 +21,9 @@ namespace BlazingQuiz.Api.Data.Entities
         
         [ForeignKey(nameof(CreatedBy))]
         public virtual User? CreatedByUser { get; set; }
-        
+
+        public DateTime? CreatedAt { get; set; }
+
         public virtual ICollection<Question> Questions { get; set; } = [];
         public virtual ICollection<QuizFeedback> QuizFeedbacks { get; set; } = [];
         public virtual ICollection<Rating> Ratings { get; set; } = [];

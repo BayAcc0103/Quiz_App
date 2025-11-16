@@ -3,7 +3,7 @@
 @inject NavigationManager NavigationManager
 
 @inject QuizAuthStateProvider QuizAuthStateProvider
-<div class="top-row ps-3 navbar navbar-dark">
+@* <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">BlazingQuiz.Web</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
@@ -90,7 +90,7 @@
                         <NavLink class="nav-link" href="teacher/manage-questions">
                             <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Manage Questions
                         </NavLink>
-                    </div> *@
+                    </div> 
                     <div class="nav-item px-3">
                         <NavLink class="nav-link" href="teacher/manage-categories">
                             <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Manage Categories
@@ -126,7 +126,162 @@
         </AuthorizeView>
         
     </nav>
-</div>
+</div> *@
+
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <img src="https://static.vecteezy.com/system/resources/previews/016/061/690/non_2x/quiz-logo-with-speech-bubble-symbols-concept-of-questionnaire-show-sing-quiz-vector.jpg" alt="logo" />
+    </div>
+    <ul class="sidebar-links">
+        <AuthorizeView>
+            <Authorized>
+                <AuthorizeView Roles="@(nameof(UserRole.Admin))" Context="adminContext">
+                    <li>
+                        <a href="admin/home">
+                            <span class="material-symbols-outlined"> home </span>Home
+                        </a>
+                    </li>
+                    <h4>
+                        <span>Manage System</span>
+                        <div class="menu-separator"></div>
+                    </h4>
+                    <li>
+                        <a href="admin/manage-categories">
+                            <span class="material-symbols-outlined"> category </span>Category
+                        </a>
+                    </li>
+                    <li>
+                        <a href="admin/manage-students">
+                            <span class="material-symbols-outlined"> lock_person </span> User
+                        </a>
+                    </li>
+                    <li>
+                        <a href="admin/rooms">
+                            <span class="material-symbols-outlined"> room_preferences </span> Room
+                        </a>
+                    </li>
+                    <h4>
+                        <span>Manage Quiz</span>
+                        <div class="menu-separator"></div>
+                    </h4>
+                    <li>
+                        <a href="admin/manage-quizes">
+                            <span class="material-symbols-outlined"> data_table </span> Quiz
+                        </a>
+                    </li>
+                    <li>
+                        <a href="admin/add-quiz">
+                            <span class="material-symbols-outlined"> note_stack_add </span> Create Quiz
+                        </a>
+                    </li>
+                    <h4>
+                        <span>System</span>
+                        <div class="menu-separator"></div>
+                    </h4>
+                </AuthorizeView>
+                <AuthorizeView Roles="@(nameof(UserRole.Student))" Context="adminContext">
+                    <h4>
+                        <span>Quiz</span>
+                        <div class="menu-separator"></div>
+                    </h4>
+                    <li>
+                        <a href="student/home">
+                            <span class="material-symbols-outlined"> home </span> Home
+                        </a>
+                    </li>
+                    <li>
+                        <a href="student/my-quizes">
+                            <span class="material-symbols-outlined"> data_table </span> My quizes
+                        </a>
+                    </li>
+                    <li>
+                        <a href="student/bookmarks">
+                            <span class="material-symbols-outlined"> bookmarks </span> Bookmarks
+                        </a>
+                    </li>
+                    <h4>
+                        <span>Room</span>
+                        <div class="menu-separator"></div>
+                    </h4>
+                    <li>
+                        <a href="student/joinroom">
+                            <span class="material-symbols-outlined"> home_work </span> Join Room
+                        </a>
+                    </li>
+                    <li>
+                        <a href="student/createroom">
+                            <span class="material-symbols-outlined"> add_home_work </span> Create Room
+                        </a>
+                    </li>
+                    <h4>
+                        <span>System</span>
+                        <div class="menu-separator"></div>
+                    </h4>
+                    <li>
+                        <a href="student/profile">
+                            <span class="material-symbols-outlined"> person_pin </span> Profile
+                        </a>
+                    </li>
+                 
+                </AuthorizeView>
+                <AuthorizeView Roles="@(nameof(UserRole.Teacher))" Context="adminContext">
+                    <li>
+                        <a href="teacher/home">
+                            <span class="material-symbols-outlined"> home </span>Home
+                        </a>
+                    </li>
+                    <h4>
+                        <span>Quiz</span>
+                        <div class="menu-separator"></div>
+                    </h4>
+                    <li>
+                        <a href="teacher/manage-categories">
+                            <span class="material-symbols-outlined"> category </span>Category
+                        </a>
+                    </li>
+                    <li>
+                        <a href="teacher/manage-quizzes">
+                            <span class="material-symbols-outlined"> data_table </span> Quiz
+                        </a>
+                    </li>
+                    <li>
+                        <a href="teacher/add-quiz">
+                            <span class="material-symbols-outlined"> note_stack_add </span> Create Quiz
+                        </a>
+                    </li>
+                    <li>
+                        <a href="teacher/createroom">
+                            <span class="material-symbols-outlined"> add_home_work </span> Create Room
+                        </a>
+                    </li>
+                    <h4>
+                        <span>System</span>
+                        <div class="menu-separator"></div>
+                    </h4>
+                    <li>
+                        <a href="teacher/profile">
+                            <span class="material-symbols-outlined"> person_pin </span> Profile
+                        </a>
+                    </li>
+                </AuthorizeView>
+                <li>
+                    <a role="button" @onclick="LogoutAsync">
+                        <span class="material-symbols-outlined"> logout </span> Logout
+                    </a>
+                </li>
+            </Authorized>
+        </AuthorizeView>
+    </ul>
+    <div class="user-account">
+        <div class="user-profile">
+            <img src="https://i.pinimg.com/736x/c6/e5/65/c6e56503cfdd87da299f72dc416023d4.jpg" alt="Profile Image" />
+            <div class="user-detail">
+                <h3>Eva Murphy</h3>
+                <span>Web Developer</span>
+            </div>
+        </div>
+    </div>
+</aside>
 
 @code {
     private bool collapseNavMenu = true;

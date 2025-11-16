@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @inject QuizAuthStateProvider QuizAuthStateProvider
 <div class="page">
-    <div class="sidebar">
+    <div>
         <NavMenu />
     </div>
 
@@ -19,7 +19,7 @@
             }
         </div>
 
-        <article class="content px-4">
+        <article class="content">
             @if (QuizAuthStateProvider.IsInitializing)
             {
                 <p>Initializing state...</p>
