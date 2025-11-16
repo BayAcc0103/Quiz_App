@@ -1,6 +1,5 @@
 .page {
     position: relative;
-    display: flex;
     flex-direction: column;
 }
 
@@ -51,13 +50,6 @@ main {
         flex-direction: row;
     }
 
-    .page > div:first-child { /* This targets the div containing NavMenu */
-        width: 15px; /* Assuming NavMenu takes 250px */
-        height: 100vh;
-        position: sticky;
-        top: 0;
-    }
-
     main {
         flex: 1; /* Ensure main takes remaining space */
     }
@@ -74,6 +66,7 @@ main {
     }
 
     .top-row, article {
-        padding-left: 250px;
+        padding-left: 200px;
+        padding-right: 200px;
     }
 }
