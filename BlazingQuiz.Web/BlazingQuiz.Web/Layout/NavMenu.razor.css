@@ -102,13 +102,13 @@ body {
 .sidebar {
     position: fixed;
     height: 100%;
-    width: 85px;
+    width: 60px;
     display: flex;
     overflow-x: hidden;
     z-index: 1000;
     flex-direction: column;
     background: radial-gradient( circle at top left, #ffe2aa 0%, #ffc46a 45%, #ffae4a 100% );
-    padding: 20px 18px;
+    padding: 5px 5px;
     border-radius: 18px;
     box-shadow: 0 18px 36px rgba(179, 103, 18, 0.6), 0 0 0 1px rgba(255,255,255,0.18);
     transition: all 0.35s ease;
@@ -117,7 +117,7 @@ body {
 }
 
     .sidebar:hover {
-        width: 260px;
+        width: 180px;
         box-shadow: 0 24px 52px rgba(166, 88, 10, 0.7), 0 0 0 1px rgba(255,255,255,0.32);
         transform: translateY(-2px);
     }
@@ -125,13 +125,14 @@ body {
     /* HEADER – LOGO + TEXT */
     .sidebar .sidebar-header {
         display: flex;
+        justify-content: center;
         align-items: center;
         padding-bottom: 6px;
     }
 
         .sidebar .sidebar-header img {
-            width: 44px;
-            height: 44px;
+            width: 54px;
+            height: 54px;
             border-radius: 50%;
             border: 2px solid rgba(255,255,255,0.9);
             box-shadow: 0 6px 14px rgba(168, 94, 18, 0.8);
@@ -140,7 +141,7 @@ body {
 
         .sidebar .sidebar-header h2 {
             color: #fffaf2;
-            font-size: 1.2rem;
+            font-size: 0rem;
             font-weight: 600;
             white-space: nowrap;
             margin-left: 18px;
@@ -213,8 +214,9 @@ body {
             position: relative;
             display: flex;
             align-items: center;
-            gap: 0 20px;
+            gap: 0 13px;
             color: #fff7e6; /* chữ trắng kem */
+            font-size: 0.9rem;
             font-weight: 500;
             white-space: nowrap;
             padding: 8px;
@@ -244,7 +246,7 @@ body {
                 color: #5a3510; /* nâu đậm ấm */
                 background: linear-gradient(135deg, #ffffff, #ffe2ba);
                 transform: translateX(4px) translateY(-2px);
-                
+                font-size: 1rem;
                 opacity: 1;
             }
 
