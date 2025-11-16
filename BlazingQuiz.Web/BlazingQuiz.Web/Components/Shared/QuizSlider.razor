@@ -10,7 +10,7 @@
 <div class="quiz-slider-container position-relative" style="margin: 2rem 0;">
     <!-- Navigation arrows -->
     <button type="button" class="slider-nav-btn slider-nav-btn-prev" @onclick="PrevSlide" aria-label="Previous slide">
-        <i class="bi bi-chevron-left"></i>
+        <span class="material-symbols-outlined"> arrow_circle_left </span>
     </button>
 
     <div class="quiz-slider overflow-hidden">
@@ -32,10 +32,14 @@
                                     </div>
 
                                     <!-- Bookmark button -->
-                                    <button type="button" class="btn btn-bookmark @(IsBookmarked(quiz.Id) ? "bookmarked" : "")"
+                                    <button type="button"
+                                            class="btn btn-bookmark @(IsBookmarked(quiz.Id) ? "bookmarked" : "")"
                                             @onclick="() => ToggleBookmarkAsync(quiz)"
                                             title="@(IsBookmarked(quiz.Id) ? "Remove bookmark" : "Add to bookmarks")">
-                                        <i class="bi @(IsBookmarked(quiz.Id) ? "bi-bookmark-fill text-warning" : "bi-bookmark text-muted")"></i>
+
+                                        <span class="material-symbols-outlined @(IsBookmarked(quiz.Id) ? "text-warning" : "text-muted")">
+                                            @(IsBookmarked(quiz.Id) ? "bookmark" : "bookmark_add")
+                                        </span>
                                     </button>
 
                                     <!-- Quiz image -->
@@ -98,7 +102,9 @@
 
     <!-- Next navigation button -->
     <button type="button" class="slider-nav-btn slider-nav-btn-next" @onclick="NextSlide" aria-label="Next slide">
-        <i class="bi bi-chevron-right"></i>
+        <span class="material-symbols-outlined">
+            arrow_circle_right
+        </span>
     </button>
 
     <!-- Slide indicators -->
