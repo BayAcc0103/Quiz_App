@@ -120,7 +120,8 @@
         {
             nameof(UserRole.Student) => "student/home",
             nameof(UserRole.Teacher) => "teacher/home",
-            _ => "/"
+            nameof(UserRole.Admin) => "admin/home",
+            _ => "/home"
         };
 
         NavigationManager.NavigateTo(redirectTo, replace);

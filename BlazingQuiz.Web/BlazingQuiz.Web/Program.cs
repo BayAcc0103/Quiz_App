@@ -23,7 +23,7 @@ builder.Services.AddAuthorizationCore();
 
 builder.Services.AddSingleton<IAppState, AppState>()
     .AddSingleton<QuizState>()
-    .AddSingleton<IStorageService, StorageService>()
+    .AddSingleton<IStorageService, SessionStorageService>()
     .AddSingleton<IPlatform, WebPlatform>()
     .AddScoped<ExampleJsInterop>()
     .AddSingleton<ProfileUpdateService>()

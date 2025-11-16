@@ -13,12 +13,12 @@ namespace BlazingQuiz.Web.Auth
         private const string AuthType = "quiz-auth";
         private const string UserDataKey = "udata";
         private Task<AuthenticationState> _authStateTask;
-        private readonly IJSRuntime _jSRuntime;
+        private readonly IStorageService _storageService;
         private readonly NavigationManager _navigationManager;
 
-        public QuizAuthStateProvider(IJSRuntime jSRuntime, NavigationManager navigationManager)
+        public QuizAuthStateProvider(IStorageService storageService, NavigationManager navigationManager)
         {
-            _jSRuntime = jSRuntime;
+            _storageService = storageService;
             _navigationManager = navigationManager;
             SetAuthStateTask();
         }
@@ -31,42 +31,50 @@ namespace BlazingQuiz.Web.Auth
             User = user;
             SetAuthStateTask();
             NotifyAuthenticationStateChanged(_authStateTask);
-            await _jSRuntime.InvokeVoidAsync("localStorage.setItem",UserDataKey, user.ToJson());
+            await _storageService.SetItem(UserDataKey, user.ToJson());
         }
         public async Task SetLogoutAsync()
         {
             User = null;
             SetAuthStateTask();
             NotifyAuthenticationStateChanged(_authStateTask);
-            await _jSRuntime.InvokeVoidAsync("localStorage.removeItem", UserDataKey);
+            await _storageService.RemoveItem(UserDataKey);
         }
         public bool IsInitializing { get ; private set; } = true;
         public async Task InitializeAsync()
         {
             try
             {
-                var udata = await _jSRuntime.InvokeAsync<string?>("localStorage.getItem", UserDataKey);
+                var udata = await _storageService.GetItem(UserDataKey);
                 if (string.IsNullOrWhiteSpace(udata))
                 {
-                    // User data/state is not there in the browser's storage 
-                    RedirectToLoginPage();
+                    // User data/state is not there in the browser's storage
+                    // Don't redirect, just keep the user as not authenticated
+                    User = null;
+                    SetAuthStateTask();
                     return;
                 }
                 var user = LoggedInUser.LoadFrom(udata);
                 if (user == null || user.Id == 0)
                 {
-                    // User data/state is not valid
-                    RedirectToLoginPage();
+                    // User data is not valid
+                    await _storageService.RemoveItem(UserDataKey); // Clean up invalid data
+                    User = null;
+                    SetAuthStateTask();
                     return;
                 }
-                // Check if JWT token is still valid (not expired) 
+                // Check if JWT token is still valid (not expired)
                 if (!IsTokenValid(user.Token))
                 {
                     // Token is expired
-                    RedirectToLoginPage();
+                    await _storageService.RemoveItem(UserDataKey); // Clean up expired data
+                    User = null;
+                    SetAuthStateTask();
                     return;
                 }
-                await SetLoginAsync(user);
+                User = user;
+                SetAuthStateTask();
+                NotifyAuthenticationStateChanged(_authStateTask);
             }
             catch (Exception ex)
             {
@@ -74,7 +82,7 @@ namespace BlazingQuiz.Web.Auth
                 // SetLoginAsync from this InitializeAsync method throws;
                 // Collection was modified; enumeration has changed on the NotifyAuthenticationStateChanged
                 // in the SetLoginAsync method.
-                
+
             }
             finally
             {
