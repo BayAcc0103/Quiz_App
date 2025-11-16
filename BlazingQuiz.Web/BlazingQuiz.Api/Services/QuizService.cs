@@ -51,19 +51,22 @@ namespace BlazingQuiz.Api.Services
                     AudioPath = dto.AudioPath, // Set the audio path
                     Questions = questions
                 };
-                await _context.SaveChangesAsync(); // Save to get the quiz ID
-                
-                // Add quiz-category relationships
+
+                _context.Quizzes.Add(quiz);
+
+                // Add quiz-category relationships BEFORE saving to ensure atomic transaction
                 if (dto.CategoryIds != null && dto.CategoryIds.Any())
                 {
                     var quizCategories = dto.CategoryIds.Select(catId => new QuizCategory
                     {
-                        QuizId = quiz.Id,
+                        Quiz = quiz, // Use the quiz object directly instead of quiz.Id
                         CategoryId = catId
                     }).ToList();
-                    
+
                     _context.QuizCategories.AddRange(quizCategories);
                 }
+
+                // Single SaveChangesAsync to save both quiz and quiz-categories in one transaction
             }
             else
             {
@@ -76,13 +79,13 @@ namespace BlazingQuiz.Api.Services
                     // Quiz does not exist, throw error or return some response
                     return QuizApiResponse.Failure("Quiz does not exist");
                 }
-                
+
                 // Check if the user is the creator of this quiz (skip for admin)
                 if (dbQuiz.CreatedBy.HasValue && dbQuiz.CreatedBy != userId)
                 {
                     return QuizApiResponse.Failure("You can only edit quizzes that you created.");
                 }
-                
+
                 dbQuiz.Name = dto.Name;
                 dbQuiz.Description = dto.Description;
                 dbQuiz.CategoryId = dto.CategoryIds != null && dto.CategoryIds.Any() ? dto.CategoryIds.First() : (int?)null; // Keep first as primary for backward compatibility
@@ -93,13 +96,13 @@ namespace BlazingQuiz.Api.Services
                 dbQuiz.ImagePath = dto.ImagePath; // Set the image path
                 dbQuiz.AudioPath = dto.AudioPath; // Set the audio path
                 dbQuiz.Questions = questions;
-                
+
                 // Update quiz-category relationships
                 if (dbQuiz.QuizCategories != null)
                 {
                     _context.QuizCategories.RemoveRange(dbQuiz.QuizCategories);
                 }
-                
+
                 if (dto.CategoryIds != null && dto.CategoryIds.Any())
                 {
                     var quizCategories = dto.CategoryIds.Select(catId => new QuizCategory
@@ -107,7 +110,7 @@ namespace BlazingQuiz.Api.Services
                         QuizId = dbQuiz.Id,
                         CategoryId = catId
                     }).ToList();
-                    
+
                     _context.QuizCategories.AddRange(quizCategories);
                 }
             }

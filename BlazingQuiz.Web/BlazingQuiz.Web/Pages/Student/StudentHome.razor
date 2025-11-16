@@ -1,6 +1,7 @@
 @page "/student/home"
 
 @using BlazingQuiz.Shared
+@using BlazingQuiz.Web.Components.Shared
 @inject IAppState AppState
 @inject ICategoryApi CategoryApi
 @inject IStudentQuizApi StudentQuizApi
@@ -230,7 +231,7 @@
 
 <div class="container py-4">
     <h2 class="welcome-title text-center">Welcome to Your Quiz Hub</h2>
-    
+
     <!-- Hero Section for Room Actions -->
     <div class="row mb-5">
         <div class="col-md-6 mb-4">
@@ -258,7 +259,43 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Random Easy Level Quizzes Section -->
+    <div class="mb-5">
+        <h3 class="mb-4">Easy</h3>
+        @if (_randomEasyQuizzes.Length > 0)
+        {
+            <QuizSlider QuizList="_randomEasyQuizzes"
+                        OnQuizTypeSelection="ShowQuizTypeSelection"
+                        OnQuizDetails="ShowQuizDetails"
+                        OnBookmarkToggle="OnBookmarkToggled" />
+        }
+        else
+        {
+            <div class="text-center py-4">
+                <p class="text-muted">No easy level quizzes available at the moment.</p>
+            </div>
+        }
+    </div>
+
+    <!-- Random Hard Level Quizzes Section -->
+    <div class="mb-5">
+        <h3 class="mb-4">Hard</h3>
+        @if (_randomHardQuizzes.Length > 0)
+        {
+            <QuizSlider QuizList="_randomHardQuizzes"
+                        OnQuizTypeSelection="ShowQuizTypeSelection"
+                        OnQuizDetails="ShowQuizDetails"
+                        OnBookmarkToggle="OnBookmarkToggled" />
+        }
+        else
+        {
+            <div class="text-center py-4">
+                <p class="text-muted">No hard level quizzes available at the moment.</p>
+            </div>
+        }
+    </div>
+
     <!-- Category Selection -->
     <div class="category-select-container">
         <div class="row align-items-center">
@@ -563,6 +600,8 @@
 @code {
     private CategoryDto[] _categories = [];
     private QuizListDto[] _quizes = [];
+    private QuizListDto[] _randomEasyQuizzes = [];
+    private QuizListDto[] _randomHardQuizzes = [];
     private int _selectedCategoryId;
     private bool _isLoading;
     private QuizListDto? _selectedQuizForType;
@@ -591,6 +630,11 @@
             _quizes = await StudentQuizApi.GetActiveQuizesAsync(_selectedCategoryId);
             _categories = await categoriesTask;
 
+            // Load random easy quizzes for the slider
+            await LoadRandomEasyQuizzesAsync();
+            // Load random hard quizzes for the slider
+            await LoadRandomHardQuizzesAsync();
+
             // Load bookmark status for each quiz
             await LoadBookmarkStatusAsync();
         }
@@ -610,6 +654,10 @@
         AppState.ShowLoader("Loading quizes...");
         _quizes = await StudentQuizApi.GetActiveQuizesAsync(_selectedCategoryId);
         await LoadBookmarkStatusAsync();
+        // Refresh the random easy quizzes as well
+        await LoadRandomEasyQuizzesAsync();
+        // Refresh the random hard quizzes as well
+        await LoadRandomHardQuizzesAsync();
         AppState.HideLoader();
     }
 
@@ -698,6 +746,16 @@
             {
                 _bookmarkedQuizes[quiz.Id] = true;
             }
+        }
+    }
+
+    private async Task OnBookmarkToggled(QuizListDto quiz)
+    {
+        // Refresh bookmark status when bookmark is toggled in the slider
+        var result = await BookmarkApi.IsBookmarkedAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+        if (result.IsSuccess)
+        {
+            _bookmarkedQuizes[quiz.Id] = result.Data;
         }
     }
 
@@ -821,6 +879,60 @@
         {
             AppState.HideLoader();
             _selectedQuizForType = null;
+        }
+    }
+
+    private async Task LoadRandomEasyQuizzesAsync()
+    {
+        AppState.ShowLoader("Loading random easy quizzes...");
+        try
+        {
+            // Get all active quizzes
+            var allQuizzes = await StudentQuizApi.GetActiveQuizesAsync(0); // 0 means all categories
+
+            // Filter for easy level quizzes
+            var easyQuizzes = allQuizzes.Where(q => q.Level?.ToLower() == "easy").ToArray();
+
+            // Randomize the order
+            var random = new Random();
+            _randomEasyQuizzes = easyQuizzes.OrderBy(q => random.Next()).Take(9).ToArray(); // Take up to 9 for the slider (3 rows of 3)
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading random easy quizzes: {ex.Message}");
+            _randomEasyQuizzes = []; // Initialize as empty array to avoid null reference
+        }
+        finally
+        {
+            AppState.HideLoader();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadRandomHardQuizzesAsync()
+    {
+        AppState.ShowLoader("Loading random hard quizzes...");
+        try
+        {
+            // Get all active quizzes
+            var allQuizzes = await StudentQuizApi.GetActiveQuizesAsync(0); // 0 means all categories
+
+            // Filter for hard level quizzes
+            var hardQuizzes = allQuizzes.Where(q => q.Level?.ToLower() == "hard").ToArray();
+
+            // Randomize the order
+            var random = new Random();
+            _randomHardQuizzes = hardQuizzes.OrderBy(q => random.Next()).Take(9).ToArray(); // Take up to 9 for the slider (3 rows of 3)
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading random hard quizzes: {ex.Message}");
+            _randomHardQuizzes = []; // Initialize as empty array to avoid null reference
+        }
+        finally
+        {
+            AppState.HideLoader();
+            StateHasChanged();
         }
     }
 }
