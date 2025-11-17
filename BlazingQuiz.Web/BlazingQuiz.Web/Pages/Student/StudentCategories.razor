@@ -1,0 +1,113 @@
+@page "/student/categories"
+@using BlazingQuiz.Shared
+@using System.Linq
+@inject IAppState AppState
+@inject ICategoryApi CategoryApi
+@inject NavigationManager NavigationManager
+@inject QuizState QuizState
+@inject QuizImageService QuizImageService
+@inject CategoryImageService CategoryImageService
+@inject IStudentQuizApi StudentQuizApi
+
+<div class="container-fluid">
+    <h2 class="mb-4">All Categories</h2>
+
+    <div class="row">
+        @if (_categories.Length > 0)
+        {
+            @for (int i = 0; i < _categories.Length; i++)
+            {
+                var category = _categories[i];
+                <div class="col-md-2 col-sm-4 col-6 mb-4">
+                    <div class="category-item text-center" @onclick="() => OnCategoryClick(category)">
+                        @if (!string.IsNullOrEmpty(category.ImagePath))
+                        {
+                            <img src="@CategoryImageService.GetImageUrl(category.ImagePath)" alt="@category.Name" class="category-image img-fluid rounded mb-2" />
+                        }
+                        else
+                        {
+                            <div class="category-placeholder rounded mb-2 d-flex align-items-center justify-content-center">
+                                <i class="bi bi-folder fs-3 text-muted"></i>
+                            </div>
+                        }
+                        <div class="category-name">@category.Name</div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="text-center py-4">
+                    <p class="text-muted">No categories available at the moment.</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .category-item {
+        cursor: pointer;
+        padding: 10px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .category-item:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .category-image {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        border: 1px solid #ddd;
+    }
+
+    .category-placeholder {
+        width: 100%;
+        height: 100px;
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+    }
+
+    .category-name {
+        font-size: 0.9rem;
+        margin-top: 5px;
+        text-align: center;
+        word-break: break-word;
+    }
+</style>
+
+@code {
+    private CategoryDto[] _categories = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        AppState.ShowLoader("Loading categories...");
+        try
+        {
+            var allCategories = await CategoryApi.GetCategoriesAsync();
+            // Only show categories where IsDisplay is true
+            _categories = allCategories.Where(c => c.IsDisplay).ToArray();
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading categories: {ex.Message}");
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private async Task OnCategoryClick(CategoryDto category)
+    {
+        // Set the selected category and navigate to the home page to show quizzes in that category
+        QuizState.SelectedCategoryId = category.Id;
+        NavigationManager.NavigateTo($"/student/home?categoryId={category.Id}");
+    }
+}

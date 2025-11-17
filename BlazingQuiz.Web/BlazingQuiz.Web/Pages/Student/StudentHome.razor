@@ -1,4 +1,5 @@
 @page "/student/home"
+@page "/student/home/{categoryId:int?}"
 
 @using BlazingQuiz.Shared
 @using BlazingQuiz.Web.Components.Shared
@@ -10,6 +11,7 @@
 @inject QuizState QuizState
 @inject QuizImageService QuizImageService
 @inject QuizAuthStateProvider QuizAuthStateProvider
+@inject CategoryImageService CategoryImageService
 
 <div class="pl-1 pr-1">
     <!-- Hero Section for Room Actions -->
@@ -38,6 +40,56 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Category Section for Visible Categories -->
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="/student/categories" class="btn btn-outline-primary">View All</a>
+        </div>
+        @if (_visibleCategories.Length > 0)
+        {
+            @for (int row = 0; row < 2; row++)
+            {
+                <div class="row mb-3">
+                    @for (int col = 0; col < 6; col++)
+                    {
+                        var index = row * 6 + col;
+                        if (index < _visibleCategories.Length)
+                        {
+                            var category = _visibleCategories[index];
+                            <div class="col-md-2 col-4 mb-3">
+                                <div class="category-item text-center" @onclick="() => OnCategoryClick(category)">
+                                    @if (!string.IsNullOrEmpty(category.ImagePath))
+                                    {
+                                        <img src="@CategoryImageService.GetImageUrl(category.ImagePath)" alt="@category.Name" class="category-image img-fluid rounded mb-2" />
+                                    }
+                                    else
+                                    {
+                                        <div class="category-placeholder rounded mb-2 d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-folder fs-3 text-muted"></i>
+                                        </div>
+                                    }
+                                    <div class="category-name">@category.Name</div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="col-md-2 col-4 mb-3">
+                                <div class="category-item-placeholder"></div>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-4">
+                <p class="text-muted">No categories available at the moment.</p>
+            </div>
+        }
     </div>
 
     <!-- Random Easy Level Quizzes Section -->
@@ -397,6 +449,7 @@
 
 @code {
     private CategoryDto[] _categories = [];
+    private CategoryDto[] _visibleCategories = [];
     private QuizListDto[] _quizes = [];
     private QuizListDto[] _randomEasyQuizzes = [];
     private QuizListDto[] _randomHardQuizzes = [];
@@ -416,6 +469,7 @@
     private QuizAllFeedbackDto? _allFeedback;
     private bool _loadingAllFeedback = false;
 
+    [Parameter] public int? categoryId { get; set; }
     private enum QuestionType { MCQ, Flashcard }
 
     protected override async Task OnInitializedAsync()
@@ -426,8 +480,13 @@
             _isLoading = true;
             var categoriesTask = CategoryApi.GetCategoriesAsync();
             //Load/Fetch quizes
+            // Use the categoryId from the route parameter if provided, otherwise default to 0 (all categories)
+            _selectedCategoryId = categoryId ?? 0;
             _quizes = await StudentQuizApi.GetActiveQuizesAsync(_selectedCategoryId);
             _categories = await categoriesTask;
+
+            // Filter visible categories (where IsDisplay is true)
+            _visibleCategories = _categories.Where(c => c.IsDisplay).ToArray();
 
             // Load random easy quizzes for the slider
             await LoadRandomEasyQuizzesAsync();
@@ -453,6 +512,23 @@
     private async Task OnSelectedCategoryChanged()
     {
         AppState.ShowLoader("Loading quizes...");
+        _quizes = await StudentQuizApi.GetActiveQuizesAsync(_selectedCategoryId);
+        await LoadBookmarkStatusAsync();
+        // Refresh the random easy quizzes as well
+        await LoadRandomEasyQuizzesAsync();
+        // Refresh the random hard quizzes as well
+        await LoadRandomHardQuizzesAsync();
+        // Refresh the recent quizzes as well
+        await LoadRecentQuizzesAsync();
+        AppState.HideLoader();
+    }
+
+    private async Task OnCategoryClick(CategoryDto category)
+    {
+        // Set the selected category and reload quizzes for that category
+        _selectedCategoryId = category.Id;
+        QuizState.SelectedCategoryId = category.Id; // Update the global state
+        AppState.ShowLoader("Loading quizzes...");
         _quizes = await StudentQuizApi.GetActiveQuizesAsync(_selectedCategoryId);
         await LoadBookmarkStatusAsync();
         // Refresh the random easy quizzes as well
