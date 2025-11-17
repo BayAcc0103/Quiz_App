@@ -11,5 +11,7 @@ namespace BlazingQuiz.Api.Data.Entities
         
         [MaxLength(255)]
         public string? ImagePath { get; set; }
+
+        public bool IsDisplay { get; set; } = false;
     }
 }

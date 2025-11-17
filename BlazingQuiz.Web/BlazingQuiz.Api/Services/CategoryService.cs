@@ -27,17 +27,19 @@ namespace BlazingQuiz.Api.Services
                 var category = new Category
                 {
                     Name = dto.Name,
-                    ImagePath = dto.ImagePath
+                    ImagePath = dto.ImagePath,
+                    IsDisplay = dto.IsDisplay
                 };
                 _context.Categories.Add(category);
                 await _context.SaveChangesAsync(); // Save to get the new ID
-                
+
                 // Return the created category with its new ID
                 return QuizApiResponse<CategoryDto>.Success(new CategoryDto
                 {
                     Id = category.Id,
                     Name = category.Name,
-                    ImagePath = category.ImagePath
+                    ImagePath = category.ImagePath,
+                    IsDisplay = category.IsDisplay
                 });
             }
             else
@@ -51,6 +53,7 @@ namespace BlazingQuiz.Api.Services
                 }
                 dbCategory.Name = dto.Name;
                 dbCategory.ImagePath = dto.ImagePath;
+                dbCategory.IsDisplay = dto.IsDisplay;
                 _context.Categories.Update(dbCategory);
                 await _context.SaveChangesAsync();
 
@@ -59,7 +62,8 @@ namespace BlazingQuiz.Api.Services
                 {
                     Id = dbCategory.Id,
                     Name = dbCategory.Name,
-                    ImagePath = dbCategory.ImagePath
+                    ImagePath = dbCategory.ImagePath,
+                    IsDisplay = dbCategory.IsDisplay
                 });
             }
         }
@@ -70,7 +74,8 @@ namespace BlazingQuiz.Api.Services
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    ImagePath = c.ImagePath
+                    ImagePath = c.ImagePath,
+                    IsDisplay = c.IsDisplay
                 })
                 .ToArrayAsync();
     }

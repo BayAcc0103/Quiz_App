@@ -26,6 +26,18 @@
                             <ValidationMessage For="() => _category.Name" />
                         </div>
 
+                        <!-- IsDisplay Toggle Section -->
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch"
+                                       id="editDisplayToggle"
+                                       @bind="_category.IsDisplay" />
+                                <label class="form-check-label" for="editDisplayToggle">
+                                    Display this category
+                                </label>
+                            </div>
+                        </div>
+
                         <!-- Image Upload Section -->
                         <div class="mb-3">
                             <label class="form-label">Category Image</label>
@@ -38,7 +50,7 @@
                                     </div>
                                 </div>
                             }
-                            <FileUpload CurrentFile="@_selectedImageFile" 
+                            <FileUpload CurrentFile="@_selectedImageFile"
                                        OnFileChanged="OnImageFileChangedCustom"
                                        MaxFileSize="52428800"
                                        ShowProgress="true"
@@ -80,6 +92,7 @@
                         <th>Id</th>
                         <th>Name</th>
                         <th>Image</th>
+                        <th>Display</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -109,6 +122,17 @@
                                 {
                                     <span class="text-muted">No image</span>
                                 }
+                            </td>
+                            <td>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch"
+                                           id="displayToggle_@category.Id"
+                                           checked="@category.IsDisplay"
+                                           @onchange="async (e) => await ToggleIsDisplay(category, e.Value)" />
+                                    <label class="form-check-label" for="displayToggle_@category.Id">
+                                        @(category.IsDisplay ? "Visible" : "Hidden")
+                                    </label>
+                                </div>
                             </td>
                             <td>
                                 <button type="button" class="btn btn-sm btn-primary" @onclick="() => OnEditCategory(category)">Edit</button>
@@ -262,11 +286,11 @@
             AppState.ShowLoader("Removing image...");
 
             var result = await CategoryImageService.RemoveCategoryImageAsync(_category.Id);
-            
+
             if (result.IsSuccess)
             {
                 _category.ImagePath = null;
-                
+
                 // Update in the list as well
                 var categoryInList = _categories.FirstOrDefault(c => c.Id == _category.Id);
                 if (categoryInList != null)
@@ -287,6 +311,52 @@
         {
             _isBusy = false;
             AppState.HideLoader();
+        }
+    }
+
+    private async Task ToggleIsDisplay(CategoryDto category, object? value)
+    {
+        if (value is bool isDisplay)
+        {
+            try
+            {
+                _isBusy = true;
+                AppState.ShowLoader("Updating category display status...");
+
+                // Update the local copy
+                category.IsDisplay = isDisplay;
+
+                // Save the updated category
+                var response = await CategoryApi.SaveCategoryAsync(category);
+
+                if (!response.IsSuccess)
+                {
+                    _errorMessage = response.ErrorMessage ?? "Error updating category display status";
+                    // Revert the change if save failed
+                    category.IsDisplay = !isDisplay;
+                }
+                else
+                {
+                    // Update the category in the list to reflect the saved state
+                    var categoryInList = _categories.FirstOrDefault(c => c.Id == category.Id);
+                    if (categoryInList != null)
+                    {
+                        categoryInList.IsDisplay = isDisplay;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorMessage = $"Error updating category display status: {ex.Message}";
+                // Revert the change if there's an exception
+                category.IsDisplay = !isDisplay;
+            }
+            finally
+            {
+                _isBusy = false;
+                AppState.HideLoader();
+                StateHasChanged();
+            }
         }
     }
 }

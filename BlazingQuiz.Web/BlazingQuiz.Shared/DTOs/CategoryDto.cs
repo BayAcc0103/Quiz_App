@@ -15,5 +15,7 @@ namespace BlazingQuiz.Shared.DTOs
         
         [MaxLength(255)]
         public string? ImagePath { get; set; }
+
+        public bool IsDisplay { get; set; } = false;
     }
 }
