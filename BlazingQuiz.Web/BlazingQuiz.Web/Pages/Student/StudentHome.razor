@@ -511,33 +511,22 @@
 
     private async Task OnSelectedCategoryChanged()
     {
-        AppState.ShowLoader("Loading quizes...");
-        _quizes = await StudentQuizApi.GetActiveQuizesAsync(_selectedCategoryId);
-        await LoadBookmarkStatusAsync();
-        // Refresh the random easy quizzes as well
-        await LoadRandomEasyQuizzesAsync();
-        // Refresh the random hard quizzes as well
-        await LoadRandomHardQuizzesAsync();
-        // Refresh the recent quizzes as well
-        await LoadRecentQuizzesAsync();
-        AppState.HideLoader();
+        if (_selectedCategoryId == 0)
+        {
+            // If "All Categories" is selected, reload the home page with no category filter
+            NavigationManager.NavigateTo("/student/home");
+        }
+        else
+        {
+            // Navigate to the new filter by category page
+            NavigationManager.NavigateTo($"/student/filter-by-category/{_selectedCategoryId}");
+        }
     }
 
     private async Task OnCategoryClick(CategoryDto category)
     {
-        // Set the selected category and reload quizzes for that category
-        _selectedCategoryId = category.Id;
-        QuizState.SelectedCategoryId = category.Id; // Update the global state
-        AppState.ShowLoader("Loading quizzes...");
-        _quizes = await StudentQuizApi.GetActiveQuizesAsync(_selectedCategoryId);
-        await LoadBookmarkStatusAsync();
-        // Refresh the random easy quizzes as well
-        await LoadRandomEasyQuizzesAsync();
-        // Refresh the random hard quizzes as well
-        await LoadRandomHardQuizzesAsync();
-        // Refresh the recent quizzes as well
-        await LoadRecentQuizzesAsync();
-        AppState.HideLoader();
+        // Navigate to the new filter by category page
+        NavigationManager.NavigateTo($"/student/filter-by-category/{category.Id}");
     }
 
     // Removed old StartQuizAsync method - replaced with new quiz type selection functionality

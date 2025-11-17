@@ -106,8 +106,7 @@
 
     private async Task OnCategoryClick(CategoryDto category)
     {
-        // Set the selected category and navigate to the home page to show quizzes in that category
-        QuizState.SelectedCategoryId = category.Id;
-        NavigationManager.NavigateTo($"/student/home?categoryId={category.Id}");
+        // Navigate to the new filter by category page
+        NavigationManager.NavigateTo($"/student/filter-by-category/{category.Id}");
     }
 }
