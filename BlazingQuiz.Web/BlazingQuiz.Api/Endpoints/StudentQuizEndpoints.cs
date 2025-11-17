@@ -15,12 +15,25 @@ namespace BlazingQuiz.Api.Endpoints
             var group = app.MapGroup("/api/student")
                 .RequireAuthorization(p => p.RequireRole(nameof(UserRole.Student)));
 
-            group.MapGet("/available-quizes", async (int categoryId, StudentQuizService quizService) =>
-                Results.Ok(await quizService.GetActiveQuizesAsync(categoryId)));
+            // Allow anonymous access to available-quizes endpoint
+            app.MapGet("/api/student/available-quizes", async (int categoryId, StudentQuizService quizService) =>
+                Results.Ok(await quizService.GetActiveQuizesAsync(categoryId)))
+                .AllowAnonymous();
 
             group.MapGet("/my-quizes", async (int startIndex, int pageSize, StudentQuizService quizService, ClaimsPrincipal principal) =>
                 Results.Ok(await quizService.GetStudentQuizesAsync(principal.GetStudentId(), startIndex, pageSize)));
 
+            // Create a separate route for anonymous quiz details and feedback
+            app.MapGet("/api/student/quiz/{quizId:guid}/details", async (Guid quizId, StudentQuizService quizService) =>
+                Results.Ok(await quizService.GetQuizDetailsAsync(quizId)))
+                .AllowAnonymous();
+
+            // Note: all-feedback may still require authentication if it contains user-specific data
+            app.MapGet("/api/student/quiz/{quizId:guid}/all-feedback", async (Guid quizId, StudentQuizService quizService) =>
+                Results.Ok(await quizService.GetAllFeedbackAsync(quizId)))
+                .AllowAnonymous();
+
+            // Keep the rest of the quiz endpoints within the protected group
             var quizGroup = group.MapGroup("/quiz");
             quizGroup.MapPost("/{quizId:guid}/start", async (Guid quizId, ClaimsPrincipal principal, StudentQuizService quizService) =>
                 Results.Ok(await quizService.StartQuizAsync(principal.GetStudentId(), quizId)));
@@ -56,12 +69,6 @@ namespace BlazingQuiz.Api.Endpoints
                     return Results.Unauthorized();
                 return Results.Ok(await quizService.SaveRatingAndCommentAsync(dto, principal.GetStudentId()));
             });
-
-            quizGroup.MapGet("/{quizId:guid}/details", async (Guid quizId, StudentQuizService quizService) =>
-                Results.Ok(await quizService.GetQuizDetailsAsync(quizId)));
-
-            quizGroup.MapGet("/{quizId:guid}/all-feedback", async (Guid quizId, StudentQuizService quizService) =>
-                Results.Ok(await quizService.GetAllFeedbackAsync(quizId)));
 
             // Get all student quizzes for a specific quiz id
             group.MapGet("/quizzes/quiz/{quizId:guid}", async (Guid quizId, StudentQuizService quizService) =>

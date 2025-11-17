@@ -92,6 +92,13 @@ static void ConfigureRefit(IServiceCollection services)
     services.AddRefitClient<IRoomQuizApi>(GetRefitSettings)
         .ConfigureHttpClient(SetHttpClient);
 
+    // Public API without authentication
+    services.AddRefitClient<IPublicQuizApi>()
+        .ConfigureHttpClient(SetHttpClient);
+
+    services.AddRefitClient<IPublicCategoryApi>()
+        .ConfigureHttpClient(SetHttpClient);
+
     // Register media services
     services.AddScoped(sp =>
     {
