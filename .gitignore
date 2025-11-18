@@ -46,3 +46,4 @@ wwwroot/_framework/
 /BlazingQuiz.Web/.vs/BlazingQuiz.Web/DesignTimeBuild
 BlazingQuiz.Web/BlazingQuiz.Api/appsettings.Development.json
 BlazingQuiz.Web/BlazingQuiz.Api/appsettings.json
+*.json
