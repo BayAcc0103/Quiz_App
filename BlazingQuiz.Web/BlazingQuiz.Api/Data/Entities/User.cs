@@ -20,7 +20,9 @@ namespace BlazingQuiz.Api.Data.Entities
         public bool IsApproved { get; set; }
         [MaxLength(255)]
         public string? AvatarPath { get; set; }
-        
+        [MaxLength(255)]
+        public string? GoogleId { get; set; } // Store Google ID to link accounts
+
         public virtual ICollection<QuizFeedback> QuizFeedbacks { get; set; } = [];
         public virtual ICollection<Rating> Ratings { get; set; } = [];
         public virtual ICollection<Comment> Comments { get; set; } = [];

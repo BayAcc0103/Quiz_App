@@ -1,4 +1,4 @@
-using BlazingQuiz.Api.Data;
+﻿using BlazingQuiz.Api.Data;
 using BlazingQuiz.Api.Data.Entities;
 using BlazingQuiz.Api.Endpoints;
 using BlazingQuiz.Api.Hubs;
@@ -78,75 +78,150 @@ builder.Services.AddDbContextFactory<QuizContext>(options =>
 //    return scope.ServiceProvider.GetRequiredService<QuizContext>();
 //});
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    var secretKey = builder.Configuration.GetValue<string>("Jwt:Secret");
-    var symmetricKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(secretKey));
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration.GetValue<string>("Jwt:Issuer"),
-        ValidAudience = builder.Configuration.GetValue<string>("Jwt:Audience"),
-        IssuerSigningKey = symmetricKey,
-    };
-});
+//builder.Services.AddAuthentication(options =>
+//{
+//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+//    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+//})
+//.AddJwtBearer(options =>
+//{
+//    var secretKey = builder.Configuration.GetValue<string>("Jwt:Secret");
+//    var symmetricKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(secretKey));
+//    options.TokenValidationParameters = new TokenValidationParameters
+//    {
+//        ValidateIssuer = true,
+//        ValidateAudience = true,
+//        ValidateIssuerSigningKey = true,
+//        ValidIssuer = builder.Configuration.GetValue<string>("Jwt:Issuer"),
+//        ValidAudience = builder.Configuration.GetValue<string>("Jwt:Audience"),
+//        IssuerSigningKey = symmetricKey,
+//    };
+//});
 
 // Only add Google authentication if the required configuration values are present
+//var googleClientId = builder.Configuration["GoogleOAuth:ClientId"];
+//var googleClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"];
+//if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret))
+//{
+//    builder.Services
+//        .AddAuthentication()
+//        .AddGoogle("Google", options =>
+//        {
+//            options.ClientId = googleClientId;
+//            options.ClientSecret = googleClientSecret;
+//            options.SaveTokens = true;
+//            options.CallbackPath = "/authorize/login-callback"; // Use the same callback path as in your GoogleOAuth config
+//            options.AccessDeniedPath = "/access-denied";
+
+//            options.Events.OnCreatingTicket = async context =>
+//            {
+//                // Extract user information from the Google token
+//                var email = context.Principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value ??
+//                           context.Principal.FindFirst("email")?.Value;
+//                var name = context.Principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value ??
+//                          context.Principal.FindFirst("name")?.Value;
+
+//                // Add custom claims
+//                if (!string.IsNullOrEmpty(email))
+//                {
+//                    ((List<System.Security.Claims.Claim>)context.Principal.Claims).Add(new System.Security.Claims.Claim("email", email));
+//                }
+//                if (!string.IsNullOrEmpty(name))
+//                {
+//                    ((List<System.Security.Claims.Claim>)context.Principal.Claims).Add(new System.Security.Claims.Claim("name", name));
+//                }
+
+//                await Task.CompletedTask;
+//            };
+
+
+//            // Handle authentication failure
+//            options.Events.OnRemoteFailure = context =>
+//            {
+//                context.HandleResponse();
+//                // If there's a remote failure, redirect to frontend with error
+//                var frontendUrl = context.Request.HttpContext.RequestServices.GetRequiredService<IConfiguration>().GetValue<string>("Jwt:Audience") ?? "https://localhost:7194";
+//                var redirectUrl = $"{frontendUrl}/auth/login?error=google_auth_failed";
+//                context.Response.Redirect(redirectUrl);
+//                return Task.CompletedTask;
+//            };
+//        });
+//}
+
+// ===== Authentication & JWT =====
+builder.Services
+    .AddAuthentication(options =>
+    {
+        // Mặc định dùng JWT cho API
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        var secretKey = builder.Configuration.GetValue<string>("Jwt:Secret");
+        var symmetricKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(secretKey));
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration.GetValue<string>("Jwt:Issuer"),
+            ValidAudience = builder.Configuration.GetValue<string>("Jwt:Audience"),
+            IssuerSigningKey = symmetricKey,
+        };
+    });
+
+// ===== Google OAuth (dùng chung AuthenticationBuilder ở trên, KHÔNG gọi AddAuthentication() lần nữa) =====
 var googleClientId = builder.Configuration["GoogleOAuth:ClientId"];
 var googleClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"];
+
 if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret))
 {
-    builder.Services.AddAuthentication()
-        .AddGoogle(options =>
+    builder.Services
+        .AddAuthentication()              // dùng lại builder hiện tại, không reset options
+        .AddGoogle("Google", options =>
         {
             options.ClientId = googleClientId;
             options.ClientSecret = googleClientSecret;
             options.SaveTokens = true;
-            options.CallbackPath = "/authorize/login-callback"; // Use the same callback path as in your GoogleOAuth config
+
+            // Phải trùng với endpoint callback và redirect URI trên Google Console
+            options.CallbackPath = "/authorize/login-callback";
             options.AccessDeniedPath = "/access-denied";
 
-            options.Events.OnCreatingTicket = async context =>
+            // Thêm scope nếu cần
+            options.Scope.Add("profile");
+            options.Scope.Add("email");
+
+            // Tùy chọn: xử lý ticket – đoạn add claim email/name thực ra không cần thiết lắm
+            options.Events.OnCreatingTicket = context =>
             {
-                // Extract user information from the Google token
-                var email = context.Principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value ??
-                           context.Principal.FindFirst("email")?.Value;
-                var name = context.Principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value ??
-                          context.Principal.FindFirst("name")?.Value;
-
-                // Add custom claims
-                if (!string.IsNullOrEmpty(email))
-                {
-                    ((List<System.Security.Claims.Claim>)context.Principal.Claims).Add(new System.Security.Claims.Claim("email", email));
-                }
-                if (!string.IsNullOrEmpty(name))
-                {
-                    ((List<System.Security.Claims.Claim>)context.Principal.Claims).Add(new System.Security.Claims.Claim("name", name));
-                }
-
-                await Task.CompletedTask;
+                // Nếu chỉ cần default claim của Google thì có thể bỏ trống
+                return Task.CompletedTask;
             };
 
-
-            // Handle authentication failure
+            // Xử lý lỗi remote (ví dụ user bấm Cancel hoặc Google trả lỗi)
             options.Events.OnRemoteFailure = context =>
             {
+                var logger = context.Request.HttpContext.RequestServices
+                    .GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("GoogleRemoteFailure");
+
+                logger.LogError(context.Failure, "Google remote failure: {Message}", context.Failure?.Message);
+
                 context.HandleResponse();
-                // If there's a remote failure, redirect to frontend with error
-                var frontendUrl = context.Request.HttpContext.RequestServices.GetRequiredService<IConfiguration>().GetValue<string>("Jwt:Audience") ?? "https://localhost:7194";
+                var frontendUrl = context.Request.HttpContext.RequestServices
+                    .GetRequiredService<IConfiguration>()
+                    .GetValue<string>("Jwt:Audience") ?? "https://localhost:7194";
                 var redirectUrl = $"{frontendUrl}/auth/login?error=google_auth_failed";
                 context.Response.Redirect(redirectUrl);
                 return Task.CompletedTask;
             };
         });
 }
+
 builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
 {

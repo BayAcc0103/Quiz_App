@@ -5,6 +5,7 @@ using BlazingQuiz.Shared.DTOs;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
 namespace BlazingQuiz.Api.Endpoints
@@ -127,39 +128,49 @@ namespace BlazingQuiz.Api.Endpoints
             // This endpoint handles the Google OAuth callback automatically
             // When Google redirects back to our callback URL, the middleware processes it
             // and the user is authenticated - we need to return the JWT to the frontend
-            app.MapGet("/authorize/login-callback", async (HttpContext context, GoogleAuthService googleAuthService) =>
+            app.MapGet("/authorize/login-callback", async (HttpContext context, GoogleAuthService googleAuthService, ILoggerFactory loggerFactory) =>
             {
-                // Get frontend URL once for use in all redirect scenarios
+                var logger = context.RequestServices
+        .GetRequiredService<ILoggerFactory>()
+        .CreateLogger("GoogleCallback");
                 var frontendUrl = context.RequestServices.GetRequiredService<IConfiguration>().GetValue<string>("Jwt:Audience") ?? "https://localhost:7194";
-
-                // Authenticate with Google OAuth provider
+                // Get frontend URL once for use in all redirect scenarios
+      
+                // Authenticate with Google OAuth provider - this is handled by the middleware
                 var authenticateResult = await context.AuthenticateAsync("Google");
 
                 if (!authenticateResult.Succeeded)
                 {
+                    logger.LogError("Google authenticate failed. Error: {Error}; Failure: {Failure}",
+                        authenticateResult.Failure?.Message,
+                        authenticateResult.Failure?.ToString());
                     // Handle authentication failure by redirecting to frontend with error
                     var redirectUrl = $"{frontendUrl}/auth/login?error=google_auth_failed";
                     return Results.Redirect(redirectUrl);
                 }
 
                 // Extract user information from the Google authentication
+                var googleIdClaim = authenticateResult.Principal.FindFirst("sub"); // Google's user ID
                 var emailClaim = authenticateResult.Principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress") ??
                                 authenticateResult.Principal.FindFirst("email");
                 var nameClaim = authenticateResult.Principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name") ??
                                authenticateResult.Principal.FindFirst("name");
+                var pictureClaim = authenticateResult.Principal.FindFirst("picture"); // Google profile picture
 
-                if (emailClaim == null)
+                if (emailClaim == null || googleIdClaim == null)
                 {
-                    // Handle missing email by redirecting to frontend with error
+                    // Handle missing email or googleId by redirecting to frontend with error
                     var redirectUrl = $"{frontendUrl}/auth/login?error=google_auth_failed";
                     return Results.Redirect(redirectUrl);
                 }
 
+                var googleId = googleIdClaim.Value;
                 var email = emailClaim.Value;
                 var name = nameClaim?.Value ?? "Google User";
+                var picture = pictureClaim?.Value;
 
-                // Create or retrieve user and generate JWT
-                var authResult = await googleAuthService.LoginWithGoogleAsync(email, name);
+                // Create or retrieve user and generate JWT, linking Google account to existing user if needed
+                var authResult = await googleAuthService.LoginWithGoogleAsync(googleId, email, name, picture);
 
                 if (authResult.HasError)
                 {

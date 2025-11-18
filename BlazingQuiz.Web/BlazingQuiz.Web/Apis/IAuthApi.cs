@@ -33,7 +33,7 @@ namespace BlazingQuiz.Web.Apis
         [Get("/authorize/google-login-url")]
         Task<ApiResponse<GoogleLoginUrlResponse>> GetGoogleLoginUrlAsync();
 
-        [Get("/api/auth/google-login-callback")]
+        [Get("/authorize/login-callback")]
         Task<AuthResponseDto> ProcessGoogleAuthAsync();
     }
 
