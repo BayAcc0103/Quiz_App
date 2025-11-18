@@ -1,10 +1,12 @@
 @page "/auth/login"
 @layout EmptyLayout
 @using BlazingQuiz.Web.Apis
+@using Microsoft.JSInterop
 @inject NavigationManager NavigationManager
 @inject IAuthApi AuthApi
 @inject IAppState AppState
 @inject QuizAuthStateProvider QuizAuthStateProvider
+@inject IJSRuntime JSRuntime
 
 <div class="container">
     <div class="row vh-100">
@@ -63,6 +65,13 @@
                     }
                 </div>
             </EditForm>
+
+            <!-- Google Sign-In Button -->
+            <div class="d-grid gap-2">
+                <button type="button" class="btn btn-outline-danger" @onclick="GoogleLoginAsync">
+                    <i class="bi bi-google"></i> Sign in with Google
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -121,4 +130,34 @@
 
         NavigationManager.NavigateTo(redirectTo, replace);
     }
+
+    private async Task GoogleLoginAsync()
+    {
+        try
+        {
+            AppState.ShowLoader("Signing in with Google...");
+
+            // Get the Google login URL from the API
+            var response = await AuthApi.GetGoogleLoginUrlAsync();
+
+            if (response.IsSuccessStatusCode && response.Content != null)
+            {
+                // Redirect the browser to the Google login URL
+                await JSRuntime.InvokeVoidAsync("open", response.Content.url, "_self");
+            }
+            else
+            {
+                _errorMessage = "Failed to initiate Google Sign-In";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+}
 }

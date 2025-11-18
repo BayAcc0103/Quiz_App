@@ -29,5 +29,16 @@ namespace BlazingQuiz.Web.Apis
 
         [Post("/api/auth/verify-otp")]
         Task<QuizApiResponse> VerifyOtpAsync(VerifyOtpDto dto);
+
+        [Get("/authorize/google-login-url")]
+        Task<ApiResponse<GoogleLoginUrlResponse>> GetGoogleLoginUrlAsync();
+
+        [Get("/api/auth/google-login-callback")]
+        Task<AuthResponseDto> ProcessGoogleAuthAsync();
+    }
+
+    public class GoogleLoginUrlResponse
+    {
+        public string url { get; set; }
     }
 }

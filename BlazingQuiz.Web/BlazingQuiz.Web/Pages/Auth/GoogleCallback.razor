@@ -1,0 +1,97 @@
+@page "/auth/google-callback"
+@inject NavigationManager NavigationManager
+@inject QuizAuthStateProvider QuizAuthStateProvider
+@inject IJSRuntime JSRuntime
+
+<h3>Processing Google Sign-In...</h3>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">
+        @ErrorMessage
+    </div>
+}
+
+@code {
+    private string? ErrorMessage;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                // Get the JWT token from URL fragment (#token=xxx)
+                var token = await GetTokenFromFragment();
+
+                if (string.IsNullOrEmpty(token))
+                {
+                    ErrorMessage = "No token found in URL fragment";
+                    StateHasChanged();
+                    return;
+                }
+
+                // Parse the token and any other parameters
+                var urlParams = await JSRuntime.InvokeAsync<string>("eval",
+                    "(function() { var params = {}; var hash = window.location.hash.substring(1); " +
+                    "var pairs = hash.split('&'); " +
+                    "for(var i = 0; i < pairs.length; i++) { " +
+                    "  var pair = pairs[i].split('='); " +
+                    "  params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || ''); " +
+                    "} return JSON.stringify(params); })()");
+
+                var parsedParams = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(urlParams);
+
+                var jwtToken = parsedParams.TryGetValue("token", out var tokenVal) ? tokenVal : null;
+                var role = parsedParams.TryGetValue("role", out var roleVal) ? roleVal : "Student";
+
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    ErrorMessage = "No token found in URL fragment";
+                    StateHasChanged();
+                    return;
+                }
+
+                // Create a temporary LoggedInUser object with the received token
+                var loggedInUser = new BlazingQuiz.Shared.LoggedInUser(0, "", "", role, jwtToken, null)
+                {
+                    FullName = "Google User" // This will be updated after login
+                };
+
+                // Set the login state with the received token
+                await QuizAuthStateProvider.SetLoginAsync(loggedInUser);
+
+                // Navigate to home based on role
+                var redirectTo = role switch
+                {
+                    "Admin" => "admin/home",
+                    "Teacher" => "teacher/home",
+                    "Student" => "student/home",
+                    _ => "home"
+                };
+
+                // Clear the fragment from the URL and navigate to home
+                NavigationManager.NavigateTo($"/{redirectTo}", forceLoad: false);
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Error processing Google sign-in: {ex.Message}";
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async ValueTask<string?> GetTokenFromFragment()
+    {
+        // Get URL fragment and extract token
+        var urlParams = await JSRuntime.InvokeAsync<string>("eval",
+            "(function() { var params = {}; var hash = window.location.hash.substring(1); " +
+            "var pairs = hash.split('&'); " +
+            "for(var i = 0; i < pairs.length; i++) { " +
+            "  var pair = pairs[i].split('='); " +
+            "  params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || ''); " +
+            "} return params.token || ''; })()");
+
+        return string.IsNullOrEmpty(urlParams) ? null : urlParams;
+    }
+}

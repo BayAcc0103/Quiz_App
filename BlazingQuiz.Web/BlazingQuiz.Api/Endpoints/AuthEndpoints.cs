@@ -2,6 +2,7 @@ using BlazingQuiz.Api.Data;
 using BlazingQuiz.Api.Data.Entities;
 using BlazingQuiz.Api.Services;
 using BlazingQuiz.Shared.DTOs;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
@@ -110,7 +111,81 @@ namespace BlazingQuiz.Api.Endpoints
                 }
             });
 
-            return app;       
+            // Generate Google login URL for frontend
+            app.MapGet("/authorize/google-login-url", (HttpContext context, GoogleAuthService googleAuthService) =>
+            {
+                // The frontend calls this API to get the Google login URL
+                // Then redirects the browser directly to Google's authentication page
+                var state = Guid.NewGuid().ToString(); // Generate a unique state for security
+                var apiHost = $"{context.Request.Host}";
+
+                var googleAuthUrl = googleAuthService.GenerateGoogleLoginUrl(state, apiHost);
+
+                return Results.Ok(new { url = googleAuthUrl, state = state });
+            });
+
+            // This endpoint handles the Google OAuth callback automatically
+            // When Google redirects back to our callback URL, the middleware processes it
+            // and the user is authenticated - we need to return the JWT to the frontend
+            app.MapGet("/authorize/login-callback", async (HttpContext context, GoogleAuthService googleAuthService) =>
+            {
+                // Get frontend URL once for use in all redirect scenarios
+                var frontendUrl = context.RequestServices.GetRequiredService<IConfiguration>().GetValue<string>("Jwt:Audience") ?? "https://localhost:7194";
+
+                // Authenticate with Google OAuth provider
+                var authenticateResult = await context.AuthenticateAsync("Google");
+
+                if (!authenticateResult.Succeeded)
+                {
+                    // Handle authentication failure by redirecting to frontend with error
+                    var redirectUrl = $"{frontendUrl}/auth/login?error=google_auth_failed";
+                    return Results.Redirect(redirectUrl);
+                }
+
+                // Extract user information from the Google authentication
+                var emailClaim = authenticateResult.Principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress") ??
+                                authenticateResult.Principal.FindFirst("email");
+                var nameClaim = authenticateResult.Principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name") ??
+                               authenticateResult.Principal.FindFirst("name");
+
+                if (emailClaim == null)
+                {
+                    // Handle missing email by redirecting to frontend with error
+                    var redirectUrl = $"{frontendUrl}/auth/login?error=google_auth_failed";
+                    return Results.Redirect(redirectUrl);
+                }
+
+                var email = emailClaim.Value;
+                var name = nameClaim?.Value ?? "Google User";
+
+                // Create or retrieve user and generate JWT
+                var authResult = await googleAuthService.LoginWithGoogleAsync(email, name);
+
+                if (authResult.HasError)
+                {
+                    // Handle authentication error by redirecting to frontend with error
+                    var redirectUrl = $"{frontendUrl}/auth/login?error=google_auth_failed";
+                    return Results.Redirect(redirectUrl);
+                }
+
+                // Get the JWT token from the result
+                var jwtToken = authResult.User?.Token;
+                var role = authResult.User?.Role;
+
+                if (string.IsNullOrEmpty(jwtToken))
+                {
+                    // Handle JWT generation error by redirecting to frontend with error
+                    var redirectUrl = $"{frontendUrl}/auth/login?error=google_auth_failed";
+                    return Results.Redirect(redirectUrl);
+                }
+
+                // Redirect back to frontend with JWT in URL fragment (this is how SPAs typically handle auth codes/jwt)
+                var successRedirectUrl = $"{frontendUrl}/auth/google-callback#token={System.Uri.EscapeDataString(jwtToken)}&role={System.Uri.EscapeDataString(role ?? "Student")}";
+
+                return Results.Redirect(successRedirectUrl);
+            });
+
+            return app;
         }
     }
 }

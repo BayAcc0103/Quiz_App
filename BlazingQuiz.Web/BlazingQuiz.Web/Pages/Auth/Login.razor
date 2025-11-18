@@ -1,10 +1,13 @@
 @page "/auth/login"
 @layout EmptyLayout
 @using BlazingQuiz.Web.Apis
+@using Microsoft.JSInterop
+@using Microsoft.AspNetCore.WebUtilities
 @inject NavigationManager NavigationManager
 @inject IAuthApi AuthApi
 @inject IAppState AppState
 @inject QuizAuthStateProvider QuizAuthStateProvider
+@inject IJSRuntime JSRuntime
 
 <div class="container">
     <div class="row vh-100">
@@ -67,6 +70,13 @@
                     <a href="auth/forgot-password" class="text-decoration-none">Forgot Password?</a>
                 </div>
             </EditForm>
+
+            <!-- Google Sign-In Button -->
+            <div class="d-grid gap-2">
+                <button type="button" class="btn btn-outline-danger" @onclick="GoogleLoginAsync">
+                    <i class="bi bi-google"></i> Sign in with Google
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -76,12 +86,19 @@
     private bool _isBusy;
     private string? _errorMessage;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if(QuizAuthStateProvider.IsLoggedIn)
         {
             //NavigationManager.NavigateTo("/", replace: true); // Redirect to home if already logged in
             RedirectToHome(replace: true);
+        }
+
+        // Check for error parameter in URL (for Google auth failures)
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("error", out var errorValue) && errorValue == "google_auth_failed")
+        {
+            _errorMessage = "Google authentication failed. Please try again.";
         }
     }
     private async Task LoginAsync()
@@ -125,5 +142,36 @@
         };
 
         NavigationManager.NavigateTo(redirectTo, replace);
+    }
+
+    private async Task GoogleLoginAsync()
+    {
+        try
+        {
+            AppState.ShowLoader("Getting Google Sign-In URL...");
+
+            // Call API to get Google login URL
+            var response = await AuthApi.GetGoogleLoginUrlAsync();
+
+            if (response.IsSuccessStatusCode && response.Content != null)
+            {
+                var googleLoginUrl = response.Content.url;
+
+                // Redirect the browser to Google's authentication page
+                await JSRuntime.InvokeVoidAsync("open", googleLoginUrl, "_self");
+            }
+            else
+            {
+                _errorMessage = "Failed to get Google Sign-In URL";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error initiating Google Sign-In: {ex.Message}";
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
     }
 }

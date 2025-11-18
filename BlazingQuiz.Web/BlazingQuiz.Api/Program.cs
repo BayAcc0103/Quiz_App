@@ -82,7 +82,9 @@ builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
 {
     var secretKey = builder.Configuration.GetValue<string>("Jwt:Secret");
     var symmetricKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(secretKey));
@@ -96,6 +98,55 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = symmetricKey,
     };
 });
+
+// Only add Google authentication if the required configuration values are present
+var googleClientId = builder.Configuration["GoogleOAuth:ClientId"];
+var googleClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"];
+if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret))
+{
+    builder.Services.AddAuthentication()
+        .AddGoogle(options =>
+        {
+            options.ClientId = googleClientId;
+            options.ClientSecret = googleClientSecret;
+            options.SaveTokens = true;
+            options.CallbackPath = "/authorize/login-callback"; // Use the same callback path as in your GoogleOAuth config
+            options.AccessDeniedPath = "/access-denied";
+
+            options.Events.OnCreatingTicket = async context =>
+            {
+                // Extract user information from the Google token
+                var email = context.Principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value ??
+                           context.Principal.FindFirst("email")?.Value;
+                var name = context.Principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value ??
+                          context.Principal.FindFirst("name")?.Value;
+
+                // Add custom claims
+                if (!string.IsNullOrEmpty(email))
+                {
+                    ((List<System.Security.Claims.Claim>)context.Principal.Claims).Add(new System.Security.Claims.Claim("email", email));
+                }
+                if (!string.IsNullOrEmpty(name))
+                {
+                    ((List<System.Security.Claims.Claim>)context.Principal.Claims).Add(new System.Security.Claims.Claim("name", name));
+                }
+
+                await Task.CompletedTask;
+            };
+
+
+            // Handle authentication failure
+            options.Events.OnRemoteFailure = context =>
+            {
+                context.HandleResponse();
+                // If there's a remote failure, redirect to frontend with error
+                var frontendUrl = context.Request.HttpContext.RequestServices.GetRequiredService<IConfiguration>().GetValue<string>("Jwt:Audience") ?? "https://localhost:7194";
+                var redirectUrl = $"{frontendUrl}/auth/login?error=google_auth_failed";
+                context.Response.Redirect(redirectUrl);
+                return Task.CompletedTask;
+            };
+        });
+}
 builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
 {
@@ -124,6 +175,8 @@ builder.Services.AddTransient<AuthService>()
 // Add SignalR
 builder.Services.AddSignalR();
 builder.Services.AddTransient<RoomService>();
+builder.Services.AddTransient<GoogleAuthService>();
+builder.Services.AddHttpClient();
 var app = builder.Build();
 
 #if DEBUG
