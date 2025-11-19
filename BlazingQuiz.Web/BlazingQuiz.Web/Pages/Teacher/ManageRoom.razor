@@ -4,6 +4,7 @@
 @inject IRoomApi RoomApi
 @inject IStorageService LocalStorage
 @inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
 @attribute [Authorize(Roles = nameof(UserRole.Teacher))]
 
 <PageTitle>Manage Rooms - Teacher</PageTitle>
@@ -163,10 +164,9 @@
         return participantCounts.TryGetValue(roomId, out var count) ? count : 0;
     }
 
-    private async Task ViewDetails(Guid roomId)
+    private void ViewDetails(Guid roomId)
     {
-        // Navigate to a room details page - you can implement this as needed
-        await LoadRooms();
+        Navigation.NavigateTo($"/teacher/rooms/{roomId}");
     }
 
     private async Task EndRoom(Guid roomId)

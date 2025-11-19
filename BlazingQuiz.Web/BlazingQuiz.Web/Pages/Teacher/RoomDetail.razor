@@ -1,0 +1,327 @@
+@page "/teacher/rooms/{RoomId:guid}"
+@using BlazingQuiz.Shared.DTOs
+@using BlazingQuiz.Web.Services
+@inject IRoomApi RoomApi
+@inject IStorageService LocalStorage
+@inject IJSRuntime JSRuntime
+@attribute [Authorize(Roles = nameof(UserRole.Teacher))]
+
+<PageTitle>Room Details</PageTitle>
+
+@if (room == null)
+{
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container-fluid">
+        <div class="row mb-3">
+            <div class="col-12">
+                <a href="/teacher/rooms" class="btn btn-outline-secondary">
+                    <span class="bi bi-arrow-left"></span> Back to Rooms
+                </a>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">@room.Name</h3>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-light text-dark fs-6">Room Code: @room.Code</span>
+                            </div>
+                            <div>
+                                <span class="badge @(room.IsActive ? "bg-success" : "bg-danger") fs-6">
+                                    @(room.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Room Information</h5>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td><strong>Description:</strong></td>
+                                        <td>@(room.Description ?? "No description")</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Created By:</strong></td>
+                                        <td>@room.CreatedByName</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Quiz:</strong></td>
+                                        <td>@(room.QuizName ?? "No quiz assigned")</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Max Participants:</strong></td>
+                                        <td>@room.MaxParticipants</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Created At:</strong></td>
+                                        <td>@room.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Started At:</strong></td>
+                                        <td>@(room.StartedAt?.ToString("yyyy-MM-dd HH:mm") ?? "Not started")</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Ended At:</strong></td>
+                                        <td>@(room.EndedAt?.ToString("yyyy-MM-dd HH:mm") ?? (room.IsActive ? "Not ended" : "Ended"))</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Actions</h5>
+                                <div class="d-grid gap-2">
+                                    @if (room.IsActive && room.StartedAt == null)
+                                    {
+                                        <button class="btn btn-success btn-lg" @onclick="StartRoom" disabled="@isProcessing">
+                                            @if (isProcessing)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                <span>Starting...</span>
+                                            }
+                                            else
+                                            {
+                                                <span>Start Room</span>
+                                            }
+                                        </button>
+                                    }
+                                    @if (room.IsActive && room.StartedAt != null)
+                                    {
+                                        <button class="btn btn-warning btn-lg" @onclick="EndRoom" disabled="@isProcessing">
+                                            @if (isProcessing)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                <span>Ending...</span>
+                                            }
+                                            else
+                                            {
+                                                <span>End Room</span>
+                                            }
+                                        </button>
+                                    }
+                                    <button class="btn btn-info btn-lg" @onclick="CopyRoomCode" disabled="@isProcessing">
+                                        Copy Room Code
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">Participants (@participants?.Length ?? 0)</h4>
+                    </div>
+                    <div class="card-body">
+                        @if (participants != null && participants.Any())
+                        {
+                            <div class="row">
+                                @foreach (var participant in participants)
+                                {
+                                    <div class="col-md-4 col-lg-3 mb-3">
+                                        <div class="card participant-card h-100">
+                                            <div class="card-body text-center">
+                                                <div class="avatar-container mx-auto mb-3">
+                                                    @if (!string.IsNullOrEmpty(participant.AvatarPath))
+                                                    {
+                                                        <img src="@participant.AvatarPath" alt="@participant.UserName" class="rounded-circle avatar-img" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white avatar-img">
+                                                            @participant.UserName?.Substring(0, 1).ToUpper()
+                                                        </div>
+                                                    }
+                                                </div>
+                                                <h6 class="card-title">@participant.UserName</h6>
+                                                <div class="mt-2">
+                                                    @if (participant.IsReady)
+                                                    {
+                                                        <span class="badge bg-success">
+                                                            <i class="bi bi-check-circle-fill"></i> Ready
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-warning text-dark">
+                                                            <i class="bi bi-clock"></i> Not Ready
+                                                        </span>
+                                                    }
+                                                </div>
+                                                <div class="mt-2">
+                                                    @if (participant.HasSubmitted)
+                                                    {
+                                                        <span class="badge bg-info">
+                                                            <i class="bi bi-check-square"></i> Submitted
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary">
+                                                            <i class="bi bi-square"></i> Not Submitted
+                                                        </span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                No participants in this room yet.
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .participant-card {
+        transition: transform 0.2s;
+    }
+
+    .participant-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .avatar-container {
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+</style>
+
+@code {
+    [Parameter] public Guid RoomId { get; set; }
+
+    private RoomDto? room;
+    private RoomParticipantDto[]? participants;
+    private bool isProcessing = false;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRoomDetails();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadRoomDetails();
+    }
+
+    private async Task LoadRoomDetails()
+    {
+        try
+        {
+            isLoading = true;
+            room = await RoomApi.GetRoomByIdAsync(RoomId);
+            participants = await RoomApi.GetRoomParticipantsAsync(RoomId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading room details: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task StartRoom()
+    {
+        if (room == null) return;
+
+        try
+        {
+            isProcessing = true;
+            var response = await RoomApi.StartRoomAsync(room.Id);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await LoadRoomDetails();
+                await JSRuntime.InvokeVoidAsync("alert", "Room started successfully!");
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"Failed to start room: {response.Error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error starting room: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task EndRoom()
+    {
+        if (room == null) return;
+
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to end this room? This will stop any ongoing quiz activity.");
+        if (!confirmed) return;
+
+        try
+        {
+            isProcessing = true;
+            var response = await RoomApi.EndRoomAsync(room.Id);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await LoadRoomDetails();
+                await JSRuntime.InvokeVoidAsync("alert", "Room ended successfully!");
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"Failed to end room: {response.Error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error ending room: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task CopyRoomCode()
+    {
+        if (room == null) return;
+
+        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", room.Code);
+        await JSRuntime.InvokeVoidAsync("alert", $"Room code '{room.Code}' copied to clipboard!");
+    }
+}
