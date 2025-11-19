@@ -149,11 +149,14 @@ builder.Services.AddDbContextFactory<QuizContext>(options =>
 //        });
 //}
 
+
+// ===== Google OAuth (dùng chung AuthenticationBuilder ở trên, KHÔNG gọi AddAuthentication() lần nữa) =====
+var googleClientId = builder.Configuration["GoogleOAuth:ClientId"];
+var googleClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"];
 // ===== Authentication & JWT =====
-builder.Services
+var authBuilder = builder.Services
     .AddAuthentication(options =>
     {
-        // Mặc định dùng JWT cho API
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -171,55 +174,56 @@ builder.Services
             ValidAudience = builder.Configuration.GetValue<string>("Jwt:Audience"),
             IssuerSigningKey = symmetricKey,
         };
+    })
+    .AddCookie("Cookies", options =>
+    {
+        options.Cookie.Name = "QuizApp.Auth";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;   // dev dùng https
+        options.Cookie.SameSite = SameSiteMode.None;               // cho phép cross-site
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        options.SlidingExpiration = true;
+        options.LoginPath = "/auth/login";
+        options.AccessDeniedPath = "/access-denied";
     });
 
-// ===== Google OAuth (dùng chung AuthenticationBuilder ở trên, KHÔNG gọi AddAuthentication() lần nữa) =====
-var googleClientId = builder.Configuration["GoogleOAuth:ClientId"];
-var googleClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"];
-
+// THÊM GOOGLE VÀO CÙNG authBuilder, KHÔNG GỌI AddAuthentication() LẦN 2
 if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret))
 {
-    builder.Services
-        .AddAuthentication()              // dùng lại builder hiện tại, không reset options
-        .AddGoogle("Google", options =>
+    authBuilder.AddGoogle("Google", options =>
+    {
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
+
+        options.SaveTokens = true;
+        options.SignInScheme = "Cookies"; // rất quan trọng
+
+        options.CallbackPath = "/authorize/login-callback";
+        options.AccessDeniedPath = "/access-denied";
+
+        options.Scope.Add("profile");
+        options.Scope.Add("email");
+
+        options.Events.OnRemoteFailure = context =>
         {
-            options.ClientId = googleClientId;
-            options.ClientSecret = googleClientSecret;
-            options.SaveTokens = true;
+            var logger = context.Request.HttpContext.RequestServices
+                .GetRequiredService<ILoggerFactory>()
+                .CreateLogger("GoogleRemoteFailure");
 
-            // Phải trùng với endpoint callback và redirect URI trên Google Console
-            options.CallbackPath = "/authorize/login-callback";
-            options.AccessDeniedPath = "/access-denied";
+            logger.LogError(context.Failure,
+                "Google remote failure: {Message}. QueryString: {QueryString}",
+                context.Failure?.Message,
+                context.Request.QueryString.Value);
 
-            // Thêm scope nếu cần
-            options.Scope.Add("profile");
-            options.Scope.Add("email");
-
-            // Tùy chọn: xử lý ticket – đoạn add claim email/name thực ra không cần thiết lắm
-            options.Events.OnCreatingTicket = context =>
-            {
-                // Nếu chỉ cần default claim của Google thì có thể bỏ trống
-                return Task.CompletedTask;
-            };
-
-            // Xử lý lỗi remote (ví dụ user bấm Cancel hoặc Google trả lỗi)
-            options.Events.OnRemoteFailure = context =>
-            {
-                var logger = context.Request.HttpContext.RequestServices
-                    .GetRequiredService<ILoggerFactory>()
-                    .CreateLogger("GoogleRemoteFailure");
-
-                logger.LogError(context.Failure, "Google remote failure: {Message}", context.Failure?.Message);
-
-                context.HandleResponse();
-                var frontendUrl = context.Request.HttpContext.RequestServices
-                    .GetRequiredService<IConfiguration>()
-                    .GetValue<string>("Jwt:Audience") ?? "https://localhost:7194";
-                var redirectUrl = $"{frontendUrl}/auth/login?error=google_auth_failed";
-                context.Response.Redirect(redirectUrl);
-                return Task.CompletedTask;
-            };
-        });
+            context.HandleResponse();
+            var frontendUrl = context.Request.HttpContext.RequestServices
+                .GetRequiredService<IConfiguration>()
+                .GetValue<string>("Jwt:Audience") ?? "https://localhost:7194";
+            var redirectUrl = $"{frontendUrl}/auth/login?error=google_auth_failed";
+            context.Response.Redirect(redirectUrl);
+            return Task.CompletedTask;
+        };
+    });
 }
 
 builder.Services.AddAuthorization();

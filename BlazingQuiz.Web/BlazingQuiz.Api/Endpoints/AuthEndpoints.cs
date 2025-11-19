@@ -1,4 +1,4 @@
-using BlazingQuiz.Api.Data;
+﻿using BlazingQuiz.Api.Data;
 using BlazingQuiz.Api.Data.Entities;
 using BlazingQuiz.Api.Services;
 using BlazingQuiz.Shared.DTOs;
@@ -112,32 +112,35 @@ namespace BlazingQuiz.Api.Endpoints
                 }
             });
 
-            // Generate Google login URL for frontend
-            app.MapGet("/authorize/google-login-url", (HttpContext context, GoogleAuthService googleAuthService) =>
+            // 1) Endpoint cho FE gọi để bắt đầu đăng nhập với Google
+            app.MapGet("/authorize/google-login-url", (HttpContext context) =>
             {
-                // The frontend calls this API to get the Google login URL
-                // Then redirects the browser directly to Google's authentication page
-                var state = Guid.NewGuid().ToString(); // Generate a unique state for security
-                var apiHost = $"{context.Request.Host}";
-
-                var googleAuthUrl = googleAuthService.GenerateGoogleLoginUrl(state, apiHost);
-
-                return Results.Ok(new { url = googleAuthUrl, state = state });
+                var apiHost = $"{context.Request.Scheme}://{context.Request.Host}";
+                var loginUrl = $"{apiHost}/authorize/google-login";
+                return Results.Ok(new { url = loginUrl });
             });
 
+            // 2) Endpoint /authorize/google-login: gọi Challenge("Google")
+            app.MapGet("/authorize/google-login", async (HttpContext context) =>
+            {
+                var props = new AuthenticationProperties
+                {
+                    RedirectUri = "/authorize/login-callback" // nơi Google middleware sẽ redirect về sau khi login xong
+                };
+
+                return Results.Challenge(props, new[] { "Google" });
+            });
             // This endpoint handles the Google OAuth callback automatically
             // When Google redirects back to our callback URL, the middleware processes it
             // and the user is authenticated - we need to return the JWT to the frontend
             app.MapGet("/authorize/login-callback", async (HttpContext context, GoogleAuthService googleAuthService, ILoggerFactory loggerFactory) =>
             {
-                var logger = context.RequestServices
-        .GetRequiredService<ILoggerFactory>()
-        .CreateLogger("GoogleCallback");
+                var logger = context.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("GoogleCallback");
                 var frontendUrl = context.RequestServices.GetRequiredService<IConfiguration>().GetValue<string>("Jwt:Audience") ?? "https://localhost:7194";
                 // Get frontend URL once for use in all redirect scenarios
-      
+
                 // Authenticate with Google OAuth provider - this is handled by the middleware
-                var authenticateResult = await context.AuthenticateAsync("Google");
+                var authenticateResult = await context.AuthenticateAsync("Cookies");
 
                 if (!authenticateResult.Succeeded)
                 {

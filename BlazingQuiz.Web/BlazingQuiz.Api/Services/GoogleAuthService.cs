@@ -28,143 +28,143 @@ namespace BlazingQuiz.Api.Services
             _configuration = configuration;
             _httpClient = httpClientFactory.CreateClient();
         }
-        public string GenerateGoogleLoginUrl(string state, string apiHost = null)
-        {
-            var clientId = _configuration["GoogleOAuth:ClientId"];
-            var scopes = "openid profile email";
-            var stateParam = string.IsNullOrEmpty(state) ? Guid.NewGuid().ToString() : state;
+        //public string GenerateGoogleLoginUrl(string state, string apiHost = null)
+        //{
+        //    var clientId = _configuration["GoogleOAuth:ClientId"];
+        //    var scopes = "openid profile email";
+        //    var stateParam = string.IsNullOrEmpty(state) ? Guid.NewGuid().ToString() : state;
 
-            // Lấy scheme thực tế từ config (hoặc từ env), dev thường là http
-            var scheme = _configuration["App:PublicScheme"] ?? "https";
+        //    // Lấy scheme thực tế từ config (hoặc từ env), dev thường là http
+        //    var scheme = _configuration["App:PublicScheme"] ?? "https";
 
-            var host = apiHost ?? "localhost:7048";
-            var redirectUri = $"{scheme}://{host}/authorize/login-callback";
+        //    var host = apiHost ?? "localhost:7048";
+        //    var redirectUri = $"{scheme}://{host}/authorize/login-callback";
 
-            var loginUrl = $"https://accounts.google.com/o/oauth2/v2/auth?" +
-                           $"client_id={clientId}&" +
-                           $"redirect_uri={Uri.EscapeDataString(redirectUri)}&" +
-                           $"response_type=code&" +
-                           $"scope={Uri.EscapeDataString(scopes)}&" +
-                           $"state={Uri.EscapeDataString(stateParam)}&" +
-                           $"access_type=offline&" +
-                           $"prompt=consent";
+        //    var loginUrl = $"https://accounts.google.com/o/oauth2/v2/auth?" +
+        //                   $"client_id={clientId}&" +
+        //                   $"redirect_uri={Uri.EscapeDataString(redirectUri)}&" +
+        //                   $"response_type=code&" +
+        //                   $"scope={Uri.EscapeDataString(scopes)}&" +
+        //                   $"state={Uri.EscapeDataString(stateParam)}&" +
+        //                   $"access_type=offline&" +
+        //                   $"prompt=consent";
 
-            return loginUrl;
-        }
+        //    return loginUrl;
+        //}
 
 
 
         /// <summary>
         /// Processes the Google OAuth callback, exchanges code for tokens, gets user info, and returns JWT
         /// </summary>
-        public async Task<AuthResponseDto> ProcessGoogleCallbackAsync(string code, string receivedState, string originalState)
-        {
-            // Validate the state parameter for security
-            // In the real implementation, you would validate against a stored state value
-            // For now, we'll just check that both values exist
-            if (string.IsNullOrEmpty(receivedState) || string.IsNullOrEmpty(originalState))
-            {
-                return new AuthResponseDto(null, "Invalid state parameter");
-            }
+        //public async Task<AuthResponseDto> ProcessGoogleCallbackAsync(string code, string receivedState, string originalState)
+        //{
+        //    // Validate the state parameter for security
+        //    // In the real implementation, you would validate against a stored state value
+        //    // For now, we'll just check that both values exist
+        //    if (string.IsNullOrEmpty(receivedState) || string.IsNullOrEmpty(originalState))
+        //    {
+        //        return new AuthResponseDto(null, "Invalid state parameter");
+        //    }
 
-            // In a real application, you would validate the received state against a stored state value
-            // For this example, we'll proceed without strict validation to simplify
+        //    // In a real application, you would validate the received state against a stored state value
+        //    // For this example, we'll proceed without strict validation to simplify
 
-            // Exchange the authorization code for access token and ID token
-            var tokenEndpoint = "https://oauth2.googleapis.com/token";
-            var clientId = _configuration["GoogleOAuth:ClientId"];
-            var clientSecret = _configuration["GoogleOAuth:ClientSecret"];
-            var redirectUri = _configuration["GoogleOAuth:RedirectUri"];
+        //    // Exchange the authorization code for access token and ID token
+        //    var tokenEndpoint = "https://oauth2.googleapis.com/token";
+        //    var clientId = _configuration["GoogleOAuth:ClientId"];
+        //    var clientSecret = _configuration["GoogleOAuth:ClientSecret"];
+        //    var redirectUri = _configuration["GoogleOAuth:RedirectUri"];
 
-            var form = new Dictionary<string, string>
-            {
-                ["grant_type"] = "authorization_code",
-                ["client_id"] = clientId,
-                ["client_secret"] = clientSecret,
-                ["code"] = code,
-                ["redirect_uri"] = redirectUri
-            };
+        //    var form = new Dictionary<string, string>
+        //    {
+        //        ["grant_type"] = "authorization_code",
+        //        ["client_id"] = clientId,
+        //        ["client_secret"] = clientSecret,
+        //        ["code"] = code,
+        //        ["redirect_uri"] = redirectUri
+        //    };
 
-            var tokenResponse = await _httpClient.PostAsync(tokenEndpoint, new FormUrlEncodedContent(form));
-            if (!tokenResponse.IsSuccessStatusCode)
-            {
-                return new AuthResponseDto(null, "Failed to exchange code for token");
-            }
+        //    var tokenResponse = await _httpClient.PostAsync(tokenEndpoint, new FormUrlEncodedContent(form));
+        //    if (!tokenResponse.IsSuccessStatusCode)
+        //    {
+        //        return new AuthResponseDto(null, "Failed to exchange code for token");
+        //    }
 
-            var tokenResponseContent = await tokenResponse.Content.ReadAsStringAsync();
-            var tokenData = JsonSerializer.Deserialize<JsonElement>(tokenResponseContent);
+        //    var tokenResponseContent = await tokenResponse.Content.ReadAsStringAsync();
+        //    var tokenData = JsonSerializer.Deserialize<JsonElement>(tokenResponseContent);
 
-            var accessToken = tokenData.GetProperty("access_token").GetString();
-            var idToken = tokenData.GetProperty("id_token").GetString();
+        //    var accessToken = tokenData.GetProperty("access_token").GetString();
+        //    var idToken = tokenData.GetProperty("id_token").GetString();
 
-            // Use the access token to get user information from Google
-            var userInfoResponse = await _httpClient.GetAsync($"https://www.googleapis.com/oauth2/v2/userinfo?access_token={accessToken}");
-            if (!userInfoResponse.IsSuccessStatusCode)
-            {
-                return new AuthResponseDto(null, "Failed to get user info from Google");
-            }
+        //    // Use the access token to get user information from Google
+        //    var userInfoResponse = await _httpClient.GetAsync($"https://www.googleapis.com/oauth2/v2/userinfo?access_token={accessToken}");
+        //    if (!userInfoResponse.IsSuccessStatusCode)
+        //    {
+        //        return new AuthResponseDto(null, "Failed to get user info from Google");
+        //    }
 
-            var userInfoContent = await userInfoResponse.Content.ReadAsStringAsync();
-            var userInfo = JsonSerializer.Deserialize<GoogleUserInfo>(userInfoContent);
+        //    var userInfoContent = await userInfoResponse.Content.ReadAsStringAsync();
+        //    var userInfo = JsonSerializer.Deserialize<GoogleUserInfo>(userInfoContent);
 
-            // Find or create the user in our database
-            var lowerEmail = userInfo.Email.ToLower();
-            var existingUser = await _context.Users.AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Email.ToLower() == lowerEmail);
+        //    // Find or create the user in our database
+        //    var lowerEmail = userInfo.Email.ToLower();
+        //    var existingUser = await _context.Users.AsNoTracking()
+        //        .FirstOrDefaultAsync(u => u.Email.ToLower() == lowerEmail);
 
-            User user;
-            if (existingUser != null)
-            {
-                // User exists, update information if needed
-                var needsUpdate = false;
-                if (string.IsNullOrWhiteSpace(existingUser.Name) && !string.IsNullOrWhiteSpace(userInfo.Name))
-                {
-                    existingUser.Name = userInfo.Name;
-                    needsUpdate = true;
-                }
+        //    User user;
+        //    if (existingUser != null)
+        //    {
+        //        // User exists, update information if needed
+        //        var needsUpdate = false;
+        //        if (string.IsNullOrWhiteSpace(existingUser.Name) && !string.IsNullOrWhiteSpace(userInfo.Name))
+        //        {
+        //            existingUser.Name = userInfo.Name;
+        //            needsUpdate = true;
+        //        }
 
-                // If user was previously not approved, approve them now since they verified via Google
-                if (!existingUser.IsApproved)
-                {
-                    existingUser.IsApproved = true;
-                    needsUpdate = true;
-                }
+        //        // If user was previously not approved, approve them now since they verified via Google
+        //        if (!existingUser.IsApproved)
+        //        {
+        //            existingUser.IsApproved = true;
+        //            needsUpdate = true;
+        //        }
 
-                // Update if needed
-                if (needsUpdate)
-                {
-                    _context.Users.Update(existingUser);
-                    await _context.SaveChangesAsync();
-                }
+        //        // Update if needed
+        //        if (needsUpdate)
+        //        {
+        //            _context.Users.Update(existingUser);
+        //            await _context.SaveChangesAsync();
+        //        }
 
-                user = existingUser;
-            }
-            else
-            {
-                // Create new user
-                user = new User
-                {
-                    Name = string.IsNullOrWhiteSpace(userInfo.Name) ? userInfo.Email.Split('@')[0] : userInfo.Name,
-                    Email = userInfo.Email,
-                    Phone = "",
-                    Role = UserRole.Student.ToString(), // Default to Student for Google users
-                    IsApproved = true, // Google authenticated users are automatically approved
-                    PasswordHash = _passwordHasher.HashPassword(new User(), GenerateRandomPassword()) // Generate a random password for OAuth users
-                };
+        //        user = existingUser;
+        //    }
+        //    else
+        //    {
+        //        // Create new user
+        //        user = new User
+        //        {
+        //            Name = string.IsNullOrWhiteSpace(userInfo.Name) ? userInfo.Email.Split('@')[0] : userInfo.Name,
+        //            Email = userInfo.Email,
+        //            Phone = "",
+        //            Role = UserRole.Student.ToString(), // Default to Student for Google users
+        //            IsApproved = true, // Google authenticated users are automatically approved
+        //            PasswordHash = _passwordHasher.HashPassword(new User(), GenerateRandomPassword()) // Generate a random password for OAuth users
+        //        };
 
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
-            }
+        //        _context.Users.Add(user);
+        //        await _context.SaveChangesAsync();
+        //    }
 
-            // Generate JWT token for our system
-            var jwt = GenerateJwtToken(user);
-            var loggedInUser = new LoggedInUser(user.Id, user.Name, user.Email, user.Role, jwt, user.AvatarPath)
-            {
-                FullName = user.Name
-            };
+        //    // Generate JWT token for our system
+        //    var jwt = GenerateJwtToken(user);
+        //    var loggedInUser = new LoggedInUser(user.Id, user.Name, user.Email, user.Role, jwt, user.AvatarPath)
+        //    {
+        //        FullName = user.Name
+        //    };
 
-            return new AuthResponseDto(loggedInUser);
-        }
+        //    return new AuthResponseDto(loggedInUser);
+        //}
 
         public async Task<AuthResponseDto> ProcessGoogleAuthAsync(string code, string state, string returnUrl = null)
         {
