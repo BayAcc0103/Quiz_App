@@ -89,6 +89,13 @@ namespace BlazingQuiz.Api.Hubs
             await Clients.Group(roomCode).SendAsync("ParticipantReadyStatusChanged", userName, isReady);
         }
 
+        public async Task ParticipantRemoved(string roomCode, int userId)
+        {
+            // Notify the specific user that they have been removed from the room
+            string userGroup = $"User-{userId}";
+            await Clients.Group(userGroup).SendAsync("RemovedFromRoom", roomCode, "You have been removed by the host.");
+        }
+
         public async Task UpdateParticipantsList(string roomCode, object participants)
         {
             // Update the list of participants for all in the room

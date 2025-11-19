@@ -4,6 +4,7 @@ using BlazingQuiz.Api.Services;
 using BlazingQuiz.Shared;
 using BlazingQuiz.Shared.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -566,7 +567,7 @@ namespace BlazingQuiz.Api.Endpoints
             }).RequireAuthorization(policy => policy.RequireClaim(ClaimTypes.Role, "Admin"));
 
             // Remove participant from room - host only
-            roomGroup.MapDelete("/{roomId:guid}/participants/{userId:int}", async (Guid roomId, int userId, HttpContext httpContext, RoomService service) =>
+            roomGroup.MapDelete("/{roomId:guid}/participants/{userId:int}", async (Guid roomId, int userId, HttpContext httpContext, RoomService service, IHubContext<Hubs.QuizHub> hubContext) =>
             {
                 // Get the current user ID from the claims
                 var currentUserIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -580,6 +581,9 @@ namespace BlazingQuiz.Api.Endpoints
                 {
                     return Results.NotFound("Room not found, you are not the host, or participant not found in the room.");
                 }
+
+                // Notify the removed user via SignalR
+                await hubContext.Clients.Group($"User-{userId}").SendAsync("RemovedFromRoom", (await service.GetRoomByIdAsync(roomId))?.Code, "participant have been removed by host");
 
                 return Results.Ok(new { Message = "Participant removed from room successfully." });
             });

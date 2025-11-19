@@ -501,7 +501,7 @@ namespace BlazingQuiz.Api.Services
 
             // Send real-time update to the removed user to redirect them to home
             // Send directly to the user's personal group
-            await _hubContext.Clients.Group($"User-{removedUser.Id}").SendAsync("UserRemovedFromRoom", room.Code, room.Name, room.CreatedByUser?.Name ?? "the host");
+            await _hubContext.Clients.Group($"User-{removedUser.Id}").SendAsync("UserRemovedFromRoom", room.Code, room.Name, "the host");
 
             // Send update to all other participants in the room that someone was removed
             await _hubContext.Clients.GroupExcept(room.Code, new[] { removedUser.Id.ToString() })
