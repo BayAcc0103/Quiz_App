@@ -274,6 +274,37 @@ namespace BlazingQuiz.Api.Endpoints
                 }
             });
 
+            // End room (for host only)
+            roomGroup.MapPost("/{roomId:guid}/end", async (Guid roomId, HttpContext httpContext, RoomService service) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest("Invalid user ID");
+                }
+
+                // Check if user is the host
+                var room = await service.GetRoomByIdAsync(roomId);
+                if (room == null)
+                {
+                    return Results.NotFound("Room not found.");
+                }
+
+                if (room.CreatedBy != userId)
+                {
+                    return Results.StatusCode(403); // Forbidden
+                }
+
+                // Update room status to indicate it has ended
+                await service.UpdateRoomStatusAsync(roomId, endedAt: DateTime.UtcNow);
+
+                // Send real-time update to all participants in the room that the room has ended
+                await service.NotifyQuizEndedAsync(room.Code);
+
+                return Results.Ok(new { Message = "Room ended successfully.", RoomCode = room.Code });
+            });
+
             // Start quiz in room (for host only)
             roomGroup.MapPost("/{roomId:guid}/start-quiz", async (Guid roomId, HttpContext httpContext, RoomService service, QuizContext context) =>
             {

@@ -33,6 +33,9 @@ namespace BlazingQuiz.Web.Apis
         [Post("/api/rooms/{roomId}/start")]
         Task<ApiResponse<object>> StartRoomAsync(Guid roomId);
         
+        [Post("/api/rooms/{roomId}/end")]
+        Task<ApiResponse<object>> EndRoomAsync(Guid roomId);
+
         [Post("/api/rooms/{roomId}/start-quiz")]
         Task<ApiResponse<object>> StartQuizAsync(Guid roomId);
         

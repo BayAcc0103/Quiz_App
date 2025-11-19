@@ -1,0 +1,223 @@
+@page "/teacher/rooms"
+@using BlazingQuiz.Shared.DTOs
+@using BlazingQuiz.Web.Services
+@inject IRoomApi RoomApi
+@inject IStorageService LocalStorage
+@inject IJSRuntime JSRuntime
+@attribute [Authorize(Roles = nameof(UserRole.Teacher))]
+
+<PageTitle>Manage Rooms - Teacher</PageTitle>
+
+<div class="container-fluid">
+    <h3 class="mb-4">Manage My Rooms</h3>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">My Room Management</h5>
+            <div>
+                <a href="/teacher/createroom" class="btn btn-sm btn-outline-success me-2">Create Room</a>
+                <button class="btn btn-sm btn-outline-primary" @onclick="RefreshRooms" disabled="@isProcessing">
+                    <span class="bi bi-arrow-repeat"></span> Refresh
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Room Code</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Quiz</th>
+                            <th>Max Participants</th>
+                            <th>Participants</th>
+                            <th>Created At</th>
+                            <th>Started At</th>
+                            <th>Ended At</th>
+                            <th>Active</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (rooms != null && rooms.Any())
+                        {
+                            @foreach (var room in rooms)
+                            {
+                                <tr>
+                                    <td>@room.Code</td>
+                                    <td>@room.Name</td>
+                                    <td>@(room.Description ?? "N/A")</td>
+                                    <td>@(room.QuizName ?? "N/A")</td>
+                                    <td>@room.MaxParticipants</td>
+                                    <td>
+                                        @if (room.Id != Guid.Empty)
+                                        {
+                                            <span class="badge bg-info">@GetParticipantCount(room.Id)</span>
+                                        }
+                                    </td>
+                                    <td>@room.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td>@(room.StartedAt?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</td>
+                                    <td>@(room.EndedAt?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</td>
+                                    <td>
+                                        <span class="@(room.IsActive ? "text-success" : "text-danger")">
+                                            @(room.IsActive ? "Active" : "Inactive")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => ViewDetails(room.Id)" disabled="@isProcessing">
+                                            View
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info me-2" @onclick="() => CopyRoomCode(room.Code)" disabled="@isProcessing">
+                                            Copy Code
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-warning" @onclick="() => EndRoom(room.Id)" disabled="@isProcessing">
+                                            End Room
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="11" class="text-center">
+                                    <div class="alert alert-info">
+                                        <h5 class="mb-3">No rooms found</h5>
+                                        <p class="mb-1">You haven't created any rooms yet.</p>
+                                        @if (isLoading == false)
+                                        {
+                                            <div>
+                                                <a href="/teacher/createroom" class="btn btn-primary">Create Your First Room</a>
+                                            </div>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="d-flex justify-content-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<RoomDto>? rooms;
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private Dictionary<Guid, int> participantCounts = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRooms();
+    }
+
+    private async Task LoadRooms()
+    {
+        try
+        {
+            isLoading = true;
+            rooms = (await RoomApi.GetRoomsAsync()).ToList();
+
+            // Load participant counts for each room
+            if (rooms != null)
+            {
+                foreach (var room in rooms)
+                {
+                    try
+                    {
+                        var participants = await RoomApi.GetRoomParticipantsAsync(room.Id);
+                        participantCounts[room.Id] = participants.Length;
+                    }
+                    catch
+                    {
+                        // If we can't get participant count, default to 0
+                        participantCounts[room.Id] = 0;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error or show notification
+            Console.WriteLine($"Error loading rooms: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private int GetParticipantCount(Guid roomId)
+    {
+        return participantCounts.TryGetValue(roomId, out var count) ? count : 0;
+    }
+
+    private async Task ViewDetails(Guid roomId)
+    {
+        // Navigate to a room details page - you can implement this as needed
+        await LoadRooms();
+    }
+
+    private async Task EndRoom(Guid roomId)
+    {
+        bool confirmed = await ConfirmEndRoom();
+        if (!confirmed)
+        {
+            return; // User cancelled the action
+        }
+
+        try
+        {
+            isProcessing = true;
+
+            var response = await RoomApi.EndRoomAsync(roomId);
+            if (response.IsSuccessStatusCode)
+            {
+                // Reload rooms to reflect the changes
+                await LoadRooms();
+                await JSRuntime.InvokeVoidAsync("alert", "Room ended successfully!");
+            }
+            else
+            {
+                Console.WriteLine($"Error ending room: {response.Error}");
+                await JSRuntime.InvokeVoidAsync("alert", $"Failed to end room: {response.Error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error ending room: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", $"Error ending room: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task RefreshRooms()
+    {
+        await LoadRooms();
+    }
+
+    private async Task<bool> ConfirmEndRoom()
+    {
+        return await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to end this room? This will stop any ongoing quiz activity.");
+    }
+
+    private async Task CopyRoomCode(string roomCode)
+    {
+        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", roomCode);
+        await JSRuntime.InvokeVoidAsync("alert", $"Room code '{roomCode}' copied to clipboard!");
+    }
+}
