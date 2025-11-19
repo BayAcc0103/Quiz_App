@@ -7,8 +7,10 @@ namespace BlazingQuiz.Web.Apis
     public interface ICategoryApi
     {
         [Post("/api/categories")]
-        Task<QuizApiResponse<CategoryDto>> SaveCategoryAsync(CategoryDto categoryDto);
+        Task<QuizApiResponse> SaveCategoryAsync(CategoryDto categoryDto);
         [Get("/api/categories")]
         Task<CategoryDto[]> GetCategoriesAsync();
+        [Delete("/api/categories/{id}")]
+        Task<QuizApiResponse> DeleteCategoryAsync(int id);
     }
 }

@@ -17,6 +17,9 @@ namespace BlazingQuiz.Api.Endpoints
             categoriesGroup.MapPost("", async (CategoryDto dto, CategoryService categoryService) =>
                 Results.Ok(await categoryService.SaveCategoryAsync(dto)))
                 .RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+            categoriesGroup.MapDelete("/{id:int}", async (int id, CategoryService categoryService) =>
+                Results.Ok(await categoryService.DeleteCategoryAsync(id)))
+                .RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
             return app;
         }
     }

@@ -78,5 +78,26 @@ namespace BlazingQuiz.Api.Services
                     IsDisplay = c.IsDisplay
                 })
                 .ToArrayAsync();
+
+        public async Task<QuizApiResponse> DeleteCategoryAsync(int id)
+        {
+            var category = await _context.Categories.FindAsync(id);
+            if (category == null)
+            {
+                return QuizApiResponse.Failure("Category does not exist");
+            }
+
+            // Check if category is associated with any quizzes before deleting
+            var hasQuizzes = await _context.QuizCategories.AnyAsync(qc => qc.CategoryId == id);
+            if (hasQuizzes)
+            {
+                return QuizApiResponse.Failure("Cannot delete category because it is associated with one or more quizzes");
+            }
+
+            _context.Categories.Remove(category);
+            await _context.SaveChangesAsync();
+
+            return QuizApiResponse.Success("Category deleted successfully");
+        }
     }
 }
