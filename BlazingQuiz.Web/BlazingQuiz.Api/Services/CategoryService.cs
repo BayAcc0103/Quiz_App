@@ -12,7 +12,7 @@ namespace BlazingQuiz.Api.Services
         {
             _context = context;
         }
-        public async Task<QuizApiResponse<CategoryDto>> SaveCategoryAsync(CategoryDto dto)
+        public async Task<QuizApiResponse<CategoryDto>> SaveCategoryAsync(CategoryDto dto, int? createdByUserId = null)
         {
             if(await _context.Categories
                 .AsNoTracking()
@@ -28,7 +28,9 @@ namespace BlazingQuiz.Api.Services
                 {
                     Name = dto.Name,
                     ImagePath = dto.ImagePath,
-                    IsDisplay = dto.IsDisplay
+                    IsDisplay = dto.IsDisplay,
+                    CreatedBy = createdByUserId, // Set the creator
+                    CreatedAt = DateTime.UtcNow // Set creation timestamp
                 };
                 _context.Categories.Add(category);
                 await _context.SaveChangesAsync(); // Save to get the new ID
@@ -39,18 +41,26 @@ namespace BlazingQuiz.Api.Services
                     Id = category.Id,
                     Name = category.Name,
                     ImagePath = category.ImagePath,
-                    IsDisplay = category.IsDisplay
+                    IsDisplay = category.IsDisplay,
+                    CreatedBy = category.CreatedBy
                 });
             }
             else
             {
                 // Update existing category
-               var dbCategory = await _context.Categories.FirstOrDefaultAsync(c => c.Id == dto.Id);
+                var dbCategory = await _context.Categories.FirstOrDefaultAsync(c => c.Id == dto.Id);
                 if (dbCategory == null)
                 {
                     //category does not exist, throw error, or send some error response
                     return QuizApiResponse<CategoryDto>.Failure("Category does not exists");
                 }
+
+                // For updates, only update CreatedBy if it's not already set (for existing categories without creator)
+                if (!dbCategory.CreatedBy.HasValue && createdByUserId.HasValue)
+                {
+                    dbCategory.CreatedBy = createdByUserId;
+                }
+
                 dbCategory.Name = dto.Name;
                 dbCategory.ImagePath = dto.ImagePath;
                 dbCategory.IsDisplay = dto.IsDisplay;
@@ -63,7 +73,8 @@ namespace BlazingQuiz.Api.Services
                     Id = dbCategory.Id,
                     Name = dbCategory.Name,
                     ImagePath = dbCategory.ImagePath,
-                    IsDisplay = dbCategory.IsDisplay
+                    IsDisplay = dbCategory.IsDisplay,
+                    CreatedBy = dbCategory.CreatedBy
                 });
             }
         }
@@ -75,7 +86,21 @@ namespace BlazingQuiz.Api.Services
                     Id = c.Id,
                     Name = c.Name,
                     ImagePath = c.ImagePath,
-                    IsDisplay = c.IsDisplay
+                    IsDisplay = c.IsDisplay,
+                    CreatedBy = c.CreatedBy
+                })
+                .ToArrayAsync();
+
+        public async Task<CategoryDto[]> GetCategoriesByCreatorAsync(int userId) =>
+                await _context.Categories.AsNoTracking()
+                .Where(c => c.CreatedBy == userId)
+                .Select(c => new CategoryDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    ImagePath = c.ImagePath,
+                    IsDisplay = c.IsDisplay,
+                    CreatedBy = c.CreatedBy
                 })
                 .ToArrayAsync();
 
@@ -97,7 +122,7 @@ namespace BlazingQuiz.Api.Services
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
 
-            return QuizApiResponse.Success("Category deleted successfully");
+            return QuizApiResponse.Success();
         }
     }
 }

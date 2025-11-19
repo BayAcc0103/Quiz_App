@@ -10,6 +10,8 @@ namespace BlazingQuiz.Web.Apis
         Task<QuizApiResponse> SaveCategoryAsync(CategoryDto categoryDto);
         [Get("/api/categories")]
         Task<CategoryDto[]> GetCategoriesAsync();
+        [Get("/api/categories/bycreator")]
+        Task<CategoryDto[]> GetCategoriesByCreatorAsync();
         [Delete("/api/categories/{id}")]
         Task<QuizApiResponse> DeleteCategoryAsync(int id);
     }

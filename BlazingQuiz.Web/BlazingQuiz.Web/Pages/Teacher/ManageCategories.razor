@@ -1,12 +1,14 @@
 @page "/teacher/manage-categories"
 @using BlazingQuiz.Shared
 @using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
 @attribute [Authorize(Roles = nameof(UserRole.Teacher))]
 
 @inject ICategoryApi CategoryApi
 @inject CategoryImageService CategoryImageService
 @inject IAppState AppState
 @inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <BackButton />
 
@@ -123,8 +125,15 @@
                                     <h5 class="card-title text-center flex-grow-1">@category.Name</h5>
                                     <div class="mt-auto">
                                         <div class="d-flex justify-content-between">
-                                            <button type="button" class="btn btn-sm btn-primary" @onclick="() => OnEditCategory(category)">Edit</button>
-                                            <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteCategory(category)">Delete</button>
+                                            @if (category.CreatedBy.HasValue && category.CreatedBy == CurrentUserId) // Only show buttons if teacher created this category
+                                            {
+                                                <button type="button" class="btn btn-sm btn-primary" @onclick="() => OnEditCategory(category)">Edit</button>
+                                                <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteCategory(category)">Delete</button>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">View Only</span>
+                                            }
                                         </div>
                                     </div>
                                 </div>
@@ -160,12 +169,22 @@
     private string? _errorMessage;
     private int _uploadProgress = 0;
 
-    protected override async Task OnInitializedAsync() => await LoadCategoriesAsync();
+    private int CurrentUserId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        CurrentUserId = int.TryParse(userIdClaim, out var userId) ? userId : 0;
+
+        await LoadCategoriesAsync();
+    }
 
     private async Task LoadCategoriesAsync()
     {
         AppState.ShowLoader("Loading categories...");
         // await Task.Delay(2500); // Simulate loading delay
+        // Get ALL categories for teachers, not just ones they created
         _categories = await CategoryApi.GetCategoriesAsync();
         AppState.HideLoader();
     }

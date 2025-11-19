@@ -17,5 +17,7 @@ namespace BlazingQuiz.Shared.DTOs
         public string? ImagePath { get; set; }
 
         public bool IsDisplay { get; set; } = false;
+
+        public int? CreatedBy { get; set; } // Teacher ID who created the category
     }
 }
