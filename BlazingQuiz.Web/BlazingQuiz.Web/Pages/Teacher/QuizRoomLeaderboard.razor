@@ -1,0 +1,173 @@
+@page "/teacher/rooms/{RoomId:guid}/leaderboard"
+@using BlazingQuiz.Shared.DTOs
+@using BlazingQuiz.Web.Services
+@inject IRoomApi RoomApi
+@inject IStorageService LocalStorage
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = nameof(UserRole.Teacher))]
+
+<PageTitle>Room Leaderboard</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="/teacher/rooms" class="btn btn-outline-secondary">
+                <span class="bi bi-arrow-left"></span> Back to Rooms
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Room Leaderboard</h3>
+                    @if (room != null)
+                    {
+                        <div>
+                            <span class="badge bg-light text-dark fs-6">Room: @room.Name</span>
+                            <span class="badge bg-light text-dark fs-6 ms-2">Code: @room.Code</span>
+                        </div>
+                    }
+                </div>
+                <div class="card-body">
+                    @if (isLoading)
+                    {
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                    else if (leaderboard == null || !leaderboard.Any())
+                    {
+                        <div class="alert alert-info text-center">
+                            <h5 class="mb-3">No results yet</h5>
+                            <p class="mb-0">No quiz results are available for this room yet.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Student</th>
+                                        <th scope="col">Avatar</th>
+                                        <th scope="col">Score</th>
+                                        <th scope="col">Completion Time</th>
+                                        <th scope="col">Started At</th>
+                                        <th scope="col">Completed At</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < leaderboard.Count; i++)
+                                    {
+                                        var entry = leaderboard[i];
+                                        <tr>
+                                            <td>
+                                                <span class="badge @(i == 0 ? "bg-warning text-dark" : i == 1 ? "bg-secondary" : i == 2 ? "bg-danger" : "bg-light text-dark")">
+                                                    @(entry.Rank)
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @entry.StudentName
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(entry.StudentAvatarPath))
+                                                {
+                                                    <img src="@entry.StudentAvatarPath" alt="@entry.StudentName" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px;">
+                                                        @entry.StudentName?.Substring(0, 1).ToUpper()
+                                                    </div>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary fs-5">@entry.Total</span>
+                                            </td>
+                                            <td>
+                                                @if (entry.CompletionTime.HasValue)
+                                                {
+                                                    @entry.CompletionTime.Value.ToString(@"mm\:ss")
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">N/A</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (entry.StartedOn != DateTime.MinValue)
+                                                {
+                                                    @entry.StartedOn.ToString("HH:mm:ss")
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">N/A</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (entry.CompletedOn.HasValue)
+                                                {
+                                                    @entry.CompletedOn.Value.ToString("HH:mm:ss")
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">N/A</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Guid RoomId { get; set; }
+
+    private List<QuizRoomLeaderboardEntryDto>? leaderboard;
+    private RoomDto? room;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLeaderboard();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadLeaderboard();
+    }
+
+    private async Task LoadLeaderboard()
+    {
+        try
+        {
+            isLoading = true;
+
+            // Load room details
+            room = await RoomApi.GetRoomByIdAsync(RoomId);
+
+            // Load leaderboard
+            leaderboard = await RoomApi.GetRoomLeaderboardAsync(RoomId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading leaderboard: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

@@ -72,9 +72,12 @@
                                         <button class="btn btn-sm btn-outline-info me-2" @onclick="() => CopyRoomCode(room.Code)" disabled="@isProcessing">
                                             Copy Code
                                         </button>
-                                        <button class="btn btn-sm btn-outline-warning" @onclick="() => EndRoom(room.Id)" disabled="@isProcessing">
-                                            End Room
-                                        </button>
+                                        @if (ShouldShowViewResultsButton(room.Id))
+                                        {
+                                            <button class="btn btn-sm btn-outline-success" @onclick="() => ViewResults(room.Id)" disabled="@isProcessing">
+                                                View Results
+                                            </button>
+                                        }
                                     </td>
                                 </tr>
                             }
@@ -117,6 +120,7 @@
     private bool isLoading = true;
     private bool isProcessing = false;
     private Dictionary<Guid, int> participantCounts = new();
+    private Dictionary<Guid, bool> allParticipantsSubmitted = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -130,7 +134,7 @@
             isLoading = true;
             rooms = (await RoomApi.GetRoomsAsync()).ToList();
 
-            // Load participant counts for each room
+            // Load participant counts and submission status for each room
             if (rooms != null)
             {
                 foreach (var room in rooms)
@@ -139,11 +143,24 @@
                     {
                         var participants = await RoomApi.GetRoomParticipantsAsync(room.Id);
                         participantCounts[room.Id] = participants.Length;
+
+                        // Check if all participants have submitted
+                        var submissionStatus = await RoomApi.GetSubmissionStatusAsync(room.Id);
+                        if (submissionStatus.Length > 0)
+                        {
+                            bool allSubmitted = submissionStatus.All(p => p.HasSubmitted == true);
+                            allParticipantsSubmitted[room.Id] = allSubmitted;
+                        }
+                        else
+                        {
+                            allParticipantsSubmitted[room.Id] = false;
+                        }
                     }
                     catch
                     {
-                        // If we can't get participant count, default to 0
+                        // If we can't get participant count or submission status, default to 0 and false
                         participantCounts[room.Id] = 0;
+                        allParticipantsSubmitted[room.Id] = false;
                     }
                 }
             }
@@ -203,6 +220,16 @@
         {
             isProcessing = false;
         }
+    }
+
+    private bool ShouldShowViewResultsButton(Guid roomId)
+    {
+        return allParticipantsSubmitted.TryGetValue(roomId, out bool submitted) && submitted;
+    }
+
+    private void ViewResults(Guid roomId)
+    {
+        Navigation.NavigateTo($"/teacher/rooms/{roomId}/leaderboard");
     }
 
     private async Task RefreshRooms()
