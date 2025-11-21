@@ -1,7 +1,7 @@
 @page "/student/profile"
 @using BlazingQuiz.Shared
-@using BlazingQuiz.Shared.Components.Services
 @using BlazingQuiz.Shared.DTOs
+@using BlazingQuiz.Shared.Components.Apis
 @inject IAuthApi AuthApi
 @inject UserAvatarService UserAvatarService
 @inject IAppState AppState
@@ -65,13 +65,13 @@
                                 </div>
                                 <div class="file-upload-wrapper">
                                     <FileUpload CurrentFile="@_selectedAvatarFile"
-                                                OnFileChanged="OnAvatarFileChanged"
-                                                MaxFileSize="5242880"
-                                                ShowProgress="true"
-                                                IsUploading="@_isUploading"
-                                                ProgressPercentage="@_uploadProgress"
-                                                UploadText="Drag & drop your avatar here"
-                                                UploadHint="or click to browse (JPG, PNG, GIF up to 5MB)" />
+                                               OnFileChanged="OnAvatarFileChanged"
+                                               MaxFileSize="5242880"
+                                               ShowProgress="true"
+                                               IsUploading="@_isUploading"
+                                               ProgressPercentage="@_uploadProgress"
+                                               UploadText="Drag & drop your avatar here"
+                                               UploadHint="or click to browse (JPG, PNG, GIF up to 5MB)" />
                                 </div>
                             </div>
 
@@ -133,7 +133,7 @@
         {
             _isLoading = true;
             _userDto = await AuthApi.GetProfileAsync();
-
+            
             // Set display values
             _role = QuizAuthStateProvider.User?.Role ?? "Student";
             _status = _userDto.IsApproved ? "Approved" : "Pending Approval";
@@ -171,7 +171,7 @@
     private async Task OnAvatarFileChanged(IBrowserFile? file)
     {
         _selectedAvatarFile = file;
-
+        
         // If a file is selected, automatically upload it
         if (file != null)
         {
@@ -200,11 +200,11 @@
         try
         {
             _isUploading = true;
-
+            
             // Simulate progress tracking
             _uploadProgress = 0;
             StateHasChanged();
-
+            
             for (int i = 0; i <= 10; i++)
             {
                 await Task.Delay(30); // Small delay to simulate progress
@@ -213,17 +213,17 @@
             }
 
             var result = await UserAvatarService.UploadAvatarAsync(file);
-
+            
             if (result.IsSuccess)
             {
                 _uploadProgress = 100; // Set to 100% on success
                 StateHasChanged();
-
+                
                 // Reload profile to get the new avatar
                 await LoadProfileAsync();
                 ProfileUpdateService.NotifyAvatarUpdated(); // Notify other components about avatar update
                 AppState.ShowAlert("Avatar uploaded successfully!", AlertType.Success);
-
+                
                 // Clear the selected file after successful upload
                 _selectedAvatarFile = null;
             }
@@ -273,3 +273,22 @@
         NavigationManager.NavigateTo($"/student/changepassword");
     }
 }
+
+<style>
+    .avatar-container {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .avatar-container img {
+        transition: transform 0.3s ease;
+    }
+
+    .avatar-container:hover img {
+        transform: scale(1.05);
+    }
+
+    .file-upload-wrapper {
+        margin-top: 1rem;
+    }
+</style>

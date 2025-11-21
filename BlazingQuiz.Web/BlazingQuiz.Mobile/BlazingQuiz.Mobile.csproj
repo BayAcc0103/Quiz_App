@@ -20,6 +20,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <EnableDefaultCssItems>false</EnableDefaultCssItems>
         <Nullable>enable</Nullable>
+		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
 
         <!-- Display name -->
         <ApplicationTitle>BlazingQuiz.Mobile</ApplicationTitle>

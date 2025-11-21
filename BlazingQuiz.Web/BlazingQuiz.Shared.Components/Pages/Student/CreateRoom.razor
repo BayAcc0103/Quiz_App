@@ -1,9 +1,8 @@
 @page "/student/createroom"
 @using BlazingQuiz.Shared.DTOs
-@using BlazingQuiz.Shared
 @using BlazingQuiz.Shared.Components.Apis
+@using BlazingQuiz.Shared
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.JSInterop
 @attribute [Authorize(Roles = nameof(UserRole.Student))]
 @inject IRoomApi RoomApi
 @inject IStudentQuizApi StudentQuizApi
@@ -11,7 +10,7 @@
 @inject IJSRuntime JSRuntime
 
 @code {
-    [Parameter]
+    [Parameter] 
     [SupplyParameterFromQuery]
     public Guid? QuizId { get; set; }
 }
@@ -109,10 +108,10 @@
     protected override async Task OnInitializedAsync()
     {
         createRoomDto.MaxParticipants = 50; // Default max participants
-
+        
         // Load all available quizzes
         await LoadAvailableQuizzes();
-
+        
         // If a quiz ID was provided in the URL, pre-select it
         if (QuizId.HasValue)
         {
@@ -124,7 +123,7 @@
     {
         isCreating = true;
         StateHasChanged();
-
+        
         try
         {
             createdRoom = await RoomApi.CreateRoomAsync(createRoomDto);
@@ -155,7 +154,7 @@
         }
     }
 
-    private async Task ShowAlertAsync(string message, string title = "Error") =>
+    private async Task ShowAlertAsync(string message, string title = "Error") => 
         await JSRuntime.InvokeVoidAsync("alert", $"{title}\n{message}");
 
     private async Task LoadAvailableQuizzes()
@@ -188,7 +187,7 @@
     private async Task OnQuizSelected(Guid? quizId)
     {
         quizSelectionModalVisible = false;
-
+        
         if (quizId.HasValue)
         {
             createRoomDto.QuizId = quizId;
@@ -233,7 +232,7 @@
                     // Update available quizzes and quiz names
                     availableQuizzes = allQuizzes;
                     quizNames = allQuizzes.ToDictionary(q => q.Id, q => q.Name);
-
+                    
                     createRoomDto.QuizId = quizId;
                     SelectedQuizName = specificQuiz.Name;
                 }

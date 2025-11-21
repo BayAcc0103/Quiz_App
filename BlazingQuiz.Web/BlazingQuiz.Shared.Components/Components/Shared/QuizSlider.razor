@@ -1,0 +1,259 @@
+@using BlazingQuiz.Shared.DTOs
+@inject QuizImageService QuizImageService
+@inject NavigationManager NavigationManager
+@inject IStudentQuizApi StudentQuizApi
+@inject QuizState QuizState
+@inject IBookmarkApi BookmarkApi
+@inject QuizAuthStateProvider QuizAuthStateProvider
+@inject IAppState AppState
+
+<div class="quiz-slider-container position-relative" style="margin: 2rem 0;">
+    <!-- Navigation arrows -->
+    <button type="button" class="slider-nav-btn slider-nav-btn-prev" @onclick="PrevSlide" aria-label="Previous slide">
+        <span class="material-symbols-outlined"> arrow_circle_left </span>
+    </button>
+
+    <div class="quiz-slider overflow-hidden">
+        <div class="slides-container" style="transform: translateX(@(-_currentSlide * 100)%)">
+            @for (int i = 0; i < _slides.Count; i++)
+            {
+                <div class="slide">
+                    <div class="d-flex flex-nowrap gap-4 justify-content-center">
+                        @for (int j = 0; j < 3 && (i * 3 + j) < QuizList.Length; j++)
+                        {
+                            var quiz = QuizList[i * 3 + j];
+                            <div class="quiz-card-container flex-shrink-0" style="width: 30%; min-width: 300px; max-width: 350px;">
+                                <div class="quiz-card position-relative h-100">
+                                    <!-- Quiz level badge -->
+                                    <div class="level-badge position-absolute top-0 start-0 m-3">
+                                        <span class="badge badge-@(quiz.Level?.ToLower() == "easy" ? "success" : quiz.Level?.ToLower() == "medium" ? "warning" : "danger")">
+                                            @quiz.Level
+                                        </span>
+                                    </div>
+
+                                    <!-- Bookmark button -->
+                                    <button type="button"
+                                            class="btn btn-bookmark @(IsBookmarked(quiz.Id) ? "bookmarked" : "")"
+                                            @onclick="() => ToggleBookmarkAsync(quiz)"
+                                            title="@(IsBookmarked(quiz.Id) ? "Remove bookmark" : "Add to bookmarks")">
+
+                                        <span class="material-symbols-outlined @(IsBookmarked(quiz.Id) ? "text-warning" : "text-muted")">
+                                            @(IsBookmarked(quiz.Id) ? "bookmark" : "bookmark_add")
+                                        </span>
+                                    </button>
+
+                                    <!-- Quiz image -->
+                                    @if (!string.IsNullOrEmpty(quiz.ImagePath))
+                                    {
+                                        <div class="quiz-image-container">
+                                            <img src="@QuizImageService.GetImageUrl(quiz.ImagePath)" alt="@quiz.Name" class="quiz-image" />
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="quiz-image quiz-image-placeholder bg-gradient d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-journal-text fs-1 text-white"></i>
+                                        </div>
+                                    }
+
+                                    <!-- Quiz content -->
+                                    <div class="quiz-content">
+                                        <h5 class="fw-bold mb-3 text-truncate" title="@quiz.Name">@quiz.Name</h5>
+
+                                        <!-- Quiz statistics -->
+                                        <div class="quiz-stats d-flex justify-content-between mt-auto">
+                                            <div class="stat-item d-flex flex-column align-items-center">
+                                                <span class="stat-value fw-bold">@quiz.TotalQuestions</span>
+                                                <small class="stat-label text-muted">Questions</small>
+                                            </div>
+                                            <div class="stat-item d-flex flex-column align-items-center">
+                                                <span class="stat-value fw-bold">@quiz.TimeInMinutes min</span>
+                                                <small class="stat-label text-muted">Time</small>
+                                            </div>
+                                            <div class="stat-item d-flex flex-column align-items-center">
+                                                <span class="stat-value fw-bold">@quiz.CreatedByName</span>
+                                                <small class="stat-label text-muted">Creator</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Action buttons -->
+                                    <div class="quiz-actions">
+                                        <button type="button" class="btn btn-quiz-action btn-primary w-100 mb-2"
+                                                @onclick="() => ShowQuizTypeSelection(quiz)">
+                                            Start Quiz
+                                        </button>
+                                        <a href="student/createroom?quizId=@quiz.Id" class="btn btn-quiz-action btn-outline-primary w-100 mb-2">
+                                            Create Room
+                                        </a>
+                                        <button type="button" class="btn btn-quiz-action btn-outline-secondary w-100"
+                                                @onclick="() => ShowQuizDetails(quiz.Id)">
+                                            View Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Next navigation button -->
+    <button type="button" class="slider-nav-btn slider-nav-btn-next" @onclick="NextSlide" aria-label="Next slide">
+        <span class="material-symbols-outlined">
+            arrow_circle_right
+        </span>
+    </button>
+
+    <!-- Slide indicators -->
+    <div class="slider-indicators d-flex justify-content-center mt-4">
+        @for (int i = 0; i < _slides.Count; i++)
+        {
+            <button type="button"
+                    class="indicator-btn mx-1 @(_currentSlide == i ? "active" : "")"
+                    @onclick="() => GoToSlide(i)"
+                    aria-label="Go to slide @(i + 1)">
+            </button>
+        }
+    </div>
+</div>
+
+<style>
+</style>
+
+@code {
+    [Parameter] public QuizListDto[] QuizList { get; set; } = [];
+    [Parameter] public EventCallback<QuizListDto> OnQuizTypeSelection { get; set; }
+    [Parameter] public EventCallback<Guid> OnQuizDetails { get; set; }
+    [Parameter] public EventCallback<QuizListDto> OnBookmarkToggle { get; set; }
+
+    private List<QuizListDto[]> _slides = new();
+    private int _currentSlide = 0;
+    private Dictionary<Guid, bool> _bookmarkedQuizes = new();
+
+    protected override void OnParametersSet()
+    {
+        // Calculate slides - 3 quizzes per slide
+        _slides.Clear();
+        for (int i = 0; i < QuizList.Length; i += 3)
+        {
+            var slide = QuizList.Skip(i).Take(3).ToArray();
+            _slides.Add(slide);
+        }
+
+        _currentSlide = 0; // Reset to first slide when quizzes change
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadBookmarkStatusAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadBookmarkStatusAsync()
+    {
+        if (!QuizAuthStateProvider.IsLoggedIn)
+        {
+            return;
+        }
+
+        _bookmarkedQuizes.Clear();
+        foreach (var quiz in QuizList)
+        {
+            var result = await BookmarkApi.IsBookmarkedAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = result.Data;
+            }
+        }
+    }
+
+    private async Task ToggleBookmarkAsync(QuizListDto quiz)
+    {
+        if (!QuizAuthStateProvider.IsLoggedIn)
+        {
+            NavigationManager.NavigateTo("auth/login");
+            return;
+        }
+
+        var isBookmarked = _bookmarkedQuizes.ContainsKey(quiz.Id) && _bookmarkedQuizes[quiz.Id];
+
+        if (isBookmarked)
+        {
+            // Remove bookmark
+            var result = await BookmarkApi.RemoveBookmarkAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = false;
+            }
+        }
+        else
+        {
+            // Add bookmark
+            var bookmarkDto = new QuizBookmarkDto
+            {
+                UserId = QuizAuthStateProvider.User.Id,
+                QuizId = quiz.Id,
+                QuizName = quiz.Name,
+                CategoryName = quiz.CategoryName
+            };
+
+            var result = await BookmarkApi.AddBookmarkAsync(bookmarkDto);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = true;
+            }
+        }
+
+        await OnBookmarkToggle.InvokeAsync(quiz);
+        StateHasChanged();
+    }
+
+    private bool IsBookmarked(Guid quizId)
+    {
+        return _bookmarkedQuizes.ContainsKey(quizId) && _bookmarkedQuizes[quizId];
+    }
+
+    private async Task ShowQuizTypeSelection(QuizListDto quiz)
+    {
+        await OnQuizTypeSelection.InvokeAsync(quiz);
+    }
+
+    private async Task ShowQuizDetails(Guid quizId)
+    {
+        await OnQuizDetails.InvokeAsync(quizId);
+    }
+
+    private void NextSlide()
+    {
+        if (_currentSlide < _slides.Count - 1)
+        {
+            _currentSlide++;
+            StateHasChanged();
+        }
+    }
+
+    private void PrevSlide()
+    {
+        if (_currentSlide > 0)
+        {
+            _currentSlide--;
+            StateHasChanged();
+        }
+    }
+
+    private void GoToSlide(int slideIndex)
+    {
+        if (slideIndex >= 0 && slideIndex < _slides.Count)
+        {
+            _currentSlide = slideIndex;
+            StateHasChanged();
+        }
+    }
+}

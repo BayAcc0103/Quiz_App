@@ -1,0 +1,147 @@
+@using BlazingQuiz.Shared.DTOs
+@using BlazingQuiz.Shared.Enums
+
+<div class="modal fade @(IsVisible ? "show d-block" : "d-none")" style="@(IsVisible ? "display: block !important; background-color: rgba(0,0,0,0.5);" : "")" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Rate and Comment on this Quiz</h5>
+                <button type="button" class="btn-close" @onclick="CloseModal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Rating</label>
+                    <div class="rating-container d-flex justify-content-between">
+                        @foreach (var ratingOption in RatingOptions)
+                        {
+                            <div class="text-center" style="cursor: pointer;" @onclick="() => SelectRating(ratingOption.Value)">
+                                <div class="emotion-icon @(CurrentRating == ratingOption.Value ? "selected" : "")" 
+                                     style=@($"font-size: 2rem; color: {(CurrentRating == ratingOption.Value ? "#0d6efd" : "gray")};")>
+                                    @ratingOption.Icon
+                                </div>
+                                <div class="emotion-label mt-1" 
+                                     style=@($"font-size: 0.8rem; color: {(CurrentRating == ratingOption.Value ? "#0d6efd" : "gray")}; font-weight: {(CurrentRating == ratingOption.Value ? "bold" : "normal")};")>
+                                    @ratingOption.Text
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="text-center mt-3">
+                        <h5 class="text-primary">
+                            Selected: @(string.IsNullOrEmpty(CurrentRating) ? "No rating selected" : MapTextToDisplayText(CurrentRating))
+                        </h5>
+                        <small class="text-muted">Click on an icon above to change your rating</small>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Comment</label>
+                    <textarea class="form-control" rows="4" placeholder="Share your thoughts about this quiz..." @bind="CommentContent"></textarea>
+                </div>
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <div class="alert alert-danger">@ErrorMessage</div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button type="button" class="btn btn-primary" @onclick="SubmitRating" disabled="@(string.IsNullOrEmpty(CurrentRating))">Submit Rating</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .emotion-icon {
+        transition: all ease 0.2s;
+        border-radius: 50%;
+        padding: 10px;
+        position: relative;
+        display: inline-block;
+    }
+    
+    .emotion-icon.selected {
+        color: #0d6efd !important;
+        background-color: rgba(13, 110, 253, 0.1) !important;
+        box-shadow: 0 0 15px rgba(13, 110, 253, 0.8) !important;
+        transform: scale(1.1);
+        border: 2px solid #0d6efd;
+    }
+    
+    .emotion-icon:hover {
+        transform: scale(1.2);
+        background-color: #f0f8ff;
+    }
+    
+    .rating-container {
+        gap: 10px;
+    }
+</style>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+    [Parameter] public EventCallback<(string rating, string comment)> OnRatingSubmitted { get; set; }
+    
+    public string CurrentRating { get; set; } = string.Empty;
+    public string CommentContent { get; set; } = string.Empty;
+    public string ErrorMessage { get; set; } = string.Empty;
+    
+    private readonly List<RatingOption> RatingOptions = new()
+    {
+        new RatingOption { Value = "very bad", Text = "Very Bad", Icon = "😞" },
+        new RatingOption { Value = "bad", Text = "Bad", Icon = "😟" },
+        new RatingOption { Value = "normal", Text = "Normal", Icon = "😐" },
+        new RatingOption { Value = "fun", Text = "Fun", Icon = "😄" },
+        new RatingOption { Value = "very fun", Text = "Very Fun", Icon = "😁" }
+    };
+    
+    private void SelectRating(string rating)
+    {
+        if (!string.IsNullOrEmpty(rating))
+        {
+            CurrentRating = rating;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+    
+    private async Task SubmitRating()
+    {
+        if (string.IsNullOrEmpty(CurrentRating))
+        {
+            ErrorMessage = "Please select a rating before submitting.";
+            StateHasChanged();
+            return;
+        }
+        
+        await OnRatingSubmitted.InvokeAsync((CurrentRating, CommentContent));
+        await CloseModal();
+    }
+    
+    private async Task CloseModal()
+    {
+        CurrentRating = string.Empty;
+        CommentContent = string.Empty;
+        ErrorMessage = string.Empty;
+        await IsVisibleChanged.InvokeAsync(false);
+    }
+    
+    private string MapTextToDisplayText(string rating)
+    {
+        return rating switch
+        {
+            "very bad" => "Very Bad",
+            "bad" => "Bad", 
+            "normal" => "Normal",
+            "fun" => "Fun",
+            "very fun" => "Very Fun",
+            _ => rating
+        };
+    }
+    
+    private class RatingOption
+    {
+        public string Value { get; set; } = string.Empty;
+        public string Text { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
+    }
+}

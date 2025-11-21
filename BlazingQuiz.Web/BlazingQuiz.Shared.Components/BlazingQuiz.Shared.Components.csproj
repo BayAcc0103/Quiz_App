@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+	<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
   </PropertyGroup>
 
 
@@ -18,6 +19,7 @@
 	<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.1.2" />
     <PackageReference Include="Refit.HttpClientFactory" Version="7.2.1" />
 	<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.1" />
+	<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.10" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +32,48 @@
 
   <ItemGroup>
     <_ContentIncludedByDefault Remove="components\QuizTimer.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Pages\Student\Bookmarks.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Update="Pages\Student\ChangePassword.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Update="Pages\Student\CreateRoom.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Update="Pages\Student\FlashcardQuiz.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Update="Pages\Student\JoinRoom.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Update="Pages\Student\MyQuizes.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Update="Pages\Student\Profile.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Update="Pages\Student\Quiz.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Update="Pages\Student\QuizResult.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Update="Pages\Student\QuizRoom.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Update="Pages\Student\QuizRoomLeaderboard.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Update="Pages\Student\Room.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Update="Pages\Student\StudentHome.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
   </ItemGroup>
 
 </Project>

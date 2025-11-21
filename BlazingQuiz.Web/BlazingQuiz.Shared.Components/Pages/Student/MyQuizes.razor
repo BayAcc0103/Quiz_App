@@ -1,11 +1,6 @@
 ﻿@page "/student/my-quizes"
-@using BlazingQuiz.Shared.Components.Apis
 @inject IAppState AppState
 @inject IStudentQuizApi StudentQuizApi
-@inject IPlatform Platform
-@inject NavigationManager NavigationManager
-
-@* <BackButton /> *@
 
 <h3>MyQuizes</h3>
 
@@ -49,16 +44,10 @@
     private PaginationState _paginationState = new PaginationState { ItemsPerPage = DefaultPageSize };
     protected override void OnInitialized()
     {
-        // Adjust page size for mobile
-        if (Platform.IsMobileApp)
-        {
-            _paginationState.ItemsPerPage = 8;
-        }
-
         _itemsProvider = async (request) =>
         {
             AppState.ShowLoader("Loading quizes");
-            var pageResult = await StudentQuizApi.GetStudentQuizesAsync(request.StartIndex, request.Count ?? _paginationState.ItemsPerPage);
+            var pageResult = await StudentQuizApi.GetStudentQuizesAsync(request.StartIndex, request.Count ?? DefaultPageSize);
             AppState.HideLoader();
             return GridItemsProviderResult.From(pageResult.Records, pageResult.TotalCount);
         };
