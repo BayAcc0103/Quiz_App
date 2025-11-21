@@ -97,17 +97,18 @@ builder.Services.AddAuthentication(options =>
     };
 });
 builder.Services.AddAuthorization();
+
+var corsPolicyName = "QuizCorsPolicy";
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(p =>
+    options.AddPolicy("QuizCorsPolicy", policy =>
     {
-        var allowedOriginsStr = builder.Configuration.GetValue<string>("AllowedOrigins");
-        var allowedOrigins = allowedOriginsStr.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-        p.WithOrigins(allowedOrigins)
-         .AllowAnyMethod()
-         .AllowAnyHeader();
+        policy.WithOrigins("https://b861mvjb-7194.asse.devtunnels.ms")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
     });
 });
+
 builder.Services.AddTransient<AuthService>()
                 .AddTransient<CategoryService>()
                 .AddTransient<QuizService>()
@@ -142,7 +143,7 @@ app.UseHttpsRedirection();
 // Enable static files middleware to serve images from wwwroot
 app.UseStaticFiles();
 
-app.UseCors();
+app.UseCors(corsPolicyName);
 
 app.UseAuthentication()
     .UseAuthorization();
