@@ -90,7 +90,8 @@ namespace BlazingQuiz.Mobile
 
         static void ConfigureRefit(IServiceCollection services)
         {
-            var apiBaseUrl = "https://localhost:7048";
+            //https://localhost:7048
+            var apiBaseUrl = "https://b861mvjb-7048.asse.devtunnels.ms/";
             if(DeviceInfo.DeviceType == DeviceType.Physical || DeviceInfo.Platform == DevicePlatform.iOS)
             {
                 apiBaseUrl = "https://b861mvjb-7048.asse.devtunnels.ms/";

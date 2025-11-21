@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Refit;
 
-const string ApiBaseUrl = "https://localhost:7048";
+const string ApiBaseUrl = "https://b861mvjb-7048.asse.devtunnels.ms";
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
