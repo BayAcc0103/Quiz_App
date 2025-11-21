@@ -21,7 +21,7 @@ namespace BlazingQuiz.Shared.Components.Apis
         [Get("/api/student/quiz/{studentQuizId}/next-question")]
         Task<QuizApiResponse<QuestionDto?>> GetNextQuestionForQuizAsync(int studentQuizId);
 
-        [Post("/api/student/quiz/{studentQuizId}/save-response")]      
+        [Post("/api/student/quiz/{studentQuizId}/save-response")]
         Task<QuizApiResponse> SaveQuestionResponseAsync(int studentQuizId, StudentQuizQuestionResponseDto dto);
 
         [Post("/api/student/quiz/{studentQuizId}/submit")]
@@ -32,17 +32,26 @@ namespace BlazingQuiz.Shared.Components.Apis
 
         [Post("/api/student/quiz/{studentQuizId}/auto-submit")]
         Task<QuizApiResponse> AutoSubmitQuizAsync(int studentQuizId);
-        
+
         [Get("/api/student/quiz/{studentQuizId}/all-questions")]
         Task<QuizApiResponse<IEnumerable<QuestionDto>>> GetAllQuestionsForQuizAsync(int studentQuizId);
 
         [Post("/api/student/quiz/{studentQuizId}/rate-and-comment")]
         Task<QuizApiResponse> SaveRatingAndCommentAsync(int studentQuizId, QuizRatingCommentDto dto);
-        
+
+        [Post("/api/room-quiz/quiz/{roomId}/start")]
+        Task<QuizApiResponse<int>> StartQuizForRoomAsync(Guid roomId);
+
         [Get("/api/student/quiz/{quizId}/details")]
         Task<QuizApiResponse<QuizDetailsDto>> GetQuizDetailsAsync(Guid quizId);
-        
+
         [Get("/api/student/quiz/{quizId}/all-feedback")]
         Task<QuizApiResponse<QuizAllFeedbackDto>> GetAllFeedbackAsync(Guid quizId);
+
+        [Get("/api/student/quizzes/quiz/{quizId}")]
+        Task<StudentQuizDto[]> GetStudentQuizzesByQuizIdAsync(Guid quizId);
+
+        [Get("/api/student/quiz/{studentQuizId}/responses")]
+        Task<StudentQuizQuestionResultDto[]> GetStudentQuizQuestionResponsesAsync(int studentQuizId);
     }
 }
