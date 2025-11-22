@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -14,7 +15,8 @@ namespace BlazingQuiz.Shared.Components.Services.SignalR
         public QuizHubService(IConfiguration configuration)
         {
             // Fallback to the hardcoded URL if ApiSettings is not available
-            var baseUrl = configuration.GetSection("ApiSettings")["BaseUrl"] ?? "https://localhost:7048";
+            var baseUrl = configuration.GetSection("ApiSettings")["BaseUrl"] ?? "https://b861mvjb-7048.asse.devtunnels.ms/";
+            // Ensure the URL doesn't have trailing slash and add the hub endpoint
             _hubUrl = baseUrl.TrimEnd('/') + "/quizhub";
         }
 
@@ -27,8 +29,19 @@ namespace BlazingQuiz.Shared.Components.Services.SignalR
                 return; // Already connected
             }
 
+            if (_hubConnection != null)
+            {
+                await _hubConnection.DisposeAsync();
+            }
+
+            Console.WriteLine($"Attempting to connect to SignalR hub: {_hubUrl}");
+
             _hubConnection = new HubConnectionBuilder()
-                .WithUrl(_hubUrl)
+                .WithUrl(_hubUrl, options =>
+                {
+                    options.Transports = HttpTransportType.WebSockets | HttpTransportType.LongPolling;
+                })
+                .WithAutomaticReconnect(new RetryPolicy())
                 .Build();
 
             // Define client-side methods that can be called from the server
@@ -82,21 +95,16 @@ namespace BlazingQuiz.Shared.Components.Services.SignalR
                 OnRemovedFromRoom?.Invoke(roomCode, message);
             });
 
-            // Add reconnection logic
-            _hubConnection.Closed += async (error) =>
-            {
-                await Task.Delay(new Random().Next(0, 5) * 1000); // Random delay before reconnect
-                await StartConnectionAsync();
-            };
-
             try
             {
                 await _hubConnection.StartAsync();
                 _isConnectionStarted = true;
+                Console.WriteLine($"Successfully connected to SignalR hub: {_hubUrl}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error starting SignalR connection: {ex.Message}");
+                Console.WriteLine($"Error starting SignalR connection to {_hubUrl}: {ex.Message}");
+                _isConnectionStarted = false;
                 throw;
             }
         }
@@ -105,8 +113,36 @@ namespace BlazingQuiz.Shared.Components.Services.SignalR
         {
             if (_hubConnection != null)
             {
-                await _hubConnection.StopAsync();
-                _isConnectionStarted = false;
+                try
+                {
+                    await _hubConnection.StopAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error stopping SignalR connection: {ex.Message}");
+                }
+                finally
+                {
+                    await _hubConnection.DisposeAsync();
+                    _isConnectionStarted = false;
+                }
+            }
+        }
+
+        private class RetryPolicy : IRetryPolicy
+        {
+            public TimeSpan? NextRetryDelay(RetryContext retryContext)
+            {
+                // Retry with exponential backoff up to 30 seconds, max 10 attempts
+                if (retryContext.PreviousRetryCount < 10)
+                {
+                    var nextRetryDelay = TimeSpan.FromSeconds(Math.Min(Math.Pow(2, retryContext.PreviousRetryCount), 30));
+                    Console.WriteLine($"Retrying connection in {nextRetryDelay.TotalSeconds} seconds...");
+                    return nextRetryDelay;
+                }
+
+                Console.WriteLine("Max retry attempts reached, stopping reconnection attempts.");
+                return null; // Stop retrying after 10 attempts
             }
         }
 
@@ -193,6 +229,14 @@ namespace BlazingQuiz.Shared.Components.Services.SignalR
             if (_hubConnection?.State == HubConnectionState.Connected)
             {
                 await _hubConnection.InvokeAsync("UpdateParticipantsList", roomCode, participants);
+            }
+        }
+
+        public async Task NotifyParticipantRemovedAsync(string roomCode, int userId)
+        {
+            if (_hubConnection?.State == HubConnectionState.Connected)
+            {
+                await _hubConnection.InvokeAsync("ParticipantRemoved", roomCode, userId);
             }
         }
     }

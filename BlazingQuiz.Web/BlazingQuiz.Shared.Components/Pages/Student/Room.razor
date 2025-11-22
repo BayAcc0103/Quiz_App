@@ -252,7 +252,16 @@
         // Make sure SignalR connection is started
         if (!QuizHubService.IsConnected)
         {
-            await QuizHubService.StartConnectionAsync();
+            try
+            {
+                await QuizHubService.StartConnectionAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to establish SignalR connection: {ex.Message}");
+                // Optionally show a user-friendly message or continue with limited functionality
+                errorMessage = "Real-time updates may not be available due to connection issues. Some features might not work properly.";
+            }
         }
 
         // Set up SignalR connection to receive real-time updates
@@ -264,7 +273,23 @@
         // Join the room in SignalR to receive updates
         if (!string.IsNullOrEmpty(room?.Code))
         {
-            await QuizHubService.JoinRoomAsync(room.Code);
+            if (QuizHubService.IsConnected)
+            {
+                try
+                {
+                    await QuizHubService.JoinRoomAsync(room.Code);
+                    Console.WriteLine($"Successfully joined room {room.Code} via SignalR");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to join room via SignalR: {ex.Message}");
+                    errorMessage = "Unable to join the room for real-time updates. Some features might not work properly.";
+                }
+            }
+            else
+            {
+                Console.WriteLine($"SignalR not connected, skipping JoinRoom call for room {room?.Code}");
+            }
         }
 
         // Start polling for participants (as backup)
@@ -469,10 +494,19 @@
         await LoadParticipants();
 
         // Also notify via SignalR that the status changed
-        if (room != null)
+        if (room != null && QuizHubService.IsConnected)
         {
-            var isCurrentlyReady = participants.FirstOrDefault(p => p.UserId == QuizAuthStateProvider.User.Id)?.IsReady == true;
-            await QuizHubService.NotifyParticipantReadyAsync(room.Code, QuizAuthStateProvider.User.Name, isCurrentlyReady);
+            try
+            {
+                var isCurrentlyReady = participants.FirstOrDefault(p => p.UserId == QuizAuthStateProvider.User.Id)?.IsReady == true;
+                await QuizHubService.NotifyParticipantReadyAsync(room.Code, QuizAuthStateProvider.User.Name, isCurrentlyReady);
+                Console.WriteLine($"Successfully notified ready status via SignalR for room {room.Code}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to notify ready status via SignalR: {ex.Message}");
+                // Don't show error to user for this as it's not critical
+            }
         }
 
         StateHasChanged();
@@ -517,6 +551,21 @@
         if (response.IsSuccessStatusCode)
         {
             await ShowAlertAsync("Room started successfully!", "Success");
+
+            // Notify other participants via SignalR that the quiz has started
+            if (QuizHubService.IsConnected && !string.IsNullOrEmpty(room.Code))
+            {
+                try
+                {
+                    await QuizHubService.StartQuizAsync(room.Code);
+                    Console.WriteLine($"Successfully sent start quiz notification via SignalR for room {room.Code}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to send start quiz notification via SignalR: {ex.Message}");
+                    // Still allow navigation even if SignalR notification fails
+                }
+            }
 
             // Navigate to the quiz room page immediately - participants will receive the SignalR event
             if (room.QuizId.HasValue)
@@ -564,6 +613,21 @@
             await LoadParticipants();
             StateHasChanged();
             await ShowAlertAsync("Participant removed successfully", "Success");
+
+            // Notify the removed participant via SignalR
+            if (QuizHubService.IsConnected && !string.IsNullOrEmpty(room?.Code))
+            {
+                try
+                {
+                    await QuizHubService.NotifyParticipantRemovedAsync(room.Code, userId);
+                    Console.WriteLine($"Successfully notified participant removal via SignalR for room {room?.Code}, user ID: {userId}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to notify participant removal via SignalR: {ex.Message}");
+                    // Don't prevent the action if SignalR notification fails
+                }
+            }
         }
         else
         {
@@ -649,7 +713,7 @@
         });
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         // Unsubscribe from SignalR events
         QuizHubService.OnParticipantReadyStatusChanged -= HandleParticipantReadyStatusChanged;
@@ -660,7 +724,14 @@
         // Leave the room in SignalR when leaving the page
         if (!string.IsNullOrEmpty(room?.Code))
         {
-            _ = QuizHubService.LeaveRoomAsync(room.Code); // Fire and forget
+            try
+            {
+                await QuizHubService.LeaveRoomAsync(room.Code);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error leaving room via SignalR: {ex.Message}");
+            }
         }
     }
 }

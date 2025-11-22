@@ -296,16 +296,45 @@ else
             // Set up SignalR connection - make sure connection is started
             if (!QuizHubService.IsConnected)
             {
-                await QuizHubService.StartConnectionAsync();
+                try
+                {
+                    await QuizHubService.StartConnectionAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to establish SignalR connection: {ex.Message}");
+                    // Optionally show a user-friendly message or continue with limited functionality
+                    errorMessage = "Real-time updates may not be available due to connection issues. Some features might not work properly.";
+                }
             }
-            
+
             // Set up SignalR connection
             QuizHubService.OnQuizStarted += HandleQuizStarted;
             QuizHubService.OnQuizEnded += HandleQuizEnded; // Add event handler for when quiz ends for all
             QuizHubService.OnUserRemovedFromRoom += HandleUserRemovedFromRoom; // Add event handler for when user is removed from room
-            
+
             // Join the room in SignalR
-            await QuizHubService.JoinRoomAsync(roomCode);
+            if (!string.IsNullOrEmpty(roomCode) && QuizHubService.IsConnected)
+            {
+                try
+                {
+                    await QuizHubService.JoinRoomAsync(roomCode);
+                    Console.WriteLine($"Successfully joined room {roomCode} via SignalR in QuizRoom");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to join room via SignalR: {ex.Message}");
+                    errorMessage = "Unable to join the room for real-time updates. Some features might not work properly.";
+                }
+            }
+            else if (string.IsNullOrEmpty(roomCode))
+            {
+                Console.WriteLine("Room code is null or empty, skipping JoinRoom call");
+            }
+            else if (!QuizHubService.IsConnected)
+            {
+                Console.WriteLine("SignalR is not connected, skipping JoinRoom call");
+            }
             
             // If the quiz has already started, initialize it now
             if (isQuizStarted)
@@ -737,17 +766,24 @@ else
         }
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         // Unsubscribe from SignalR events
         QuizHubService.OnQuizStarted -= HandleQuizStarted;
         QuizHubService.OnQuizEnded -= HandleQuizEnded; // Remove the event handler that was added
         QuizHubService.OnUserRemovedFromRoom -= HandleUserRemovedFromRoom; // Remove the event handler that was added
-        
+
         // Leave the room in SignalR
         if (!string.IsNullOrEmpty(roomCode))
         {
-            _ = QuizHubService.LeaveRoomAsync(roomCode); // Fire and forget to prevent blocking disposal
+            try
+            {
+                await QuizHubService.LeaveRoomAsync(roomCode);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error leaving room via SignalR: {ex.Message}");
+            }
         }
     }
 
