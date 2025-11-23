@@ -11,7 +11,7 @@
 @inject QuizState QuizState
 @inject QuizImageService QuizImageService
 @inject QuizAuthStateProvider QuizAuthStateProvider
-@* @inject CategoryImageService CategoryImageService *@
+@inject CategoryImageService categoryimageservice
 
 <div class="pl-1 pr-1">
     <!-- Hero Section for Room Actions -->
@@ -60,16 +60,16 @@
                             var category = _visibleCategories[index];
                             <div class="col-md-2 col-4 mb-3">
                                 <div class="category-item text-center" @onclick="() => OnCategoryClick(category)">
-@*                                     @if (!string.IsNullOrEmpty(category.ImagePath))
+                                    @if (!string.IsNullOrEmpty(category.ImagePath))
                                     {
-                                        <img src="@CategoryImageService.GetImageUrl(category.ImagePath)" alt="@category.Name" class="category-image img-fluid rounded mb-2" />
+                                        <img src="@categoryimageservice.GetImageUrl(category.ImagePath)" alt="@category.Name" class="category-image img-fluid rounded mb-2" />
                                     }
                                     else
                                     {
                                         <div class="category-placeholder rounded mb-2 d-flex align-items-center justify-content-center">
                                             <i class="bi bi-folder fs-3 text-muted"></i>
                                         </div>
-                                    } *@
+                                    }
                                     <div class="category-name">@category.Name</div>
                                 </div>
                             </div>

@@ -22,6 +22,7 @@ namespace BlazingQuiz.Mobile
 {
     public static class MauiProgram
     {
+        const string ApiBaseUrl = "https://b861mvjb-7048.asse.devtunnels.ms";
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();
@@ -84,6 +85,13 @@ namespace BlazingQuiz.Mobile
                 var httpClient = sp.GetRequiredService<HttpClient>();
                 var authStateProvider = sp.GetRequiredService<QuizAuthStateProvider>();
                 return new UserAvatarService(httpClient, authStateProvider);
+            });
+
+            builder.Services.AddScoped(sp =>
+            {
+                var httpClient = sp.GetRequiredService<HttpClient>();
+                var authStateProvider = sp.GetRequiredService<QuizAuthStateProvider>();
+                return new CategoryImageService(httpClient, authStateProvider);
             });
 
             ConfigureRefit(builder.Services);
