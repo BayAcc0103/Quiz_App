@@ -65,5 +65,8 @@ namespace BlazingQuiz.Shared.Components.Apis
 
         [Get("/api/rooms/{roomId}/leaderboard")]
         Task<List<QuizRoomLeaderboardEntryDto>> GetRoomLeaderboardAsync(Guid roomId);
+
+        [Get("/api/rooms/history")]
+        Task<List<RoomHistoryDto>> GetRoomHistoryAsync();
     }
 }
