@@ -637,6 +637,86 @@ namespace BlazingQuiz.Api.Endpoints
                 return Results.Ok(sortedLeaderboard);
             });
 
+            // Get room history for current user
+            roomGroup.MapGet("/history", async (QuizContext context, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest("Invalid user ID");
+                }
+
+                // Get all student quizzes for the current user
+                var studentQuizzesForRooms = await context.StudentQuizzesForRoom
+                    .Where(sqfr => sqfr.StudentId == userId && sqfr.Status == "Completed")
+                    .Include(sqfr => sqfr.Room)
+                    .Include(sqfr => sqfr.Quiz)
+                    .ToListAsync();
+
+                if (!studentQuizzesForRooms.Any())
+                {
+                    return Results.Ok(new List<RoomHistoryDto>());
+                }
+
+                // Get all related question data to calculate correct answers if needed
+                var allStudentQuizQuestionIds = studentQuizzesForRooms.Select(sqfr => sqfr.Id).ToList();
+                var studentQuizQuestionsForRooms = await context.StudentQuizQuestionsForRoom
+                    .Where(sqqfr => allStudentQuizQuestionIds.Contains(sqqfr.StudentQuizForRoomId))
+                    .ToListAsync();
+
+                var roomHistoryDtos = new List<RoomHistoryDto>();
+
+                foreach (var sqfr in studentQuizzesForRooms)
+                {
+                    // For each student quiz, we need to calculate the rank within that room
+                    // First, get all completed quizzes for this room to calculate rank
+                    var allQuizzesInRoom = await context.StudentQuizzesForRoom
+                        .Where(s => s.RoomId == sqfr.RoomId && s.Status == "Completed")
+                        .ToListAsync();
+
+                    TimeSpan? completionTime = null;
+                    if (sqfr.StartedOn != DateTime.MinValue && sqfr.CompletedOn.HasValue)
+                    {
+                        completionTime = sqfr.CompletedOn.Value - sqfr.StartedOn;
+                    }
+
+                    // Calculate rank within the room based on total correct answers
+                    var sortedQuizzes = allQuizzesInRoom
+                        .OrderByDescending(q => q.Total)
+                        .ThenBy(q => (q.CompletedOn.HasValue ? q.CompletedOn.Value - q.StartedOn : TimeSpan.Zero))
+                        .ToList();
+
+                    int rank = sortedQuizzes.FindIndex(q => q.Id == sqfr.Id) + 1;
+
+                    var roomHistory = new RoomHistoryDto
+                    {
+                        RoomId = sqfr.RoomId,
+                        RoomName = sqfr.Room?.Name ?? "Unknown Room",
+                        RoomCode = sqfr.Room?.Code ?? "N/A",
+                        QuizId = sqfr.QuizId,
+                        QuizName = sqfr.Quiz?.Name ?? "Unknown Quiz",
+                        Rank = rank,
+                        CorrectAnswers = sqfr.Total,
+                        // For total questions, we need to get it from the quiz
+                        TotalQuestions = sqfr.Quiz?.Questions.Count ?? 0,
+                        CompletionTime = completionTime,
+                        StartedOn = sqfr.StartedOn,
+                        CompletedOn = sqfr.CompletedOn,
+                        Status = sqfr.Status
+                    };
+
+                    roomHistoryDtos.Add(roomHistory);
+                }
+
+                // Sort by most recent completion time
+                roomHistoryDtos = roomHistoryDtos
+                    .OrderByDescending(rh => rh.CompletedOn ?? rh.StartedOn)
+                    .ToList();
+
+                return Results.Ok(roomHistoryDtos);
+            });
+
             return app;
         }
     }
