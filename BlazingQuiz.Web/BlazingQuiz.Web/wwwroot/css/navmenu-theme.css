@@ -1,0 +1,61 @@
+/* NavMenu theme with bright green and sky blue colors */
+
+/* Adjust sidebar background with green-blue gradient */
+.sidebar {
+    background: linear-gradient(160deg, rgba(144, 238, 144, 0.3) 0%, rgba(173, 216, 230, 0.35) 45%, rgba(135, 206, 235, 0.4) 100%) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Adjust link colors with bright green and blue tones */
+.sidebar-links li a {
+    color: #ffffff !important; /* White for good contrast */
+    background: linear-gradient(135deg, rgba(255,255,255,0.25), rgba(200,230,200,0.2)) !important;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset, 0 2px 5px rgba(0, 0, 0, 0.25) !important;
+}
+
+.sidebar-links li a:hover {
+    color: #e0ffe0 !important; /* Light green for contrast */
+    background: linear-gradient(135deg, rgba(152,251,152,0.9), rgba(135,206,250,0.85)) !important;
+}
+
+.sidebar-links li a.active {
+    color: #e0ffe0 !important;
+    background: linear-gradient(135deg, rgba(144,238,144,0.85), rgba(135,206,235,0.8)) !important;
+}
+
+/* Adjust icon colors with green/blue tones */
+.sidebar-links li a i,
+.sidebar-links li a .icon {
+    color: #ffffff !important; /* White for better visibility */
+}
+
+.sidebar-links li a:hover i,
+.sidebar-links li a:hover .icon {
+    color: #e0ffe0 !important; /* Light green on hover */
+}
+
+/* Section headers with green-blue tones */
+.sidebar-links h4 {
+    color: #f0fff0 !important; /* Honeydew - a light greenish tone */
+}
+
+.sidebar-links h4 span {
+    color: #7cc07c !important; /* Muted green */
+}
+
+/* User account section with matching colors */
+.user-account {
+    background: linear-gradient(135deg, rgba(144,238,144,0.2), rgba(135,206,235,0.2)) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255,255,255,0.15) !important;
+}
+
+.user-profile {
+    color: #ffffff !important;
+}
+
+/* Mobile top row */
+.top-row {
+    background: linear-gradient(160deg, rgba(144, 238, 144, 0.25) 0%, rgba(173, 216, 230, 0.3) 45%, rgba(135, 206, 235, 0.35) 100%) !important;
+    backdrop-filter: blur(5px) !important;
+}
