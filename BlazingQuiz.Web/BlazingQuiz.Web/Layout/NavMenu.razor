@@ -6,8 +6,8 @@
 @inject UserAvatarService UserAvatarService
 @inject NavigationManager NavigationManager
 @inject ProfileUpdateService ProfileUpdateService
-
-<aside class="sidebar">
+<div class="mobile-overlay @(collapseNavMenu ? "d-none" : "")" @onclick="ToggleNavMenu"></div>
+<aside class="sidebar @GetSidebarClass">
     <div class="sidebar-header">
         <img src="https://static.vecteezy.com/system/resources/previews/016/061/690/non_2x/quiz-logo-with-speech-bubble-symbols-concept-of-questionnaire-show-sing-quiz-vector.jpg" alt="logo" />
     </div>
@@ -201,6 +201,7 @@
 @implements IDisposable
 @code {
     private UserDto? _userDto;
+    private bool collapseNavMenu = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -250,14 +251,16 @@
     {
         ProfileUpdateService.OnAvatarUpdated -= OnAvatarUpdated;
     }
-    private bool collapseNavMenu = true;
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private string GetSidebarClass => collapseNavMenu ? "" : "expanded";
 
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
     }
+
     private async Task LogoutAsync()
     {
         await QuizAuthStateProvider.SetLogoutAsync();
@@ -265,127 +268,12 @@
     }
 }
 
-@* <div class="top-row ps-3 navbar navbar-dark">
+<!-- Mobile top row with toggle button -->
+<div class="top-row ps-3 navbar navbar-dark d-md-none">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">BlazingQuiz.Web</a>
+        <img src="https://static.vecteezy.com/system/resources/previews/016/061/690/non_2x/quiz-logo-with-speech-bubble-symbols-concept-of-questionnaire-show-sing-quiz-vector.jpg" alt="logo" />
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
     </div>
 </div>
-
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <AuthorizeView>
-            <Authorized>
-                <AuthorizeView Roles="@(nameof(UserRole.Admin))" Context="adminContext">
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="admin/home" Match="NavLinkMatch.All">
-                            <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="admin/manage-categories">
-                            <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Manage Categories
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="admin/manage-students">
-                            <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Manage Students
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="admin/manage-quizes">
-                            <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Manage Quizes
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="admin/rooms">
-                            <span class="bi bi-door-open-fill-nav-menu" aria-hidden="true"></span> Manage Rooms
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="admin/add-quiz">
-                            <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Add Quiz
-                        </NavLink>
-                    </div>
-                </AuthorizeView>
-                <AuthorizeView Roles="@(nameof(UserRole.Student))" Context="studentContext">
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="student/home" Match="NavLinkMatch.All">
-                            <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="student/joinroom">
-                            <span class="bi bi-door-closed-fill-nav-menu" aria-hidden="true"></span> Join Room
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="student/createroom">
-                            <span class="bi bi-door-open-fill-nav-menu" aria-hidden="true"></span> Create Room
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="student/my-quizes">
-                            <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> My quizes
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="student/bookmarks">
-                            <span class="bi bi-bookmark-fill-nav-menu" aria-hidden="true"></span> Bookmarks
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="student/profile">
-                            <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Profile
-                        </NavLink>
-                    </div>
-                </AuthorizeView>
-                <AuthorizeView Roles="@(nameof(UserRole.Teacher))" Context="teacherContext">
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="teacher/home" Match="NavLinkMatch.All">
-                            <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-                        </NavLink>
-                    </div>
-@*                     <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="teacher/manage-questions">
-                            <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Manage Questions
-                        </NavLink>
-                    </div> 
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="teacher/manage-categories">
-                            <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Manage Categories
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="teacher/manage-quizzes">
-                            <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Manage Quizzes
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="teacher/add-quiz">
-                            <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Add Quiz
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="teacher/createroom">
-                            <span class="bi bi-door-open-fill-nav-menu" aria-hidden="true"></span> Create Room
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="teacher/profile">
-                            <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Profile
-                        </NavLink>
-                    </div>
-                </AuthorizeView>
-                <div class="nav-item px-3">
-                    <a role="button" class="nav-link" @onclick="LogoutAsync">
-                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Logout
-                    </a>
-                </div>
-            </Authorized>
-        </AuthorizeView>
-        
-    </nav>
-</div> *@
