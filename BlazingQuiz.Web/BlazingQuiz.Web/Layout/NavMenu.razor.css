@@ -357,6 +357,14 @@ body {
     display: none; /* Hidden by default, shown via JS when menu is open on mobile */
 }
 
+.logo-image {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.9);
+    box-shadow: 0 6px 14px rgba(168, 94, 18, 0.8);
+    object-fit: cover;
+}
 /* Mobile-specific styles */
 @media (max-width: 768px) {
     .sidebar {
@@ -377,12 +385,11 @@ body {
         position: sticky;
         top: 0;
         z-index: 1001;
-        background: radial-gradient(circle at top left, #ffd892 0, #ffe9c4 40%, #fff8ea 100%);
+        background: radial-gradient( circle at top left, #ffe2aa 0%, #ffc46a 45%, #ffae4a 100% );
         padding: 0.5rem 1rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .navbar-toggler {
@@ -407,7 +414,8 @@ body {
 @media (max-width: 768px) {
     .sidebar {
         width: 100%;
-        max-width: 280px;
+        max-width: 200px;
+        padding-top: 10%;
         left: -100%; /* Fully hidden off-screen */
     }
 
