@@ -1,0 +1,51 @@
+﻿.card-3d-raised {
+    border: 3px solid #000 !important;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-height: 350px;
+}
+
+.card-3d-raised:hover {
+    transform: perspective(500px) rotateY(-5deg);
+    box-shadow:
+        -12px 12px 0px 2px rgba(0, 0, 0, 0.8),
+        0px 6px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.card {
+    transition: all 0.3s ease !important;
+}
+
+.btn-3d {
+    width: 50% !important; /* Reset width to auto since container will center them */
+    margin: 5px !important;
+}
+
+.d-grid {
+    justify-items: center !important;
+    align-content: center !important;
+    margin-top: 50px !important;
+}
+
+.form-control-lg {
+    border: 3px solid #000 !important;
+    border-radius: 50px !important;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff;
+    font-size: 1.5rem !important;
+    letter-spacing: 0.3rem !important;
+    text-align: center !important;
+    width: 75% !important;
+    margin: 0 auto !important;
+    display: block !important;
+}
+.form-text{
+    margin-top: 1rem !important;
+    display: flex !important;
+    justify-content: center !important;
+}
