@@ -1,28 +1,10 @@
 ﻿@inherits LayoutComponentBase
 
 <div class="page">
-    <div class="sidebar">
-        <div class="top-row ps-3 navbar navbar-dark">
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="w-100 d-flex align-items-center gap-2">
-                            <button type="button" class="btn btn-default btn-sm" @onclick="ToggleMenu">=</button>
-                            <div class="me-auto">
-                                <div class="me-auto">
-                                    <a class="navbar-brand" href="">BlazingQuiz</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @if (_menuOpen)
-        {
-            <NavMenu OnMenuClosed="ToggleMenu"/>       
-        }
+    <div>
+        <NavMenu />
     </div>
+
 
     <main>
         <article class="content px-4">

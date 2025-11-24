@@ -71,4 +71,10 @@
       <ProjectReference Include="..\BlazingQuiz.Shared\BlazingQuiz.Shared.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Update="Components\Layout\NavMenu.razor">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </Content>
+    </ItemGroup>
+
 </Project>

@@ -1,95 +1,281 @@
-﻿@inject QuizAuthStateProvider QuizAuthStateProvider
+﻿@using BlazingQuiz.Shared
+@using BlazingQuiz.Shared.DTOs
+@using BlazingQuiz.Shared.Components.Apis
+@using BlazingQuiz.Shared.Components.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject QuizAuthStateProvider QuizAuthStateProvider
+@inject IAuthApi AuthApi
+@inject UserAvatarService UserAvatarService
 @inject NavigationManager NavigationManager
-
-@* <div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="w-100 d-flex align-items-center">
-                    <button type="button" class="btn btn-default btn-sm" @onclick="ToggleMenu">=</button>
-                    <div class="mx-auto">
-                    <div class="d-flex justify-content-center">
-                        <a class="navbar-brand" href="">BlazingQuiz</a>
-                    </div>
+@inject ProfileUpdateService ProfileUpdateService
+<div class="mobile-overlay @(collapseNavMenu ? "d-none" : "")" @onclick="ToggleNavMenu"></div>
+<aside class="sidebar @GetSidebarClass">
+    <div class="sidebar-header">
+        <img src="https://static.vecteezy.com/system/resources/previews/016/061/690/non_2x/quiz-logo-with-speech-bubble-symbols-concept-of-questionnaire-show-sing-quiz-vector.jpg" alt="logo" class="d-none d-lg-block" />
+    </div>
+    <ul class="sidebar-links">
+        <AuthorizeView>
+            <Authorized>
+                <AuthorizeView Roles="@(nameof(UserRole.Admin))" Context="adminContext">
+                    <li>
+                        <a href="admin/home">
+                            <span class="material-symbols-outlined"> home </span>Home
+                        </a>
+                    </li>
+                    <h4>
+                        <span>Manage System</span>
+                        <div class="menu-separator"></div>
+                    </h4>
+                    <li>
+                        <a href="admin/manage-categories">
+                            <span class="material-symbols-outlined"> category </span>Category
+                        </a>
+                    </li>
+                    <li>
+                        <a href="admin/manage-students">
+                            <span class="material-symbols-outlined"> lock_person </span> User
+                        </a>
+                    </li>
+                    <li>
+                        <a href="admin/rooms">
+                            <span class="material-symbols-outlined"> room_preferences </span> Room
+                        </a>
+                    </li>
+                    <h4>
+                        <span>Manage Quiz</span>
+                        <div class="menu-separator"></div>
+                    </h4>
+                    <li>
+                        <a href="admin/manage-quizes">
+                            <span class="material-symbols-outlined"> data_table </span> Quiz
+                        </a>
+                    </li>
+                    <li>
+                        <a href="admin/add-quiz">
+                            <span class="material-symbols-outlined"> note_stack_add </span> Create Quiz
+                        </a>
+                    </li>
+                    <h4>
+                        <span>System</span>
+                        <div class="menu-separator"></div>
+                    </h4>
+                </AuthorizeView>
+                <AuthorizeView Roles="@(nameof(UserRole.Student))" Context="adminContext">
+                    <h4>
+                        <span>Quiz</span>
+                        <div class="menu-separator"></div>
+                    </h4>
+                    <li>
+                        <a href="student/home">
+                            <span class="material-symbols-outlined"> home </span> Home
+                        </a>
+                    </li>
+                    <li>
+                        <a href="student/my-quizes">
+                            <span class="material-symbols-outlined"> data_table </span> My quizes
+                        </a>
+                    </li>
+                    <li>
+                        <a href="student/bookmarks">
+                            <span class="material-symbols-outlined"> bookmarks </span> Bookmarks
+                        </a>
+                    </li>
+                    <h4>
+                        <span>Room</span>
+                        <div class="menu-separator"></div>
+                    </h4>
+                    <li>
+                        <a href="student/joinroom">
+                            <span class="material-symbols-outlined"> home_work </span> Join Room
+                        </a>
+                    </li>
+                    <li>
+                        <a href="student/createroom">
+                            <span class="material-symbols-outlined"> add_home_work </span> Create Room
+                        </a>
+                    </li>
+                    <li>
+                        <a href="student/room-results">
+                            <span class="material-symbols-outlined"> table_chart </span> Room Results
+                        </a>
+                    </li>
+                    <h4>
+                        <span>System</span>
+                        <div class="menu-separator"></div>
+                    </h4>
+                    <li>
+                        <a href="student/profile">
+                            <span class="material-symbols-outlined"> person_pin </span> Profile
+                        </a>
+                    </li>
+                </AuthorizeView>
+                <AuthorizeView Roles="@(nameof(UserRole.Teacher))" Context="adminContext">
+                    <li>
+                        <a href="teacher/home">
+                            <span class="material-symbols-outlined"> home </span>Home
+                        </a>
+                    </li>
+                    <h4>
+                        <span>Quiz</span>
+                        <div class="menu-separator"></div>
+                    </h4>
+                    <li>
+                        <a href="teacher/manage-categories">
+                            <span class="material-symbols-outlined"> category </span>Category
+                        </a>
+                    </li>
+                    <li>
+                        <a href="teacher/manage-quizzes">
+                            <span class="material-symbols-outlined"> data_table </span> Quiz
+                        </a>
+                    </li>
+                    <li>
+                        <a href="teacher/add-quiz">
+                            <span class="material-symbols-outlined"> note_stack_add </span> Create Quiz
+                        </a>
+                    </li>
+                    <li>
+                        <a href="teacher/createroom">
+                            <span class="material-symbols-outlined"> add_home_work </span> Create Room
+                        </a>
+                    </li>
+                    <li>
+                        <a href="teacher/rooms">
+                            <span class="material-symbols-outlined"> room_preferences </span> Manage Rooms
+                        </a>
+                    </li>
+                    <h4>
+                        <span>System</span>
+                        <div class="menu-separator"></div>
+                    </h4>
+                    <li>
+                        <a href="teacher/profile">
+                            <span class="material-symbols-outlined"> person_pin </span> Profile
+                        </a>
+                    </li>
+                </AuthorizeView>
+                <li>
+                    <a role="button" @onclick="LogoutAsync">
+                        <span class="material-symbols-outlined"> logout </span> Logout
+                    </a>
+                </li>
+            </Authorized>
+            <NotAuthorized>
+                <li>
+                    <a href="auth/login">
+                        <span class="material-symbols-outlined"> login </span> Login
+                    </a>
+                </li>
+                <li>
+                    <a href="auth/register">
+                        <span class="material-symbols-outlined"> person_add </span> Register
+                    </a>
+                </li>
+            </NotAuthorized>
+        </AuthorizeView>
+    </ul>
+    <AuthorizeView>
+            <Authorized>
+            <AuthorizeView Roles="@($"{nameof(UserRole.Student)},{nameof(UserRole.Teacher)}")" Context="adminContext">
+                <div class="user-account">
+                    <div class="user-profile">
+                        @if (!string.IsNullOrEmpty(_userDto?.AvatarPath))
+                        {
+                            <img src="@UserAvatarService.GetImageUrl(_userDto.AvatarPath)"
+                                 alt="Avatar"
+                                 class="rounded-circle" />
+                        }
+                        else
+                        {
+                            <img src="@UserAvatarService.GetImageUrl("images/user-avatars/default-avatar.svg")"
+                                 alt="Default Avatar"
+                                 class="rounded-circle" />
+                        }
+                        <div class="user-detail">
+                            <h3>@QuizAuthStateProvider.User?.Name</h3>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</div> *@
+            </AuthorizeView>
+        </Authorized>
+            </AuthorizeView>
+</aside>
+@implements IDisposable
+@code {
+    private UserDto? _userDto;
+    private bool collapseNavMenu = true;
 
-@* <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+    protected override async Task OnInitializedAsync()
+    {
+        ProfileUpdateService.OnAvatarUpdated += OnAvatarUpdated;
+        await LoadUserProfile();
+    }
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="student/home" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="student/my-quizes">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> My quizes
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <a role="button" class="nav-link" @onclick="LogoutAsync">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Logout
-            </a>
-        </div>
-    </nav>
-</div> *@
-<div class="offcanvas offcanvas-start show" tabindex="-1" id="offcanvasWithBackdrop" aria-labelledby="offcanvasWithBackdropLabel" style="visibility: visible;" aria-modal="true" role="dialog">
-    <div class="offcanvas-header">
-        @* <h5 class="offcanvas-title" id="offcanvasWithBackdropLabel">Offcanvas with backdrop</h5>
-        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close" @onclick="OnMenuClosed"></button> *@
+    private void OnAvatarUpdated()
+    {
+        // Use InvokeAsync to properly handle async operations from event handler
+        InvokeAsync(async () =>
+        {
+            await LoadUserProfile();
+            StateHasChanged();
+        });
+    }
 
-        <div class="flyout-header">
-            <h2 class="fw-bold h1">BlazingQuiz</h2>
-        </div>
-    </div>
-    <div class="offcanvas-body">
-        <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="student/home" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="student/my-quizes">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> My quizes
-            </NavLink>
-        </div>
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="/student/bookmarks">
-                    <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Bookmark
-                </NavLink>
-            </div>
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="/student/profile">
-                    <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Profile
-                </NavLink>
-            </div>
-        <div class="nav-item px-3">
-            <a role="button" class="nav-link" @onclick="LogoutAsync">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Logout
-            </a>
-        </div>
-        </nav>
-    </div>
-    <div class="flyout-footer">
-        <label class="m-0 p-0">Test</label>
-    </div>
+    private async Task LoadUserProfile()
+    {
+        if (QuizAuthStateProvider.IsLoggedIn)
+        {
+            try
+            {
+                _userDto = await AuthApi.GetProfileAsync();
+            }
+            catch (Exception ex)
+            {
+                // Handle error silently or log if needed
+                Console.WriteLine($"Error loading user profile: {ex.Message}");
+            }
+        }
+    }
 
-</div>
-<div class="offcanvas-backdrop fade show" @onclick="OnMenuClosed"></div>
-@code{
-    [Parameter]
-    public EventCallback OnMenuClosed{get; set;}
+    private string GetProfileUrl()
+    {
+        var role = QuizAuthStateProvider.User?.Role?.ToLower();
+        return role switch
+        {
+            "student" => "/student/profile",
+            "teacher" => "/teacher/profile",
+            "admin" => "/admin/profile", // Assuming admin profile exists
+            _ => "/auth/login"
+        };
+    }
+
+    public void Dispose()
+    {
+        ProfileUpdateService.OnAvatarUpdated -= OnAvatarUpdated;
+    }
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private string GetSidebarClass => collapseNavMenu ? "" : "expanded";
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
 
     private async Task LogoutAsync()
     {
         await QuizAuthStateProvider.SetLogoutAsync();
-        NavigationManager.NavigateTo("/auth/login", replace: true);
+        NavigationManager.NavigateTo("auth/login", replace: true); // Redirect to login page after logout
     }
 }
+
+<!-- Mobile top row with toggle button -->
+<div class="top-row ps-3 navbar navbar-dark d-md-none">
+    <div class="container-fluid">
+        <img src="https://static.vecteezy.com/system/resources/previews/016/061/690/non_2x/quiz-logo-with-speech-bubble-symbols-concept-of-questionnaire-show-sing-quiz-vector.jpg" alt="logo" class="logo-image" />
+        <button title="Navigation menu" class="navbar-toggler raised-3d" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
