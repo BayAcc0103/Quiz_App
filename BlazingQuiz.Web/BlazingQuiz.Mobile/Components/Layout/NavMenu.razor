@@ -11,7 +11,7 @@
 <div class="mobile-overlay @(collapseNavMenu ? "d-none" : "")" @onclick="ToggleNavMenu"></div>
 <aside class="sidebar @GetSidebarClass">
     <div class="sidebar-header">
-        <img src="https://static.vecteezy.com/system/resources/previews/016/061/690/non_2x/quiz-logo-with-speech-bubble-symbols-concept-of-questionnaire-show-sing-quiz-vector.jpg" alt="logo" class="d-none d-lg-block" />
+        <img src="logo.png" alt="logo" class="d-none d-lg-block" />
     </div>
     <ul class="sidebar-links">
         <AuthorizeView>
@@ -271,9 +271,23 @@
 }
 
 <!-- Mobile top row with toggle button -->
-<div class="top-row ps-3 navbar navbar-dark d-md-none">
+<div class="top-row navbar navbar-dark d-md-none">
     <div class="container-fluid">
-        <img src="https://static.vecteezy.com/system/resources/previews/016/061/690/non_2x/quiz-logo-with-speech-bubble-symbols-concept-of-questionnaire-show-sing-quiz-vector.jpg" alt="logo" class="logo-image" />
+            <div class="user-profile">
+                @if (!string.IsNullOrEmpty(_userDto?.AvatarPath))
+                {
+                    <img src="@UserAvatarService.GetImageUrl(_userDto.AvatarPath)"
+                         alt="Avatar"
+                         class="rounded-circle" />
+                }
+                else
+                {
+                    <img src="@UserAvatarService.GetImageUrl("images/user-avatars/default-avatar.svg")"
+                         alt="Default Avatar"
+                         class="rounded-circle" />
+                }
+            </div>
+        <img src="logo.png" alt="logo" class="logo-image" />
         <button title="Navigation menu" class="navbar-toggler raised-3d" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>

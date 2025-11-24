@@ -8,7 +8,7 @@
 @inject ProfileUpdateService ProfileUpdateService
 
 <div class="dropdown user-profile-dropdown">
-    <button class="btn btn-outline-light d-flex align-items-center py-0 gap-2" type="button" id="profileDropdown" aria-expanded="false">
+    <div class="d-flex align-items-center py-0 gap-2" type="button" id="profileDropdown" aria-expanded="false">
         @if (!string.IsNullOrEmpty(_userDto?.AvatarPath))
         {
             <img src="@UserAvatarService.GetImageUrl(_userDto.AvatarPath)" 
@@ -22,7 +22,7 @@
                  class="rounded-circle" />
         }
         <span class="text-black">@QuizAuthStateProvider.User?.Name</span>
-    </button>
+    </div>
 </div>
 
 @implements IDisposable
