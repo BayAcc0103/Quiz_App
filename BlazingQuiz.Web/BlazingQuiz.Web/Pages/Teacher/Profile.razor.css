@@ -170,3 +170,36 @@ input.form-control-join:focus {
 .file-upload-wrapper {
     margin-top: 1rem;
 }
+
+@media (max-width: 576px) {
+    .hanging-content {
+        min-width: auto;
+        padding: 15px 20px;
+    }
+
+        .hanging-content h3 {
+            font-size: 1.2rem;
+        }
+
+    .hanging-container {
+        margin-bottom: 10px;
+    }
+
+    .col-md-10.col-lg-8 {
+        max-width: 100%;
+        flex: 0 0 100%;
+        padding: 0 15px;
+    }
+
+    .card-3d-raised {
+        min-height: auto;
+        margin: 0 10px;
+    }
+
+    .form-control-join {
+        width: 90% !important;
+        font-size: 1rem !important;
+        letter-spacing: 0.1rem !important;
+        padding: 0.2rem 0.5rem !important;
+    }
+}

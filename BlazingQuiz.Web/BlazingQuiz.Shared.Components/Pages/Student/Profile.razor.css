@@ -189,12 +189,10 @@ input.form-control-join:focus {
     .col-md-10.col-lg-8 {
         max-width: 100%;
         flex: 0 0 100%;
-        padding: 0 15px;
     }
 
     .card-3d-raised {
         min-height: auto;
-        margin: 0 10px;
     }
 
     .form-control-join {

@@ -1,0 +1,209 @@
+/* 3D Raised Card Styles */
+
+.card-3d-raised {
+    position: relative;
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow:
+        0 10px 20px rgba(0, 0, 0, 0.15),
+        0 6px 6px rgba(0, 0, 0, 0.2);
+    transform: translateY(0);
+}
+
+.card-3d-raised .card-header {
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.card-3d-raised .card-footer {
+    border-radius: 0 0 15px 15px !important;
+}
+
+/* Hover effect to enhance the 3D appearance */
+.card-3d-raised:hover {
+    transform: translateY(-10px);
+    box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.2),
+        0 12px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Press-down effect for cards */
+.card-3d-raised:active {
+    transform: translateY(0);
+    box-shadow:
+        0 5px 10px rgba(0, 0, 0, 0.1),
+        0 3px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* Card with gradient background */
+.card-3d-raised.gradient-bg {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+/* Light version */
+.card-3d-raised.card-light {
+    background-color: #ffffff;
+    color: #333;
+}
+
+/* Primary version */
+.card-3d-raised.card-primary {
+    background-color: #e7f1ff;
+    color: #212529;
+}
+
+/* Success version */
+.card-3d-raised.card-success {
+    background-color: #d1e7dd;
+    color: #212529;
+}
+
+/* Info version */
+.card-3d-raised.card-info {
+    background-color: #cff4fc;
+    color: #212529;
+}
+
+/* Warning version */
+.card-3d-raised.card-warning {
+    background-color: #fff3cd;
+    color: #212529;
+}
+
+/* Danger version */
+.card-3d-raised.card-danger {
+    background-color: #f8d7da;
+    color: #212529;
+}
+
+/* Custom container for multiple 3D cards */
+.container-3d-cards {
+    perspective: 1000px;
+    padding: 2rem 0;
+}
+
+/* Individual card wrapper */
+.card-wrapper-3d {
+    padding: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.card-wrapper-3d:hover {
+    transform: translateY(-5px);
+}
+
+/* 3D Button variants */
+.btn-3d {
+    position: relative;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    border-radius: 25px;
+    cursor: pointer;
+    outline: none;
+    box-shadow:
+        0 6px 0 0 var(--shadow-color, #0d5c22),
+        0 5px 10px rgba(0, 0, 0, 0.3);
+    transform: translateY(0);
+}
+
+/* Press-down effect for 3D buttons */
+.btn-3d:active {
+    transform: translateY(6px);
+    box-shadow:
+        0 0 0 0 var(--shadow-color, #0d5c22),
+        0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Hover effects to enhance the 3D appearance */
+.btn-3d:hover:not(:active) {
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 0 0 var(--shadow-color, #0d5c22),
+        0 7px 15px rgba(0, 0, 0, 0.35);
+}
+
+/* Specific 3D button styles for different Bootstrap types */
+.btn-3d-primary {
+    --shadow-color: #0a58ca;
+    background: linear-gradient(to bottom, #0d6efd, #0b5ed7);
+    color: white;
+    border: none;
+}
+
+.btn-3d-primary:hover:not(:active) {
+    background: linear-gradient(to bottom, #0b5ed7, #0a53be);
+}
+
+.btn-3d-primary:active {
+    background: linear-gradient(to bottom, #0a53be, #084298);
+}
+
+.btn-3d-success {
+    --shadow-color: #0d5c22;
+    background: linear-gradient(to bottom, #198754, #157347);
+    color: white;
+    border: none;
+}
+
+.btn-3d-success:hover:not(:active) {
+    background: linear-gradient(to bottom, #157347, #146c43);
+}
+
+.btn-3d-success:active {
+    background: linear-gradient(to bottom, #146c43, #12643f);
+}
+
+.btn-3d-outline {
+    --shadow-color: #0a58ca;
+    background-color: transparent;
+    color: #0d6efd;
+    border: 2px solid #0d6efd;
+}
+
+.btn-3d-outline:hover:not(:active) {
+    background-color: #e7f1ff;
+}
+
+.btn-3d-outline:active {
+    background-color: #d0e2ff;
+}
+
+.btn-3d-secondary {
+    --shadow-color: #41464b;
+    background: linear-gradient(to bottom, #6c757d, #5c636a);
+    color: white;
+    border: none;
+}
+
+.btn-3d-secondary:hover:not(:active) {
+    background: linear-gradient(to bottom, #5c636a, #4e575f);
+}
+
+.btn-3d-secondary:active {
+    background: linear-gradient(to bottom, #4e575f, #40474e);
+}
+
+/* Responsive adjustments for 3D cards */
+@media (max-width: 768px) {
+    .card-3d-raised {
+        transform: translateY(0);
+        box-shadow:
+            0 8px 16px rgba(0, 0, 0, 0.15),
+            0 4px 4px rgba(0, 0, 0, 0.15);
+    }
+    
+    .card-3d-raised:hover {
+        transform: translateY(-5px);
+    }
+    
+    .btn-3d {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+}

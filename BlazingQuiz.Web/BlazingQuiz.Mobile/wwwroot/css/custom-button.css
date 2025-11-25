@@ -1,0 +1,139 @@
+/* 3D Raised Button Styles - General */
+.btn-3d {
+    position: relative;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    border-radius: 25px; /* Rounded corners */
+    cursor: pointer;
+    outline: none;
+    box-shadow: 
+        0 6px 0 0 var(--shadow-color, #0d5c22), /* Default shadow color */
+        0 5px 10px rgba(0, 0, 0, 0.3); /* Depth shadow */
+    transform: translateY(0);
+}
+
+/* Press-down effect for 3D buttons */
+.btn-3d:active {
+    transform: translateY(6px); /* Move button down to simulate pressing */
+    box-shadow: 
+        0 0 0 0 var(--shadow-color, #0d5c22),
+        0 2px 8px rgba(0, 0, 0, 0.2); /* Reduce shadows when pressed */
+}
+
+/* Hover effects to enhance the 3D appearance */
+.btn-3d:hover:not(:active) {
+    transform: translateY(-2px); /* Slightly lift on hover */
+    box-shadow: 
+        0 8px 0 0 var(--shadow-color, #0d5c22),
+        0 7px 15px rgba(0, 0, 0, 0.35); /* Deeper shadow on hover */
+}
+
+/* Specific 3D button styles for different Bootstrap types */
+
+/* Primary 3D Button */
+.btn-3d-primary {
+    --shadow-color: #0a58ca; /* Bootstrap primary dark */
+    background: linear-gradient(to bottom, #0d6efd, #0b5ed7);
+    color: white;
+    border: none;
+}
+
+.btn-3d-primary:hover:not(:active) {
+    background: linear-gradient(to bottom, #0b5ed7, #0a53be);
+}
+
+.btn-3d-primary:active {
+    background: linear-gradient(to bottom, #0a53be, #084298);
+}
+
+/* Success 3D Button */
+.btn-3d-success {
+    --shadow-color: #0d5c22; /* Bootstrap success dark */
+    background: linear-gradient(to bottom, #198754, #157347);
+    color: white;
+    border: none;
+}
+
+.btn-3d-success:hover:not(:active) {
+    background: linear-gradient(to bottom, #157347, #146c43);
+}
+
+.btn-3d-success:active {
+    background: linear-gradient(to bottom, #146c43, #12643f);
+}
+
+/* Outline 3D Button */
+.btn-3d-outline {
+    --shadow-color: #0a58ca; /* Bootstrap primary dark */
+    background-color: transparent;
+    color: #0d6efd;
+    border: 2px solid #0d6efd;
+}
+
+.btn-3d-outline:hover:not(:active) {
+    background-color: #e7f1ff; /* Light blue background on hover */
+}
+
+.btn-3d-outline:active {
+    background-color: #d0e2ff;
+}
+
+/* Secondary 3D Button */
+.btn-3d-secondary {
+    --shadow-color: #41464b; /* Bootstrap secondary dark */
+    background: linear-gradient(to bottom, #6c757d, #5c636a);
+    color: white;
+    border: none;
+}
+
+.btn-3d-secondary:hover:not(:active) {
+    background: linear-gradient(to bottom, #5c636a, #4e575f);
+}
+
+.btn-3d-secondary:active {
+    background: linear-gradient(to bottom, #4e575f, #40474e);
+}
+
+/* Custom animation for press effect */
+@keyframes buttonPress3D {
+    0% {
+        transform: translateY(0);
+        box-shadow: 
+            0 6px 0 0 var(--shadow-color, #0d5c22),
+            0 10px 20px rgba(0, 0, 0, 0.3);
+    }
+    100% {
+        transform: translateY(6px);
+        box-shadow: 
+            0 0 0 0 var(--shadow-color, #0d5c22),
+            0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+}
+
+/* Apply animation to 3D buttons when active */
+.btn-3d:active {
+    animation: buttonPress3D 0.15s ease;
+}
+
+/* Disabled state for 3D buttons */
+.btn-3d:disabled {
+    opacity: 0.6;
+    transform: translateY(0);
+    box-shadow: 
+        0 2px 0 0 #adb5bd,
+        0 4px 10px rgba(0, 0, 0, 0.15);
+    cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .btn-3d {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+}
