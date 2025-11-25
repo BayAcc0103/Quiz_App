@@ -12,6 +12,17 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
+            <!-- Hanging container with 2 ropes -->
+            <div class="hanging-container">
+                <div class="hanging-content">
+                    <h3>Join Quiz Room</h3>
+                    <p>Enter your room code below</p>
+                </div>
+                <!-- Ropes connecting hanging container to main card -->
+                <div class="rope left-rope"></div>
+                <div class="rope right-rope"></div>
+            </div>
+
             <div class="card card-3d-raised card-light">
                 <div class="card-body">
                     <EditForm Model="joinRoomDto" OnValidSubmit="HandleJoinRoom">

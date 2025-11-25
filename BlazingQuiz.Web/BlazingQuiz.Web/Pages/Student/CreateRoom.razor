@@ -10,87 +10,173 @@
 @inject IJSRuntime JSRuntime
 
 @code {
-    [Parameter] 
+    [Parameter]
     [SupplyParameterFromQuery]
     public Guid? QuizId { get; set; }
+
+    private void IncrementMaxParticipants()
+    {
+        if (createRoomDto.MaxParticipants < 1000)
+        {
+            createRoomDto.MaxParticipants++;
+            StateHasChanged();
+        }
+    }
+
+    private void DecrementMaxParticipants()
+    {
+        if (createRoomDto.MaxParticipants > 1)
+        {
+            createRoomDto.MaxParticipants--;
+            StateHasChanged();
+        }
+    }
 }
 
-<div class="container mt-4">
+<div class="container-fluid px-4">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card card-3d-raised card-light">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">Create New Room</h3>
+        <div class="col-12">
+            <!-- Hanging container with 2 ropes -->
+            <div class="hanging-container">
+                <div class="hanging-content">
+                    <h3>Create Quiz Room</h3>
                 </div>
-                <div class="card-body">
-                    <EditForm Model="createRoomDto" OnValidSubmit="HandleCreateRoom">
-                        <DataAnnotationsValidator />
+                <!-- Ropes connecting hanging container to main card -->
+                <div class="rope left-rope"></div>
+                <div class="rope right-rope"></div>
+            </div>
+        </div>
+    </div>
+
+    <EditForm Model="createRoomDto" OnValidSubmit="HandleCreateRoom">
+        <DataAnnotationsValidator />
+
+        <div class="row">
+            <!-- Left Container: Room Name, Description, Maximum Participants -->
+            <div class="col-md-6 mb-4">
+                <div class="card card-3d-raised card-light">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">Room Details</h5>
 
                         <div class="mb-3">
                             <label for="roomName" class="form-label">Room Name *</label>
-                            <InputText id="roomName" class="form-control" @bind-Value="createRoomDto.Name" />
-                            <ValidationMessage For="@(() => createRoomDto.Name)" class="text-danger" />
+                            <input id="roomName" class="form-control form-control-lg text-center" @bind="createRoomDto.Name" placeholder="Enter room name" style="font-size: 1.2rem; letter-spacing: 0.2rem;" />
+                            <ValidationMessage For="() => createRoomDto.Name" class="text-danger" />
+                            <div class="form-text">Enter a name for your quiz room</div>
                         </div>
 
                         <div class="mb-3">
                             <label for="roomDescription" class="form-label">Description</label>
-                            <InputTextArea id="roomDescription" class="form-control" @bind-Value="createRoomDto.Description" rows="3"></InputTextArea>
-                            <ValidationMessage For="@(() => createRoomDto.Description)" class="text-danger" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Quiz</label>
-                            <div class="input-group">
-                                <input id="selectedQuiz" class="form-control" value="@SelectedQuizName" readonly placeholder="No quiz selected" />
-                                <button type="button" class="btn btn-outline-secondary" @onclick="OpenQuizSelectionModal">Choose Quiz</button>
-                                @if (createRoomDto.QuizId.HasValue)
-                                {
-                                    <button type="button" class="btn btn-outline-danger" @onclick="ClearSelectedQuiz">Clear</button>
-                                }
-                            </div>
+                            <textarea id="roomDescription" class="form-control text-center" @bind="createRoomDto.Description" rows="4" placeholder="Enter room description" style="font-size: 1.1rem; letter-spacing: 0.1rem;"></textarea>
+                            <ValidationMessage For="() => createRoomDto.Description" class="text-danger" />
                         </div>
 
                         <div class="mb-3">
                             <label for="maxParticipants" class="form-label">Maximum Participants</label>
-                            <InputNumber id="maxParticipants" class="form-control" @bind-Value="createRoomDto.MaxParticipants" min="1" max="1000" />
-                            <ValidationMessage For="@(() => createRoomDto.MaxParticipants)" class="text-danger" />
-                            <div class="form-text">Default: 50 participants</div>
+                            <div class="input-group">
+                                <button type="button" class="btn btn-spinner-down" @onclick="() => DecrementMaxParticipants()">-</button>
+                                <input id="maxParticipants" type="number" class="form-control form-control-lg text-center custom-number-input" @bind="createRoomDto.MaxParticipants" min="1" max="1000" style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
+                                <button type="button" class="btn btn-spinner-up" @onclick="() => IncrementMaxParticipants()">+</button>
+                            </div>
+                            <ValidationMessage For="() => createRoomDto.MaxParticipants" class="text-danger" />
                         </div>
+                    </div>
+                </div>
+            </div>
 
-                        <div class="d-flex justify-content-between">
-                            <button type="button" class="btn btn-3d btn-3d-secondary" @onclick="Cancel">Cancel</button>
-                            <button type="submit" class="btn btn-3d btn-3d-primary" disabled="@isCreating">
-                                @if (isCreating)
+            <!-- Right Container: Quiz selection -->
+            <div class="col-md-6 mb-4">
+                <div class="card card-3d-raised card-light">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">Quiz Selection</h5>
+
+                        <div class="mb-3">
+                            <label class="form-label">Select Quiz</label>
+                            <div class="input-group">
+                                <input id="selectedQuiz" class="form-control text-center" value="@SelectedQuizName" readonly placeholder="No quiz selected" style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
+                                @if (createRoomDto.QuizId.HasValue)
                                 {
-                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                    <span>Creating</span>
+                                    <button type="button" class="btn btn-3d-primary-style-no-radius" @onclick="OpenQuizSelectionModal">Choose Quiz</button>
+                                    <button type="button" class="btn btn-3d-clear-style" @onclick="ClearSelectedQuiz">Clear</button>
                                 }
                                 else
                                 {
-                                    <span>Create Room</span>
+                                    <button type="button" class="btn btn-3d-primary-style" @onclick="OpenQuizSelectionModal">Choose Quiz</button>
                                 }
-                            </button>
+                            </div>
                         </div>
-                    </EditForm>
 
-                    @if (createdRoom != null)
-                    {
-                        <div class="mt-4 p-3 bg-success bg-opacity-10 border border-success rounded card-3d-raised">
-                            <h5 class="text-success">Room Created Successfully!</h5>
-                            <p><strong>Room Name:</strong> @createdRoom.Name</p>
-                            <p><strong>Room Code:</strong> <span class="badge bg-primary fs-5">@createdRoom.Code</span></p>
-                            @if (createdRoom.QuizName != null)
-                            {
-                                <p><strong>Quiz:</strong> @createdRoom.QuizName</p>
-                            }
-                            <p>Share this code with others to join the room.</p>
-                            <button type="button" class="btn btn-3d btn-3d-outline" @onclick="CopyCode">Copy Code</button>
-                        </div>
-                    }
+                        @if (createRoomDto.QuizId.HasValue && quizNames.ContainsKey(createRoomDto.QuizId.Value))
+                        {
+                            <div class="card card-quiz-selected">
+                                <div class="card-body">
+                                    <h6 class="card-title">Selected Quiz</h6>
+                                    <p class="card-text"><strong>@quizNames[createRoomDto.QuizId.Value]</strong></p>
+                                    <p class="card-text text-muted">
+                                        <small>
+                                            @if (availableQuizzes.Any(q => q.Id == createRoomDto.QuizId.Value))
+                                            {
+                                                var quizDetails = availableQuizzes.First(q => q.Id == createRoomDto.QuizId.Value);
+                                                <span>
+                                                    Questions: @quizDetails.TotalQuestions |
+                                                    Category: @quizDetails.CategoryName |
+                                                    Difficulty: @quizDetails.Level
+                                                </span>
+                                            }
+                                        </small>
+                                    </p>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger mt-3 card-3d-raised" role="alert">
+                                @errorMessage
+                            </div>
+                        }
+
+                        @if (createdRoom != null)
+                        {
+                            <div class="alert alert-success mt-3 card-3d-raised" role="alert">
+                                <h5>Room Created Successfully!</h5>
+                                <p><strong>Room Name:</strong> @createdRoom.Name</p>
+                                <p><strong>Room Code:</strong> <span class="badge bg-primary fs-5">@createdRoom.Code</span></p>
+                                @if (createdRoom.QuizName != null)
+                                {
+                                    <p><strong>Quiz:</strong> @createdRoom.QuizName</p>
+                                }
+                                <p>Share this code with others to join the room.</p>
+                                <button type="button" class="btn btn-3d btn-3d-outline btn-sm" @onclick="CopyCode">Copy Code</button>
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+
+        <!-- Buttons centered below both containers -->
+        <div class="row">
+            <div class="col-12">
+                <div class="d-grid gap-2 d-flex justify-content-center">
+                    <button type="submit" class="btn btn-3d btn-3d-primary" disabled="@isCreating" style="width: auto;">
+                        @if (isCreating)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            <span>Creating...</span>
+                        }
+                        else
+                        {
+                            <span><i class="bi bi-plus-circle"></i> Create Room</span>
+                        }
+                    </button>
+                    <button type="button" class="btn btn-3d btn-3d-secondary btn-sm" @onclick="Cancel" style="width: auto;">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </EditForm>
 </div>
 
 <QuizSelectionModal @ref="quizSelectionModal" IsVisible="@quizSelectionModalVisible" Quizzes="availableQuizzes" OnQuizSelected="OnQuizSelected" />
@@ -104,14 +190,15 @@
     private string SelectedQuizName = "No quiz selected";
     private List<QuizListDto> availableQuizzes = new();
     private Dictionary<Guid, string> quizNames = new();
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
         createRoomDto.MaxParticipants = 50; // Default max participants
-        
+
         // Load all available quizzes
         await LoadAvailableQuizzes();
-        
+
         // If a quiz ID was provided in the URL, pre-select it
         if (QuizId.HasValue)
         {
@@ -122,8 +209,9 @@
     private async Task HandleCreateRoom()
     {
         isCreating = true;
+        errorMessage = null; // Clear previous error
         StateHasChanged();
-        
+
         try
         {
             createdRoom = await RoomApi.CreateRoomAsync(createRoomDto);
@@ -131,7 +219,7 @@
         }
         catch (Exception ex)
         {
-            await ShowAlertAsync($"Failed to create room: {ex.Message}", "Error");
+            errorMessage = $"Failed to create room: {ex.Message}";
         }
         finally
         {
@@ -142,7 +230,7 @@
 
     private void Cancel()
     {
-        Navigation.NavigateTo("/student");
+        Navigation.NavigateTo("/student/home");
     }
 
     private async Task CopyCode()
@@ -154,7 +242,7 @@
         }
     }
 
-    private async Task ShowAlertAsync(string message, string title = "Error") => 
+    private async Task ShowAlertAsync(string message, string title = "Error") =>
         await JSRuntime.InvokeVoidAsync("alert", $"{title}\n{message}");
 
     private async Task LoadAvailableQuizzes()
@@ -168,6 +256,7 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading available quizzes: {ex.Message}");
+            errorMessage = "Failed to load quizzes. Please try again later.";
         }
     }
 
@@ -187,7 +276,7 @@
     private async Task OnQuizSelected(Guid? quizId)
     {
         quizSelectionModalVisible = false;
-        
+
         if (quizId.HasValue)
         {
             createRoomDto.QuizId = quizId;
@@ -232,7 +321,7 @@
                     // Update available quizzes and quiz names
                     availableQuizzes = allQuizzes;
                     quizNames = allQuizzes.ToDictionary(q => q.Id, q => q.Name);
-                    
+
                     createRoomDto.QuizId = quizId;
                     SelectedQuizName = specificQuiz.Name;
                 }
@@ -240,10 +329,9 @@
             catch (Exception ex)
             {
                 Console.WriteLine($"Error pre-selecting quiz: {ex.Message}");
+                errorMessage = "Failed to select quiz. Please try again.";
             }
         }
         StateHasChanged();
     }
 }
-
-<QuizSelectionModal @ref="quizSelectionModal" IsVisible="@quizSelectionModalVisible" Quizzes="availableQuizzes" OnQuizSelected="OnQuizSelected" />

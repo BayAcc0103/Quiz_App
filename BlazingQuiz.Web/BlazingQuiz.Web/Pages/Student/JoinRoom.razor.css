@@ -49,3 +49,54 @@
     display: flex !important;
     justify-content: center !important;
 }
+
+/* Hanging container styles */
+.hanging-container {
+    position: relative;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+}
+
+.hanging-content {
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    padding: 20px 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    z-index: 2;
+    color: white;
+    min-width: 300px;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.hanging-content h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.hanging-content p {
+    margin: 0;
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.rope {
+    position: absolute;
+    width: 4px;
+    height: 60px;
+    background: linear-gradient(to bottom, #8B4513, #A0522D, #8B4513);
+    top: -60px;
+    z-index: 1;
+}
+
+.left-rope {
+    left: calc(50% - 70px);
+}
+
+.right-rope {
+    right: calc(50% - 70px);
+}
