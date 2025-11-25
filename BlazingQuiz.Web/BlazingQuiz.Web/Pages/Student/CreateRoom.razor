@@ -2,12 +2,14 @@
 @using BlazingQuiz.Shared.DTOs
 @using BlazingQuiz.Web.Apis
 @using BlazingQuiz.Shared
+@using BlazingQuiz.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = nameof(UserRole.Student))]
 @inject IRoomApi RoomApi
 @inject IStudentQuizApi StudentQuizApi
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject QuizImageService QuizImageService
 
 @code {
     [Parameter]
@@ -16,7 +18,7 @@
 
     private void IncrementMaxParticipants()
     {
-        if (createRoomDto.MaxParticipants < 1000)
+        if (createRoomDto.MaxParticipants < 50)
         {
             createRoomDto.MaxParticipants++;
             StateHasChanged();
@@ -71,10 +73,10 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="maxParticipants" class="form-label">Maximum Participants</label>
+                            <label for="maxParticipants" class="form-label">Maximum Player</label>
                             <div class="input-group">
                                 <button type="button" class="btn btn-spinner-down" @onclick="() => DecrementMaxParticipants()">-</button>
-                                <input id="maxParticipants" type="number" class="form-control form-control-lg text-center custom-number-input" @bind="createRoomDto.MaxParticipants" min="1" max="1000" style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
+                                <input id="maxParticipants" type="number" class="form-control form-control-lg text-center custom-number-input" @bind="createRoomDto.MaxParticipants" min="1" max="50" style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
                                 <button type="button" class="btn btn-spinner-up" @onclick="() => IncrementMaxParticipants()">+</button>
                             </div>
                             <ValidationMessage For="() => createRoomDto.MaxParticipants" class="text-danger" />
@@ -85,14 +87,14 @@
 
             <!-- Right Container: Quiz selection -->
             <div class="col-md-6 mb-4">
-                <div class="card card-3d-raised card-light">
+                <div class="card card-3d-raised-right card-light">
                     <div class="card-body">
                         <h5 class="card-title mb-4">Quiz Selection</h5>
 
                         <div class="mb-3">
                             <label class="form-label">Select Quiz</label>
                             <div class="input-group">
-                                <input id="selectedQuiz" class="form-control text-center" value="@SelectedQuizName" readonly placeholder="No quiz selected" style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
+                                <input id="selectedQuiz" class="form-control form-control-right text-center" value="@SelectedQuizName" readonly placeholder="No quiz selected" style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
                                 @if (createRoomDto.QuizId.HasValue)
                                 {
                                     <button type="button" class="btn btn-3d-primary-style-no-radius" @onclick="OpenQuizSelectionModal">Choose Quiz</button>
@@ -107,25 +109,54 @@
 
                         @if (createRoomDto.QuizId.HasValue && quizNames.ContainsKey(createRoomDto.QuizId.Value))
                         {
-                            <div class="card card-quiz-selected">
-                                <div class="card-body">
-                                    <h6 class="card-title">Selected Quiz</h6>
-                                    <p class="card-text"><strong>@quizNames[createRoomDto.QuizId.Value]</strong></p>
-                                    <p class="card-text text-muted">
-                                        <small>
-                                            @if (availableQuizzes.Any(q => q.Id == createRoomDto.QuizId.Value))
-                                            {
-                                                var quizDetails = availableQuizzes.First(q => q.Id == createRoomDto.QuizId.Value);
-                                                <span>
-                                                    Questions: @quizDetails.TotalQuestions |
-                                                    Category: @quizDetails.CategoryName |
-                                                    Difficulty: @quizDetails.Level
-                                                </span>
-                                            }
-                                        </small>
-                                    </p>
+                            @if (availableQuizzes.Any(q => q.Id == createRoomDto.QuizId.Value))
+                            {
+                                var quizDetails = availableQuizzes.First(q => q.Id == createRoomDto.QuizId.Value);
+                                <div class="selected-quiz-container">
+                                    <div class="quiz-image-container">
+                                        @if (!string.IsNullOrEmpty(quizDetails.ImagePath))
+                                        {
+                                            <img src="@QuizImageService.GetImageUrl(quizDetails.ImagePath)" alt="@quizDetails.Name" class="quiz-image" />
+                                        }
+                                        else
+                                        {
+                                            <div class="quiz-image-placeholder">
+                                                <i class="bi bi-card-checklist quiz-placeholder-icon"></i>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <div class="quiz-title text-center mt-3">
+                                        <h5>@quizDetails.Name</h5>
+                                    </div>
+
+                                    <div class="quiz-details-grid mt-3">
+                                        <div class="quiz-detail-card">
+                                            <i class="bi bi-list-ol detail-icon"></i>
+                                            <div class="detail-text">
+                                                <span class="detail-value">@quizDetails.TotalQuestions</span>
+                                                <span class="detail-label">Questions</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="quiz-detail-card">
+                                            <i class="bi bi-bar-chart detail-icon"></i>
+                                            <div class="detail-text">
+                                                <span class="detail-value">@quizDetails.Level</span>
+                                                <span class="detail-label">Level</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="quiz-detail-card">
+                                            <i class="bi bi-clock detail-icon"></i>
+                                            <div class="detail-text">
+                                                <span class="detail-value">@quizDetails.TimeInMinutes min</span>
+                                                <span class="detail-label">Time</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            }
                         }
 
                         @if (!string.IsNullOrEmpty(errorMessage))
@@ -146,7 +177,9 @@
                                     <p><strong>Quiz:</strong> @createdRoom.QuizName</p>
                                 }
                                 <p>Share this code with others to join the room.</p>
-                                <button type="button" class="btn btn-3d btn-3d-outline btn-sm d-flex justify-content-center" @onclick="CopyCode">Copy Code</button>
+                                <div class="d-flex justify-content-center">
+                                    <button type="button" class="btn btn-3d btn-3d-outline btn-sm" @onclick="CopyCode">Copy Code</button>
+                                </div>
                             </div>
                         }
                     </div>
