@@ -89,7 +89,7 @@
     </div>
 </div>
 
-<QuizSelectionModal @ref="quizSelectionModal" IsVisible="@quizSelectionModalVisible" Quizzes="availableQuizzes" OnQuizSelected="OnQuizSelected" />
+<QuizSelectionModal @ref="quizSelectionModal" IsVisible="@quizSelectionModalVisible" IsVisibleChanged="OnQuizSelectionModalVisibilityChanged" Quizzes="availableQuizzes" OnQuizSelected="OnQuizSelected" />
 
 @code {
     private CreateRoomDto createRoomDto = new();
@@ -208,6 +208,12 @@
         StateHasChanged();
     }
 
+    private async Task OnQuizSelectionModalVisibilityChanged(bool isVisible)
+    {
+        quizSelectionModalVisible = isVisible;
+        StateHasChanged();
+    }
+
     private void ClearSelectedQuiz()
     {
         createRoomDto.QuizId = null;
@@ -217,8 +223,6 @@
 
     private async Task OnQuizSelected(Guid? quizId)
     {
-        quizSelectionModalVisible = false;
-        
         if (quizId.HasValue)
         {
             createRoomDto.QuizId = quizId;

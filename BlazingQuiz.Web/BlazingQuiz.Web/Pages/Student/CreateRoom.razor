@@ -62,7 +62,6 @@
                             <label for="roomName" class="form-label">Room Name *</label>
                             <input id="roomName" class="form-control form-control-lg text-center" @bind="createRoomDto.Name" placeholder="Enter room name" style="font-size: 1.2rem; letter-spacing: 0.2rem;" />
                             <ValidationMessage For="() => createRoomDto.Name" class="text-danger" />
-                            <div class="form-text">Enter a name for your quiz room</div>
                         </div>
 
                         <div class="mb-3">
@@ -138,8 +137,8 @@
 
                         @if (createdRoom != null)
                         {
-                            <div class="alert alert-success mt-3 card-3d-raised" role="alert">
-                                <h5>Room Created Successfully!</h5>
+                            <div class="alert alert-success mt-3" role="alert">
+                                <h5 class="d-flex justify-content-center">Room Created Successfully!</h5>
                                 <p><strong>Room Name:</strong> @createdRoom.Name</p>
                                 <p><strong>Room Code:</strong> <span class="badge bg-primary fs-5">@createdRoom.Code</span></p>
                                 @if (createdRoom.QuizName != null)
@@ -147,7 +146,7 @@
                                     <p><strong>Quiz:</strong> @createdRoom.QuizName</p>
                                 }
                                 <p>Share this code with others to join the room.</p>
-                                <button type="button" class="btn btn-3d btn-3d-outline btn-sm" @onclick="CopyCode">Copy Code</button>
+                                <button type="button" class="btn btn-3d btn-3d-outline btn-sm d-flex justify-content-center" @onclick="CopyCode">Copy Code</button>
                             </div>
                         }
                     </div>
@@ -179,7 +178,7 @@
     </EditForm>
 </div>
 
-<QuizSelectionModal @ref="quizSelectionModal" IsVisible="@quizSelectionModalVisible" Quizzes="availableQuizzes" OnQuizSelected="OnQuizSelected" />
+<QuizSelectionModal @ref="quizSelectionModal" IsVisible="@quizSelectionModalVisible" IsVisibleChanged="OnQuizSelectionModalVisibilityChanged" Quizzes="availableQuizzes" OnQuizSelected="OnQuizSelected" />
 
 @code {
     private CreateRoomDto createRoomDto = new();
@@ -266,6 +265,12 @@
         StateHasChanged();
     }
 
+    private async Task OnQuizSelectionModalVisibilityChanged(bool isVisible)
+    {
+        quizSelectionModalVisible = isVisible;
+        StateHasChanged();
+    }
+
     private void ClearSelectedQuiz()
     {
         createRoomDto.QuizId = null;
@@ -275,8 +280,6 @@
 
     private async Task OnQuizSelected(Guid? quizId)
     {
-        quizSelectionModalVisible = false;
-
         if (quizId.HasValue)
         {
             createRoomDto.QuizId = quizId;
