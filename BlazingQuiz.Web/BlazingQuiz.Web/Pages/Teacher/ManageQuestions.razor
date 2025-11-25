@@ -1,4 +1,4 @@
-@page "/teacher/manage-questions"
+@* @page "/teacher/manage-questions"
 @using BlazingQuiz.Shared
 @using BlazingQuiz.Shared.DTOs
 @using Microsoft.AspNetCore.Authorization
@@ -8,8 +8,8 @@
 @inject ICategoryApi CategoryApi
 @inject NavigationManager NavigationManager
 @inject IAppState AppState
-
-<h3>Manage Questions</h3>
+ *@
+@* <h3>Manage Questions</h3>
 
 <div class="container">
     <div class="row mb-3">
@@ -58,9 +58,9 @@
     {
         <div class="alert alert-info">No questions found for the selected quiz.</div>
     }
-</div>
+</div> *@
 
-@code {
+@* @code {
     private string? _selectedQuizId;
     private QuizListDto[] _quizzes = [];
     private QuestionDto[] _questions = [];
@@ -116,4 +116,4 @@
             NavigationManager.NavigateTo($"/teacher/edit-quiz/{quiz.Id}");
         }
     }
-}
+} *@

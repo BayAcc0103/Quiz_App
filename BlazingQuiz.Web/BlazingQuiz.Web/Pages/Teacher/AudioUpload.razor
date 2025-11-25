@@ -1,11 +1,11 @@
-@page "/teacher/audio-upload"
+@* @page "/teacher/audio-upload"
 @using BlazingQuiz.Shared
 @using BlazingQuiz.Web.Auth
 @inject IAppState AppState
 @inject NavigationManager NavigationManager
 @inject HttpClient HttpClient
-@inject QuizAuthStateProvider AuthStateProvider
-
+@inject QuizAuthStateProvider AuthStateProvider *@
+@* 
 <AuthorizeView Roles="@nameof(UserRole.Teacher)">
     <div class="container mt-4">
         <div class="row justify-content-center">
@@ -19,7 +19,7 @@
                             <label class="form-label">MP3 Audio File</label>
                             <FileUpload CurrentFile="@_selectedAudioFile" 
                                        OnFileChanged="@OnAudioFileChanged"
-                                       MaxFileSize="20971520" @* 20MB *@
+                                       MaxFileSize="20971520"
                                        AcceptedFileTypes=".mp3,.wav,.aac,.m4a,.ogg"
                                        ShowProgress="true"
                                        IsUploading="@_isUploading"
@@ -56,9 +56,9 @@
             </div>
         </div>
     </div>
-</AuthorizeView>
+</AuthorizeView> *@
 
-@code {
+@* @code {
     private IBrowserFile? _selectedAudioFile;
     private bool _isUploading = false;
     private int _uploadProgress = 0;
@@ -184,4 +184,4 @@
         public string? AudioPath { get; set; }
         public string? Message { get; set; }
     }
-}
+} *@
