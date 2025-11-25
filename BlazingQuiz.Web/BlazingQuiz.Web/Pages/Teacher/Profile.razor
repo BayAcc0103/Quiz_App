@@ -11,13 +11,17 @@
 
 <BackButton />
 
-<div class="container mt-4">
+<div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Teacher Profile</h4>
+        <div class="col-md-10 col-lg-8">
+            <div class="hanging-container">
+                <div class="hanging-content">
+                    <h3>Student Profile</h3>
                 </div>
+                <div class="rope left-rope"></div>
+                <div class="rope right-rope"></div>
+            </div>
+            <div class="card card-3d-raised card-light">
                 <div class="card-body">
                     @if (_isLoading)
                     {
@@ -29,7 +33,7 @@
                     }
                     else if (_error != null)
                     {
-                        <div class="alert alert-danger" role="alert">
+                        <div class="alert alert-danger card-3d-raised" role="alert">
                             @_error
                         </div>
                     }
@@ -37,7 +41,7 @@
                     {
                         <EditForm Model="_userDto" OnValidSubmit="UpdateProfileAsync">
                             <DataAnnotationsValidator />
-                            
+
                             <!-- Avatar Section -->
                             <div class="mb-4 text-center">
                                 <label class="form-label">Profile Avatar</label>
@@ -62,48 +66,68 @@
                                 <div class="mt-2">
                                     @if (!string.IsNullOrEmpty(_userDto.AvatarPath))
                                     {
-                                        <button type="button" class="btn btn-sm btn-danger" @onclick="RemoveAvatarAsync">Remove Avatar</button>
+                                        <button type="button" class="btn btn-3d btn-3d-secondary btn-sm" @onclick="RemoveAvatarAsync">Remove Avatar</button>
                                     }
                                 </div>
                                 <div class="file-upload-wrapper">
                                     <FileUpload CurrentFile="@_selectedAvatarFile"
-                                               OnFileChanged="OnAvatarFileChanged"
-                                               MaxFileSize="5242880"
-                                               ShowProgress="true"
-                                               IsUploading="@_isUploading"
-                                               ProgressPercentage="@_uploadProgress"
-                                               UploadText="Drag & drop your avatar here"
-                                               UploadHint="or click to browse (JPG, PNG, GIF up to 5MB)" />
+                                                OnFileChanged="OnAvatarFileChanged"
+                                                MaxFileSize="5242880"
+                                                ShowProgress="true"
+                                                IsUploading="@_isUploading"
+                                                ProgressPercentage="@_uploadProgress"
+                                                UploadText="Drag & drop your avatar here"
+                                                UploadHint="or click to browse (JPG, PNG, GIF up to 5MB)" />
                                 </div>
                             </div>
-                            
+
                             <!-- Profile Form -->
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="name" class="form-label">Name</label>
-                                    <InputText id="name" class="form-control" @bind-Value="_userDto.Name" />
-                                    <ValidationMessage For="@(() => _userDto.Name)" />
+                                    <input id="name" class="form-control text-center form-control-join" @bind="_userDto.Name" />
+                                    <ValidationMessage For="@(() => _userDto.Name)" class="text-danger" />
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="email" class="form-label">Email</label>
-                                    <InputText id="email" type="email" class="form-control" @bind-Value="_userDto.Email" disabled="true" />
-                                    <ValidationMessage For="@(() => _userDto.Email)" />
+                                    <input id="email" type="email" class="form-control text-center form-control-join" @bind="_userDto.Email" disabled="true" />
+                                    <ValidationMessage For="@(() => _userDto.Email)" class="text-danger" />
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="phone" class="form-label">Phone</label>
-                                    <InputText id="phone" class="form-control" @bind-Value="_userDto.Phone" />
-                                    <ValidationMessage For="@(() => _userDto.Phone)" />
+                                    <input id="phone" class="form-control text-center form-control-join" @bind="_userDto.Phone" />
+                                    <ValidationMessage For="@(() => _userDto.Phone)" class="text-danger" />
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="role" class="form-label">Role</label>
-                                    <InputText id="role" class="form-control" @bind-Value="_role" disabled="true" />
+                                    <input id="role" class="form-control text-center form-control-join" @bind="_role" disabled="true" />
                                 </div>
                             </div>
-                            <div class="d-flex justify-content-between">
-                                <button type="submit" class="btn btn-primary">Update Profile</button>
-                                <button type="button" class="btn btn-secondary" @onclick="ChangePassword">Change Password</button>
+                            @if (!string.IsNullOrEmpty(_error))
+                            {
+                                <div class="alert alert-danger" role="alert">
+                                    @_error
+                                </div>
+                            }
+                            <div class="row mt-3">
+                                <div class="col-md-6 mb-2 d-flex justify-content-center align-content-center">
+                                    <button type="submit" class="btn btn-3d btn-3d-primary w-100" disabled="@_isUpdating">
+                                        @if (_isUpdating)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                            <span>Updating...</span>
+                                        }
+                                        else
+                                        {
+                                            <span><i class="bi bi-save"></i> Update Profile</span>
+                                        }
+                                    </button>
+                                </div>
+                                <div class="col-md-6 mb-2 d-flex justify-content-center align-content-center">
+                                    <button type="button" class="btn btn-3d btn-3d-secondary w-100" @onclick="ChangePassword">Change Password</button>
+                                </div>
                             </div>
                         </EditForm>
                     }
@@ -117,6 +141,7 @@
     private UserDto _userDto = new UserDto(0, "", "", "", false, null);
     private bool _isLoading = true;
     private bool _isUploading = false;
+    private bool _isUpdating = false;
     private int _uploadProgress = 0;
     private string? _error;
     private string _role = "";

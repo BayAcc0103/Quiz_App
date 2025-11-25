@@ -9,6 +9,8 @@
 @inject NavigationManager NavigationManager
 @inject ProfileUpdateService ProfileUpdateService
 
+<BackButton />
+
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-10 col-lg-8">
@@ -50,14 +52,14 @@
                                             <img src="@UserAvatarService.GetImageUrl(_userDto.AvatarPath)"
                                                  alt="Avatar"
                                                  class="rounded-circle avatar-centered"
-                                                 style="width: 120px; height: 120px; object-fit: cover; border: 2px solid #dee2e6;" />
+                                                 style="width: 150px; height: 150px; object-fit: cover; border: 2px solid #dee2e6;" />
                                         }
                                         else
                                         {
                                             <img src="@UserAvatarService.GetImageUrl("images/user-avatars/default-avatar.svg")"
                                                  alt="Avatar"
                                                  class="rounded-circle avatar-centered"
-                                                 style="width: 120px; height: 120px; object-fit: cover; border: 2px solid #dee2e6;" />
+                                                 style="width: 150px; height: 150px; object-fit: cover; border: 2px solid #dee2e6;" />
                                         }
                                     </div>
                                 </div>
@@ -110,7 +112,7 @@
                                 </div>
                             }
                             <div class="row mt-3">
-                                <div class="col-md-6 mb-2">
+                                <div class="col-md-6 mb-2 d-flex justify-content-center align-content-center">
                                     <button type="submit" class="btn btn-3d btn-3d-primary w-100" disabled="@_isUpdating">
                                         @if (_isUpdating)
                                         {
@@ -123,7 +125,7 @@
                                         }
                                     </button>
                                 </div>
-                                <div class="col-md-6 mb-2">
+                                <div class="col-md-6 mb-2 d-flex justify-content-center align-content-center">
                                     <button type="button" class="btn btn-3d btn-3d-secondary w-100" @onclick="ChangePassword">Change Password</button>
                                 </div>
                             </div>
