@@ -16,6 +16,7 @@ main {
     height: 5.5rem;
     display: flex;
     align-items: center;
+    gap: 1rem;
 }
 
     .top-row ::deep a, .top-row ::deep .btn-link {

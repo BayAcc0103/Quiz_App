@@ -1,0 +1,67 @@
+@using BlazingQuiz.Web.Services.Theme
+@implements IDisposable
+@inject ThemeService ThemeService
+
+<div class="theme-toggle">
+    <button class="theme-toggle-btn" @onclick="ToggleTheme" aria-label="Toggle theme">
+        @if (ThemeService.CurrentTheme == ThemeMode.Dark)
+        {
+            <span class="theme-icon">☀️</span>
+            <span>Light Mode</span>
+        }
+        else
+        {
+            <span class="theme-icon">🌙</span>
+            <span>Dark Mode</span>
+        }
+    </button>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await ThemeService.InitializeThemeAsync();
+        ThemeService.OnThemeChanged += StateHasChanged;
+    }
+
+    private async Task ToggleTheme()
+    {
+        await ThemeService.ToggleThemeAsync();
+    }
+
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= StateHasChanged;
+    }
+}
+
+<style scoped>
+    .theme-toggle {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .theme-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 0.375rem;
+        background-color: var(--bs-body-bg);
+        color: var(--bs-body-color);
+        cursor: pointer;
+        font-size: 0.875rem;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .theme-toggle-btn:hover {
+        background-color: var(--bs-tertiary-bg);
+        border-color: var(--bs-border-color);
+    }
+
+    .theme-icon {
+        font-size: 1.2rem;
+        line-height: 1;
+    }
+</style>

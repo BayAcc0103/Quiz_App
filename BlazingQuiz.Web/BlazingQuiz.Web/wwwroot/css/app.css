@@ -101,3 +101,29 @@ a, .btn-link {
 code {
     color: #c02d76;
 }
+
+/* Theme styles */
+:root {
+    --bs-body-bg: #f8f9fa;
+    --bs-body-color: #212529;
+    --bs-border-color: #dee2e6;
+    --bs-tertiary-bg: #e9ecef;
+}
+
+html.dark-theme {
+    --bs-body-bg: #212529;
+    --bs-body-color: #f8f9fa;
+    --bs-border-color: #495057;
+    --bs-tertiary-bg: #343a40;
+}
+
+body {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.dark-theme body {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
