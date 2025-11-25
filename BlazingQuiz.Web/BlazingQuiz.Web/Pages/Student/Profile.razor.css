@@ -1,0 +1,165 @@
+﻿/* Hanging container styles */
+.hanging-container {
+    position: relative;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hanging-content {
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    padding: 20px 30px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    z-index: 2;
+    color: white;
+    min-width: 400px;
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+    .hanging-content h3 {
+        margin: 0 0 5px 0;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .hanging-content p {
+        margin: 0;
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+.rope {
+    position: absolute;
+    width: 8px;
+    height: 100vh; /* Full viewport height */
+    background: linear-gradient(to bottom, #8B4513, #A0522D, #8B4513);
+    top: -100vh; /* Position it so it extends both above and below the hanging container */
+    z-index: -1;
+    border: 2px solid #000;
+    box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.left-rope {
+    left: calc(50% - 70px);
+}
+
+.right-rope {
+    right: calc(50% - 70px);
+}
+
+.card {
+    transition: all 0.3s ease !important;
+}
+
+
+.card-3d-raised {
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-height: 350px;
+}
+
+    .card-3d-raised:hover {
+        transform: perspective(500px) rotateY(-5deg);
+        box-shadow: -12px 12px 0px 2px rgba(0, 0, 0, 0.8), 0px 6px 12px rgba(0, 0, 0, 0.4) !important;
+    }
+
+.alert {
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-3d {
+    width: 50% !important;
+    margin: 5px !important;
+}
+
+.d-grid {
+    justify-items: center !important;
+    align-content: center !important;
+}
+
+.form-control-lg {
+    border: 3px solid #000 !important;
+    border-radius: 50px !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff;
+    font-size: 1.5rem !important;
+    letter-spacing: 0.3rem !important;
+    text-align: center !important;
+    width: 75% !important;
+    margin: 0 auto !important;
+    display: block !important;
+}
+
+.form-control-join {
+    border: 3px solid #000 !important;
+    border-radius: 50px !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff;
+    font-size: 1.5rem !important;
+    letter-spacing: 0.3rem !important;
+    text-align: center !important;
+    padding: 0.5rem 1rem !important;
+    width: 75% !important;
+    margin: 0 auto !important;
+    display: block !important;
+}
+
+.form-text {
+    margin-top: 1rem !important;
+    display: flex !important;
+    justify-content: center !important;
+}
+
+/* Sinking animation for inputs */
+input.form-control-join:focus {
+    animation: sinkInput 0.4s ease;
+    border: 3px solid #000 !important;
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 0px 0px rgba(0, 0, 0, 0.3) !important;
+    transform: translateY(4px);
+    outline: none !important;
+}
+
+@keyframes sinkInput {
+    0% {
+        transform: translateY(0);
+        border: 3px solid #000 !important;
+        box-shadow:
+            -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+            0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    }
+    100% {
+        transform: translateY(4px);
+        border: 3px solid #000 !important;
+        box-shadow:
+            0px 0px 0px 0px rgba(0, 0, 0, 0.75),
+            0px 0px 0px rgba(0, 0, 0, 0.3) !important;
+    }
+}
+
+.avatar-container {
+    position: relative;
+    overflow: hidden;
+}
+
+    .avatar-container img {
+        transition: transform 0.3s ease;
+    }
+
+    .avatar-container:hover img {
+        transform: scale(1.05);
+    }
+
+.file-upload-wrapper {
+    margin-top: 1rem;
+}
