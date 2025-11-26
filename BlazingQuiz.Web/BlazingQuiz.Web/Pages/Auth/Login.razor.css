@@ -7,6 +7,120 @@
     align-items: center;
 }
 
+/* Role selection container */
+.role-selection-container {
+    margin-top: 30px;
+}
+
+/* Role selection card */
+.role-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 3px solid #000 !important;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: #ffffff;
+    min-height: 150px !important;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.role-card:hover {
+    transform: perspective(500px) rotateY(-5deg);
+    box-shadow:
+        -12px 12px 0px 2px rgba(0, 0, 0, 0.8),
+        0px 6px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.role-card .card-body {
+    padding: 15px 10px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.role-illustration {
+    margin: 5px auto 10px auto;
+    height: 60px;
+    width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+    border-radius: 50%;
+    border: 2px solid #ddd;
+}
+
+.role-illustration i {
+    font-size: 2rem;
+    color: inherit;
+}
+
+/* Specific styling for Font Awesome icons */
+.role-illustration .fas {
+    font-size: 2rem;
+    color: inherit;
+}
+
+.role-card h5 {
+    color: #333;
+    font-weight: 600;
+    margin: 10px 0 0;
+    font-size: 1.1rem;
+}
+
+.role-teacher.role-card {
+    border-color: #4a90e2 !important;
+}
+
+.role-teacher .role-illustration i {
+    color: #4a90e2 !important;
+}
+
+.role-student.role-card {
+    border-color: #51cf66 !important;
+}
+
+.role-student .role-illustration i {
+    color: #51cf66 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .role-card {
+        min-height: 130px;
+    }
+
+    .role-card .card-body {
+        padding: 10px 5px !important;
+    }
+
+    .role-illustration {
+        height: 50px;
+        width: 50px;
+    }
+
+    .role-illustration i {
+        font-size: 1.8rem;
+    }
+
+    .role-illustration .fas {
+        font-size: 1.8rem;
+    }
+
+    .role-card h5 {
+        font-size: 0.9rem;
+        margin-top: 8px;
+    }
+}
+
 .hanging-content {
     background: linear-gradient(135deg, #4a90e2, #357abd);
     padding: 20px 30px;
