@@ -1,4 +1,4 @@
-﻿/* Hanging container styles */
+/* Hanging container styles */
 .hanging-container {
     position: relative;
     margin-bottom: 20px;
@@ -54,7 +54,6 @@
     transition: all 0.3s ease !important;
 }
 
-
 .card-3d-raised {
     border: 3px solid #000 !important;
     box-shadow:
@@ -84,7 +83,6 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-
 .d-grid {
     justify-items: center !important;
     align-content: center !important;
@@ -105,14 +103,17 @@
     margin: 0 auto !important;
     display: block !important;
 }
+
 .form-text{
     margin-top: 1rem !important;
     display: flex !important;
     justify-content: center !important;
 }
 
-/* Sinking animation for room code input */
-input#roomCode:focus {
+/* Sinking animation for input focus */
+input:focus,
+select:focus,
+textarea:focus {
     animation: sinkInput 0.4s ease;
     border: 3px solid #000 !important;
     box-shadow:

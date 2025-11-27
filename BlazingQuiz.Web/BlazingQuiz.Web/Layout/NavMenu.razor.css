@@ -20,7 +20,7 @@ body {
     overflow-x: hidden;
     z-index: 1000;
     flex-direction: column;
-    background: radial-gradient( circle at top left, #ffe2aa 0%, #ffc46a 45%, #ffae4a 100% );
+    background: radial-gradient( circle at top left, #edef00 0%, #e3ec1d 30%, #d8e535 60%, #ccff00 100% );
     padding: 5px 5px;
     border-radius: 0 18px 18px 0; /* Only right side border-radius */
     box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3);
@@ -53,18 +53,18 @@ body {
     }
 
     .sidebar .sidebar-header h2 {
-        color: #fffaf2;
+        color: #333;
         font-size: 0rem;
         font-weight: 600;
         white-space: nowrap;
         margin-left: 18px;
         letter-spacing: 0.02em;
-        text-shadow: 0 2px 6px rgba(143, 72, 10, 0.8);
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
     }
 
 /* SECTION TITLE */
 .sidebar-links h4 {
-    color: #ffeed1;
+    color: #333;
     font-weight: 500;
     white-space: nowrap;
     margin: 14px 0 6px;
@@ -75,7 +75,7 @@ body {
 }
 
     .sidebar-links h4 span {
-        color: #6a3e12;
+        color: #000;
         opacity: 0;
         transition: opacity 0.25s ease;
     }
@@ -129,7 +129,7 @@ body {
             display: flex;
             align-items: center;
             gap: 0 13px;
-            color: #fff7e6; /* chữ trắng kem */
+            color: #333; /* Darker text for better contrast with yellow */
             font-size: 0.9rem;
             font-weight: 500;
             white-space: nowrap;
@@ -137,7 +137,7 @@ body {
             text-decoration: none;
             border-radius: 999px;
             transition: background 0.22s ease, color 0.22s ease, transform 0.18s ease, box-shadow 0.18s ease, opacity 0.22s ease;
-            background: linear-gradient( 135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.08) );
+            background: linear-gradient( 135deg, rgba(237, 239, 0, 0.4), rgba(204, 255, 0, 0.2) );
             box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3);
             opacity: 0.96;
             border: 2px solid #000;
@@ -158,8 +158,8 @@ body {
 
             /* HOVER – nổi mạnh + đổi màu chữ */
             .sidebar-links li a:hover {
-                color: #5a3510; /* nâu đậm ấm */
-                background: linear-gradient(135deg, #ffffff, #ffe2ba);
+                color: #000; /* Darker text for better contrast with yellow */
+                background: linear-gradient(135deg, #f5f75a, #e6ff66);
                 transform: translateX(4px) translateY(-2px);
                 font-size: 1rem;
                 opacity: 1;
@@ -172,8 +172,8 @@ body {
 
             /* ACTIVE – đang chọn */
             .sidebar-links li a.active {
-                color: #5a3510;
-                background: linear-gradient(135deg, #ffffff, #ffd392);
+                color: #000;
+                background: linear-gradient(135deg, #e6ff66, #ccff00);
                 transform: translateX(2px) translateY(2px);
                 box-shadow: -3px 3px 0px 0px rgba(0, 0, 0, 0.8), 0px 3px 5px rgba(0, 0, 0, 0.4);
                 opacity: 0.95;
@@ -187,19 +187,19 @@ body {
                 align-items: center;
                 justify-content: center;
                 font-size: 1.1rem;
-                color: #6a3e12; /* icon nâu ấm */
-                filter: drop-shadow(0 2px 4px rgba(124, 63, 9, 0.7));
+                color: #000; /* icon màu đen cho đối lập với nền vàng */
+                filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
                 transition: transform 0.18s ease, color 0.18s ease;
             }
 
             .sidebar-links li a:hover i,
             .sidebar-links li a:hover .icon {
                 transform: translateY(-1px);
-                color: #8a4a0f; /* hover icon sáng hơn chút */
+                color: #333; /* hover icon slightly lighter */
             }
 
             .sidebar-links li a span {
-                color: #6a3e12; /* icon nâu ấm */
+                color: #000; /* icon màu đen cho đối lập với nền vàng */
             }
 
 /* USER ACCOUNT – CARD 3D DƯỚI CÙNG */
@@ -210,7 +210,7 @@ body {
     margin-right: -4px;
     border-radius: 0 14px 14px 0; /* Only right side border-radius */
     transition: all 0.25s ease;
-    background: linear-gradient( 135deg, rgba(255,255,255,0.25), rgba(179, 103, 18, 0.35) );
+    background: linear-gradient( 135deg, rgba(237, 239, 0, 0.5), rgba(204, 255, 0, 0.3) );
     box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3);
     border: 2px solid #000;
 }
@@ -218,7 +218,7 @@ body {
 .user-profile {
     display: flex;
     align-items: center;
-    color: #fff7e6;
+    color: #333;
     gap: 0 12px;
 }
 
@@ -226,8 +226,8 @@ body {
         width: 42px;
         height: 42px;
         border-radius: 50%;
-        border: 2px solid rgba(255,255,255,0.97);
-        box-shadow: 0 6px 14px rgba(133, 69, 8, 0.8);
+        border: 2px solid rgba(0, 0, 0, 0.8);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.6);
         object-fit: cover;
     }
 
@@ -240,7 +240,7 @@ body {
     font-size: 0.95rem;
     font-weight: 600;
     margin-bottom: 2px;
-    text-shadow: 0 2px 5px rgba(123, 63, 7, 0.8);
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
 }
 
 .user-profile span {
@@ -250,13 +250,13 @@ body {
 }
 
 .sidebar:hover .user-account {
-    background: linear-gradient(135deg, #ffffff, #ffe0b4);
+    background: linear-gradient(135deg, #e6ff66, #ccff00);
     box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.8), 0px 4px 6px rgba(0, 0, 0, 0.4);
     transform: translateY(-2px);
 }
 
 .sidebar:hover .user-profile {
-    color: #5a3510;
+    color: #000;
 }
 
 /* Mobile overlay for when sidebar is open */
@@ -299,14 +299,14 @@ body {
         left: 0;
         right: 0;
         z-index: 1001;
-        background: radial-gradient( circle at top left, #ffe2aa 0%, #ffc46a 45%, #ffae4a 100% );
+        background: radial-gradient( circle at top left, #edef00 0%, #e3ec1d 30%, #d8e535 60%, #ccff00 100% );
         padding: 0.5rem 0; /* Reset horizontal padding to allow absolute positioning */
         display: flex;
         justify-content: center;
         align-items: center;
         border-radius: 0 0 8px 8px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        min-height: 60px; 
+        min-height: 60px;
     }
 
         .top-row .container-fluid {
@@ -360,13 +360,13 @@ body {
 
         .top-row .navbar-toggler {
             display: inline-block;
-            background-color: rgba(255, 103, 0, 0.8);
-            border: none;
+            background: linear-gradient(135deg, rgba(237, 239, 0, 0.7), rgba(204, 255, 0, 0.5));
+            border: 2px solid #000;
             border-radius: 4px;
             width: 36px;
             height: 36px;
             cursor: pointer;
-            color: white;
+            color: #000;
             font-size: 1.2rem;
         }
 
@@ -462,7 +462,7 @@ body {
     }
 
     .sidebar {
-        width: 60px; /* Default width on desktop */
+        width: 65px; /* Default width on desktop */
     }
 
         .sidebar.expanded {

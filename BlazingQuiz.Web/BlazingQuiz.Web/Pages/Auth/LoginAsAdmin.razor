@@ -1,0 +1,129 @@
+@page "/auth/login-admin"
+@layout EmptyLayout
+@using BlazingQuiz.Web.Apis
+@inject NavigationManager NavigationManager
+@inject IAuthApi AuthApi
+@inject IAppState AppState
+@inject QuizAuthStateProvider QuizAuthStateProvider
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="hanging-container">
+                <div class="hanging-content">
+                    <h3>Login as Admin</h3>
+                </div>
+                <div class="rope left-rope"></div>
+                <div class="rope right-rope"></div>
+            </div>
+            <div class="card card-3d-raised card-light">
+                <div class="card-body">
+                    <EditForm Model="_model" OnValidSubmit="LoginAsync">
+                        <DataAnnotationsValidator />
+                        <div class="form-container">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input id="username" class="form-control form-control-lg" @bind="_model.Username" />
+                                <ValidationMessage For="() => _model.Username" class="validation-message" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input id="password" type="password" class="form-control form-control-lg" @bind="_model.Password" />
+                                <ValidationMessage For="() => _model.Password" class="validation-message" />
+                            </div>
+                            <!-- Hidden role field set to Admin -->
+                            <input type="hidden" @bind="_model.Role" />
+                            @if (_errorMessage != null)
+                            {
+                                <div class="alert alert-danger error-message" role="alert">
+                                    @_errorMessage
+                                </div>
+                            }
+                        </div>
+                        <div class="d-grid gap-2">
+                            @if (!_isBusy)
+                            {
+                                <button type="submit" class="btn btn-3d btn-3d-success">
+                                    <span>Login as Admin</span>
+                                </button>
+                                <button type="button" class="btn btn-3d btn-3d-outline" @onclick="GoBackToMainLogin">Back to Login</button>
+                                <a href="auth/forgot-password" class="text-link">Forgot Password?</a>
+                            }
+                            else
+                            {
+                                <button type="button" disabled class="btn btn-3d btn-3d-secondary">
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    <span>Logging in...</span>
+                                </button>
+                            }
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginDto _model = new();
+    private bool _isBusy;
+    private string? _errorMessage;
+
+    protected override void OnInitialized()
+    {
+        _model.Role = UserRole.Admin; // Pre-select Admin role
+        
+        if(QuizAuthStateProvider.IsLoggedIn)
+        {
+            RedirectToHome(replace: true);
+        }
+    }
+
+    private void GoBackToMainLogin()
+    {
+        NavigationManager.NavigateTo("auth/login", replace: true);
+    }
+
+    private async Task LoginAsync()
+    {
+        _errorMessage = null;
+        _isBusy = true;
+        try
+        {
+            AppState.ShowLoader("Logging in as admin...");
+            var authResponse = await AuthApi.LoginAsync(_model);
+            if (authResponse.HasError)
+            {
+                _errorMessage = authResponse.ErrorMessage;
+                return;
+            }
+            //Set the token in the local storage
+            //Implement Auth State Provider
+            var loggedInUser = authResponse.User;
+            await QuizAuthStateProvider.SetLoginAsync(loggedInUser);
+            RedirectToHome();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isBusy = false;
+            AppState.HideLoader();
+        }
+    }
+
+    private void RedirectToHome(bool replace = false)
+    {
+        var redirectTo = QuizAuthStateProvider.User.Role switch
+        {
+            nameof(UserRole.Student) => "student/home",
+            nameof(UserRole.Teacher) => "teacher/home",
+            nameof(UserRole.Admin) => "admin/home",
+            _ => "/home"
+        };
+
+        NavigationManager.NavigateTo(redirectTo, replace);
+    }
+}
