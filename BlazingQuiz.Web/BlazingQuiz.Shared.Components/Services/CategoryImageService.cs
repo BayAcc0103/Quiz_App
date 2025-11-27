@@ -10,11 +10,13 @@ namespace BlazingQuiz.Shared.Components.Services
     {
         private readonly HttpClient _httpClient;
         private readonly QuizAuthStateProvider _authStateProvider;
+        private const string ApiServer = "https://b861mvjb-7048.asse.devtunnels.ms";
 
         public CategoryImageService(HttpClient httpClient, QuizAuthStateProvider authStateProvider)
         {
             _httpClient = httpClient;
             _authStateProvider = authStateProvider;
+
         }
 
         public async Task<QuizApiResponse> UploadCategoryImageAsync(int categoryId, IBrowserFile file)
@@ -95,7 +97,7 @@ namespace BlazingQuiz.Shared.Components.Services
             
             // Construct the full URL to the image on the API server
             // The API base address is configured in Program.cs as "https://localhost:7048"
-            return $"{_httpClient.BaseAddress}{imagePath}";
+            return $"{ApiServer}/{imagePath}";
         }
     }
 }

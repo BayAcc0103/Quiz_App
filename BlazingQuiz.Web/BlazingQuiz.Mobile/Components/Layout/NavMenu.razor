@@ -11,7 +11,7 @@
 <div class="mobile-overlay @(collapseNavMenu ? "d-none" : "")" @onclick="ToggleNavMenu"></div>
 <aside class="sidebar @GetSidebarClass">
     <div class="sidebar-header">
-        <img src="logo.png" alt="logo" class="d-none d-lg-block" />
+        <img src="asset/logo.png" alt="logo" class="d-none d-lg-block" />
     </div>
     <ul class="sidebar-links">
         <AuthorizeView>
@@ -287,9 +287,11 @@
                          class="rounded-circle" />
                 }
             </div>
-        <img src="logo.png" alt="logo" class="logo-image" />
+        <img src="asset/logo.png" alt="logo" class="logo-image" />
         <button title="Navigation menu" class="navbar-toggler raised-3d" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
+            <span class="material-symbols-outlined">
+                lists
+            </span>
         </button>
     </div>
 </div>

@@ -189,7 +189,7 @@
     </Modal>
 }
 
-<RatingModal @ref="ratingModalRef" IsVisible="_showRatingModal" OnRatingSubmitted="HandleRatingSubmitted" IsVisibleChanged="OnRatingModalVisibilityChanged" />
+<BlazingQuiz.Web.Components.RatingModal @ref="ratingModalRef" IsVisible="_showRatingModal" OnRatingSubmitted="HandleRatingSubmitted" IsVisibleChanged="OnRatingModalVisibilityChanged" />
 
 @code {
     private QuestionDto _question = new();
@@ -205,7 +205,7 @@
     private bool _showSuccessMessage = false;
     private int _ratingScore = 0;
     private string? _commentContent;
-    // private RatingModal? ratingModalRef;
+    private BlazingQuiz.Web.Components.RatingModal? ratingModalRef;
 
     protected override async Task OnInitializedAsync()
     {

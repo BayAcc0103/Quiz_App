@@ -9,33 +9,34 @@
 
 @attribute [Authorize(Roles = nameof(UserRole.Student))]
 
-<div class="container mt-4">
+<div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card card-3d-raised card-light">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">Join Room</h3>
+        <div class="col-md-8 col-lg-6">
+            <div class="hanging-container">
+                <div class="hanging-content">
+                    <h3>Join Quiz Room</h3>
                 </div>
+                <div class="rope left-rope"></div>
+                <div class="rope right-rope"></div>
+            </div>
+            <div class="card card-3d-raised card-light">
                 <div class="card-body">
                     <EditForm Model="joinRoomDto" OnValidSubmit="HandleJoinRoom">
                         <DataAnnotationsValidator />
-
                         <div class="mb-3">
                             <label for="roomCode" class="form-label">Room Code *</label>
-                            <InputText id="roomCode" class="form-control form-control-lg text-center" @bind-Value="joinRoomDto.Code" maxlength="6" style="font-size: 2rem; letter-spacing: 0.5rem;" />
+                            <input id="roomCode" class="form-control form-control-lg text-center" @bind="joinRoomDto.Code" maxlength="6" style="font-size: 2rem; letter-spacing: 0.5rem;" />
                             <ValidationMessage For="@(() => joinRoomDto.Code)" class="text-danger" />
                             <div class="form-text">Enter the 6-digit room code provided by your teacher or peer</div>
                         </div>
-
                         @if (!string.IsNullOrEmpty(errorMessage))
                         {
-                            <div class="alert alert-danger mb-3 card-3d-raised" role="alert">
+                            <div class="alert alert-danger mb-3" role="alert">
                                 @errorMessage
                             </div>
                         }
-
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-3d btn-3d-primary btn-lg" disabled="@isJoining">
+                            <button type="submit" class="btn btn-3d btn-3d-primary" disabled="@isJoining">
                                 @if (isJoining)
                                 {
                                     <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
@@ -43,10 +44,10 @@
                                 }
                                 else
                                 {
-                                    <span><i class="bi bi-door-open me-2"></i>Join Room</span>
+                                    <span><i class="bi bi-door-open"></i>Join Room</span>
                                 }
                             </button>
-                            <button type="button" class="btn btn-3d btn-3d-secondary" @onclick="Cancel">Cancel</button>
+                            <button type="button" class="btn btn-3d btn-3d-secondary btn-sm" @onclick="Cancel">Cancel</button>
                         </div>
                     </EditForm>
                 </div>
@@ -63,13 +64,12 @@
     private async Task HandleJoinRoom()
     {
         isJoining = true;
-        errorMessage = null; // Clear previous error
+        errorMessage = null;
         StateHasChanged();
-        
+
         try
         {
             var room = await RoomApi.JoinRoomAsync(joinRoomDto);
-            // Navigate to room page
             Navigation.NavigateTo($"/student/room/{room.Id}");
         }
         catch (Refit.ApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
@@ -96,6 +96,6 @@
         Navigation.NavigateTo("/student/home");
     }
 
-    private async Task ShowAlertAsync(string message, string title = "Error") => 
+    private async Task ShowAlertAsync(string message, string title = "Error") =>
         await JSRuntime.InvokeVoidAsync("alert", $"{title}\n{message}");
 }

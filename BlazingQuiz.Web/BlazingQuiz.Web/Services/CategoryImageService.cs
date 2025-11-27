@@ -10,6 +10,7 @@ namespace BlazingQuiz.Web.Services
     {
         private readonly HttpClient _httpClient;
         private readonly QuizAuthStateProvider _authStateProvider;
+        private const string ApiServer = "https://b861mvjb-7048.asse.devtunnels.ms";
 
         public CategoryImageService(HttpClient httpClient, QuizAuthStateProvider authStateProvider)
         {
@@ -92,10 +93,7 @@ namespace BlazingQuiz.Web.Services
         {
             if (string.IsNullOrEmpty(imagePath))
                 return string.Empty;
-            
-            // Construct the full URL to the image on the API server
-            // The API base address is configured in Program.cs as "https://localhost:7048"
-            return $"{_httpClient.BaseAddress}{imagePath}";
+            return $"{ApiServer}/{imagePath}";
         }
     }
 }

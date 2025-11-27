@@ -1,0 +1,126 @@
+@page "/auth/verify-otp"
+@layout EmptyLayout
+@using BlazingQuiz.Web.Apis
+@using BlazingQuiz.Shared.DTOs
+@inject NavigationManager NavigationManager
+@inject IAuthApi AuthApi
+@inject IAppState AppState
+@inject QuizAuthStateProvider QuizAuthStateProvider
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="hanging-container">
+                <div class="hanging-content">
+                    <h3>Verify OTP</h3>
+                </div>
+                <div class="rope left-rope"></div>
+                <div class="rope right-rope"></div>
+            </div>
+            <div class="card card-3d-raised card-light">
+                <div class="card-body">
+                    <EditForm Model="_model" OnValidSubmit="VerifyOtpAsync">
+                        <DataAnnotationsValidator />
+                        <div class="form-container">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" id="email" class="form-control form-control-lg" @bind="_model.Email" readonly />
+                            </div>
+                            <div class="mb-3">
+                                <label for="otp" class="form-label">OTP Code</label>
+                                <input type="text" id="otp" class="form-control form-control-lg" placeholder="Enter the 6-digit code" maxlength="6" @bind="_model.Otp" />
+                                <ValidationMessage For="() => _model.Otp" class="validation-message" />
+                            </div>
+                            @if(_errorMessage != null)
+                            {
+                                <div class="alert alert-danger error-message" role="alert">
+                                    @_errorMessage
+                                </div>
+                            }
+                        </div>
+                        <div class="d-grid gap-2">
+                            @if (!_isBusy)
+                            {
+                                <button type="submit" class="btn btn-3d btn-3d-success">
+                                    <span>Verify Code</span>
+                                </button>
+                                <a href="auth/forgot-password" class="btn btn-3d btn-3d-outline">Back</a>
+                            }
+                            else
+                            {
+                                <button type="button" disabled class="btn btn-3d btn-3d-secondary">
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    <span>Verifying...</span>
+                                </button>
+                            }
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private VerifyOtpDto _model = new();
+    private bool _isBusy;
+    private string? _errorMessage;
+
+    [Parameter]
+    public string? Email { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if(QuizAuthStateProvider.IsLoggedIn)
+        {
+            NavigationManager.NavigateTo("/", replace: true);
+        }
+
+        // Get email from query parameters
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("email", out var emailValues))
+        {
+            Email = emailValues.ToString();
+            _model.Email = Email;
+        }
+    }
+
+    private async Task VerifyOtpAsync()
+    {
+        _errorMessage = null;
+        _isBusy = true;
+
+        try
+        {
+            AppState.ShowLoader("Verifying OTP...");
+
+            // Create a DTO that includes email and OTP for verification
+            var verifyDto = new VerifyOtpDto
+            {
+                Email = _model.Email,
+                Otp = _model.Otp
+            };
+
+            // Call the backend to verify the OTP
+            var response = await AuthApi.VerifyOtpAsync(verifyDto);
+
+            if (!response.IsSuccess)
+            {
+                _errorMessage = response.ErrorMessage;
+                return;
+            }
+
+            // If OTP is valid, navigate to reset password page
+            NavigationManager.NavigateTo($"/auth/reset-password?email={Uri.EscapeDataString(_model.Email)}&otp={Uri.EscapeDataString(_model.Otp)}", replace: false);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isBusy = false;
+            AppState.HideLoader();
+        }
+    }
+}
