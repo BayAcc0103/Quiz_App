@@ -214,11 +214,12 @@
         AppState.HideLoader();
     }
 
-    private void OnEditCategory(CategoryDto category)
+    private async Task OnEditCategory(CategoryDto category)
     {
         _category = category;
         _selectedImageFile = null; // Clear selected file when editing
         _previewImageUrl = null;   // Clear preview URL when editing
+        await JSRuntime.InvokeVoidAsync("scrollTo", 0, 0);
     }
 
     private async Task SaveCategoryAsync()
