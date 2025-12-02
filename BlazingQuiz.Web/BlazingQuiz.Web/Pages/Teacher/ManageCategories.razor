@@ -35,9 +35,9 @@
                 <EditForm Model="_category" OnValidSubmit="SaveCategoryAsync">
                     <DataAnnotationsValidator/>
                     <div class="card category-card-3d">
-                        <div class="card-header">
+@*                         <div class="card-header">
                             <h4 class="m-0">Add/Edit Category</h4>
-                        </div>
+                        </div> *@
                         <div class="card-body">
                             <div class="mb-3">
                                 <label class="form-label">
@@ -50,10 +50,11 @@
                             <!-- Image Upload Section -->
                             <div class="mb-3">
                                 <label class="form-label">Category Image</label>
-                                @if (!string.IsNullOrEmpty(_category.ImagePath))
+                                @if (!string.IsNullOrEmpty(_category.ImagePath) || _selectedImageFile != null)
                                 {
                                     <div class="position-relative d-flex justify-content-center mb-2">
-                                        <img src="@CategoryImageService.GetImageUrl(_category.ImagePath)" alt="Category Image" class="img-thumbnail category-image-preview" />
+                                        <img src="@GetImageSource()"
+                                             alt="Category Image" class="img-thumbnail category-image-preview" />
                                         <button type="button" class="btn-remove-image" @onclick="RemoveImage" title="Remove image">
                                             <i class="fas fa-times"></i>
                                         </button>
@@ -86,13 +87,21 @@
                             <div class="d-flex justify-content-between align-items-center mt-3">
                                 @if(!_isBusy)
                                 {
-                                    <button type="button" class="btn btn-3d btn-3d-secondary btn-sm" @onclick="() => _category = new()">Cancel</button>
-                                    <button type="submit" class="btn btn-3d btn-3d-primary">Save</button>
+                                    <button type="button" class="btn btn-3d btn-3d-secondary btn-sm" @onclick="() => _category = new()" title="Cancel">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    <button type="submit" class="btn btn-3d btn-3d-primary" title="Save">
+                                        <i class="fas fa-save"></i>
+                                    </button>
                                 }
                                 else
                                 {
-                                    <button type="button" class="btn btn-3d btn-3d-secondary btn-sm" disabled>Cancel</button>
-                                    <button type="submit" class="btn btn-3d btn-3d-primary" disabled>Saving...</button>
+                                    <button type="button" class="btn btn-3d btn-3d-secondary btn-sm" disabled title="Cancel">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    <button type="submit" class="btn btn-3d btn-3d-primary" disabled title="Saving...">
+                                        <i class="fas fa-save"></i> Saving...
+                                    </button>
                                 }
                             </div>
                         </div>
@@ -171,74 +180,6 @@
     </div>
 </div>
 
-<style>
-    .category-card {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-    .category-image {
-        object-fit: cover;
-        height: 150px;
-    }
-    .category-placeholder {
-        border: 1px dashed #ccc;
-    }
-
-    /* Hanging container styles */
-    .hanging-container {
-        position: relative;
-        margin-bottom: 20px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .hanging-content {
-        background: linear-gradient(135deg, #4a90e2, #357abd);
-        padding: 20px 30px;
-        border-radius: 20px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        text-align: center;
-        z-index: 2;
-        color: white;
-        min-width: 400px;
-        border: 3px solid #000 !important;
-        box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
-    }
-
-    .hanging-content h3 {
-        margin: 0 0 5px 0;
-        font-size: 1.5rem;
-        font-weight: bold;
-    }
-
-    .hanging-content p {
-        margin: 0;
-        font-size: 1rem;
-        opacity: 0.9;
-    }
-
-    .rope {
-        position: absolute;
-        width: 8px;
-        height: 100vh; /* Full viewport height */
-        background: linear-gradient(to bottom, #8B4513, #A0522D, #8B4513);
-        top: -100vh; /* Position it so it extends both above and below the hanging container */
-        z-index: -1;
-        border: 2px solid #000;
-        box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    .left-rope {
-        left: calc(50% - 70px);
-    }
-
-    .right-rope {
-        right: calc(50% - 70px);
-    }
-</style>
-
 @code {
     private CategoryDto[] _categories = [];
     private CategoryDto _category = new();
@@ -271,6 +212,7 @@
     {
         _category = category;
         _selectedImageFile = null; // Clear selected file when editing
+        _previewImageUrl = null;   // Clear preview URL when editing
     }
 
     private async Task SaveCategoryAsync()
@@ -279,6 +221,8 @@
         {
             AppState.ShowLoader("Saving categories...");
             _isBusy = true;
+
+            // First, save the category without image to get an ID if it's a new category
             var response = await CategoryApi.SaveCategoryAsync(_category);
             if (!response.IsSuccess)
             {
@@ -287,23 +231,45 @@
                 return;
             }
 
-            // For SaveCategory, we need to reload categories to get updated data
-            var savedCategory = _category;
+            // Reload categories to ensure we have the latest data including the new category's ID
+            await LoadCategoriesAsync();
 
-            // If there's an image file selected, upload it after saving the category
-            if (_selectedImageFile != null && savedCategory.Id > 0)
+            // Find the newly created category to get its ID, by checking for the same name since it should be unique-ish
+            var savedCategory = _categories.FirstOrDefault(c =>
+                string.Equals(c.Name, _category.Name, StringComparison.OrdinalIgnoreCase));
+
+            var categoryId = savedCategory?.Id ?? _category.Id;
+
+            // Wait a bit to ensure database consistency if creating new category
+            if (_category.Id <= 0 && categoryId > 0) // It was a new category and we got the ID
             {
-                await UploadImageForCategory(savedCategory.Id);
+                await Task.Delay(200); // Small delay to ensure category is created in DB
             }
 
-            // Reset the form
-            _category = new();
-            _selectedImageFile = null;
-            await LoadCategoriesAsync();
+            // If there's an image file selected, upload it after saving the category
+            if (_selectedImageFile != null)
+            {
+                await UploadImageForCategory(categoryId);  // Use the ID from the loaded categories
+
+                // Reload categories to get the updated image path
+                await LoadCategoriesAsync();
+
+                // Reset the form
+                _category = new();
+                _selectedImageFile = null;
+                _previewImageUrl = null;
+            }
+            else
+            {
+                // Reset the form
+                _category = new();
+                _selectedImageFile = null;
+                _previewImageUrl = null;
+            }
         }
         catch(Exception ex)
         {
-            _errorMessage = ex.Message; 
+            _errorMessage = ex.Message;
         }
         finally
         {
@@ -311,11 +277,6 @@
             _isBusy = false;
             _uploadProgress = 0;
         }
-    }
-
-    private void OnImageFileChanged(InputFileChangeEventArgs e)
-    {
-        _selectedImageFile = e.File;
     }
 
     private async Task UploadImageForCategory(int categoryId)
@@ -369,6 +330,16 @@
 
     private async Task RemoveImage()
     {
+        // If we have a selected file (not yet saved), just clear it
+        if (_selectedImageFile != null)
+        {
+            _selectedImageFile = null;
+            _previewImageUrl = null;
+            StateHasChanged();
+            return;
+        }
+
+        // If we have an existing category with an image, remove the saved image
         if (_category.Id <= 0 || string.IsNullOrEmpty(_category.ImagePath)) return;
 
         try
@@ -437,5 +408,47 @@
                 StateHasChanged();
             }
         }
+    }
+
+    private string GetImageSource()
+    {
+        if (!string.IsNullOrEmpty(_previewImageUrl))
+        {
+            return _previewImageUrl;
+        }
+        else if (!string.IsNullOrEmpty(_category.ImagePath))
+        {
+            return CategoryImageService.GetImageUrl(_category.ImagePath);
+        }
+        return string.Empty;
+    }
+
+    private string? _previewImageUrl;
+
+    private async Task OnImageFileChanged(InputFileChangeEventArgs e)
+    {
+        _selectedImageFile = e.File;
+
+        if (_selectedImageFile != null)
+        {
+            // Create a preview URL for the selected image using JavaScript interop
+            _previewImageUrl = await CreateImagePreview(_selectedImageFile);
+        }
+        else
+        {
+            _previewImageUrl = null;
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task<string> CreateImagePreview(IBrowserFile file)
+    {
+        // In Blazor Server, we need to read the file and create a data URL
+        using var memoryStream = new MemoryStream();
+        await file.OpenReadStream(1024 * 1024 * 10).CopyToAsync(memoryStream); // Max 10MB
+        var fileContent = memoryStream.ToArray();
+        var base64 = Convert.ToBase64String(fileContent);
+        return $"data:{file.ContentType};base64,{base64}";
     }
 }
