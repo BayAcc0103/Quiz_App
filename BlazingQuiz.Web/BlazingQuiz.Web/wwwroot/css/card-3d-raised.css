@@ -189,6 +189,21 @@
     background: linear-gradient(to bottom, #4e575f, #40474e);
 }
 
+.btn-3d-danger {
+    --shadow-color: #a71e2a;
+    background: linear-gradient(to bottom, #dc3545, #bb2d3b);
+    color: white;
+    border: none;
+}
+
+.btn-3d-danger:hover:not(:active) {
+    background: linear-gradient(to bottom, #bb2d3b, #a92734);
+}
+
+.btn-3d-danger:active {
+    background: linear-gradient(to bottom, #a92734, #98222d);
+}
+
 /* Responsive adjustments for 3D cards */
 @media (max-width: 768px) {
     .card-3d-raised {
