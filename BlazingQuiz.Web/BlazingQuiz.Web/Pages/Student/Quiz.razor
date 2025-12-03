@@ -21,19 +21,10 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-10">
-                <!-- Main quiz title hanging -->
-                <div class="hanging-container">
-                    <div class="hanging-content">
-                        <h3>@QuizState.Quiz.Name</h3>
-                    </div>
-                    <div class="rope left-rope"></div>
-                    <div class="rope right-rope"></div>
-                </div>
-
-                <!-- Question count and time hanging elements -->
-                <div class="hanging-pair-container">
+                <!-- All hanging elements container -->
+                <div class="hanging-all-container">
                     <!-- Left hanging - question count -->
-                    <div class="hanging-container hanging-left">
+                    <div class="hanging-container hanging-question-count">
                         <div class="hanging-content hanging-content-quiz-info">
                             <h4>Question: @_questions.Count/@QuizState.Quiz.TotalQuestions</h4>
                         </div>
@@ -41,8 +32,17 @@
                         <div class="rope right-rope"></div>
                     </div>
 
+                    <!-- Center hanging - quiz title -->
+                    <div class="hanging-container hanging-quiz-title">
+                        <div class="hanging-content">
+                            <h3>@QuizState.Quiz.Name</h3>
+                        </div>
+                        <div class="rope left-rope"></div>
+                        <div class="rope right-rope"></div>
+                    </div>
+
                     <!-- Right hanging - time -->
-                    <div class="hanging-container hanging-right">
+                    <div class="hanging-container hanging-time">
                         <div class="hanging-content hanging-content-quiz-info">
                             <h4>Time: <QuizTimer TotalMinutes="QuizState.Quiz.TimeInMinutes" OnTimerStop="AutoSubmitQuizAsync" /></h4>
                         </div>
@@ -54,8 +54,8 @@
         </div>
 
         <div class="row justify-content-center">
-            <div class="col-md-6">
-                <!-- Left card: Quiz media and question text -->
+            <div class="col-lg-10">
+                <!-- Combined card: Question and Options -->
                 <div class="card card-3d-raised card-light">
                     <div class="card-body">
                         <!-- Quiz Audio -->
@@ -107,28 +107,22 @@
                             <!-- Question Text -->
                             <div class="question-text">@_question.Text</div>
                         </div>
-                    </div>
-                </div>
-            </div>
 
-            <div class="col-md-6">
-                <!-- Right card: Answer options/input -->
-                <div class="card card-3d-raised card-light">
-                    <div class="card-body">
-                        <!-- Options Section -->
+                        <!-- Options Section - Now inside the same card -->
                         <div class="options-container">
                             @if (!_question.IsTextAnswer)
                             {
-                                <!-- Multiple Choice Options -->
-                                @foreach (var o in _question.Options)
-                                {
-                                    <div class="option-box" @onclick="() => _selectedOptionId = o.Id">
-                                        <input type="radio" name="rdo_@_question.Id" id="rdo_@o.Id"
-                                        checked="@(_selectedOptionId == o.Id)"
-                                        @onchange="() => _selectedOptionId = o.Id"/>
-                                        <label for="rdo_@o.Id" class="d-block">@o.Text</label>
-                                    </div>
-                                }
+                                <!-- Multiple Choice Options as Square Cards -->
+                                <div class="options-grid">
+                                    @foreach (var o in _question.Options)
+                                    {
+                                        <div class="option-square-card @(_selectedOptionId == o.Id ? "selected" : "")" @onclick="() => _selectedOptionId = o.Id">
+                                            <div class="option-content">
+                                                <div class="option-text">@o.Text</div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
                             }
                             else
                             {
@@ -151,18 +145,16 @@
 
                     <!-- Quiz Footer with Navigation -->
                     <div class="card-footer">
-                        <div class="quiz-navigation">
-                            <div class="d-grid gap-2">
-                                <button type="button" class="btn btn-3d btn-3d-danger" @onclick="() => _showExitQuizConfirmation = true">Exit Test</button>
-                                @if (!IsLastQuestion)
-                                {
-                                    <button type="button" class="btn btn-3d btn-3d-primary" @onclick="SaveAndNextQuestionAsync">Save & Next</button>
-                                }
-                                else
-                                {
-                                    <button type="button" class="btn btn-3d btn-3d-success" @onclick="SubmitQuizAsync">Submit Quiz</button>
-                                }
-                            </div>
+                        <div class="quiz-navigation d-flex justify-content-between align-items-center">
+                            <button type="button" class="btn btn-3d btn-3d-danger" @onclick="() => _showExitQuizConfirmation = true">Exit Test</button>
+                            @if (!IsLastQuestion)
+                            {
+                                <button type="button" class="btn btn-3d btn-3d-primary" @onclick="SaveAndNextQuestionAsync">Save & Next</button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-3d btn-3d-success" @onclick="SubmitQuizAsync">Submit Quiz</button>
+                            }
                         </div>
                     </div>
                 </div>
