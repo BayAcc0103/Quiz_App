@@ -9,148 +9,167 @@
 @inject QuizAudioService QuizAudioService
 @inject QuestionAudioService QuestionAudioService
 
-@*QuizInfo*@
-@*Timer*@
-@*Question*@
-@*Option*@
-@*NextButton(SubmitTest)*@
-@*ExitTestButton  *@
-
 @if(QuizState.Quiz != null)
 {
-<div class="row mb-3">
-    @*Timer*@
-    <div class="col-sm-12">
-        <div class="my-1 d-flex justify-content-between align-items-center">
-            <h6>@_questions.Count of @QuizState.Quiz.TotalQuestions</h6>
-            <div class="d-flex gap-2">
-                <div>
-                    <QuizTimer TotalMinutes="QuizState.Quiz.TimeInMinutes" OnTimerStop="AutoSubmitQuizAsync" />
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="d-flex justify-content-center mb-4">
+                    <!-- Hanging element showing the quiz name -->
+                    <div class="hanging-quiz-info hanging-quiz-title">
+                        <div class="hanging-content">
+                            <h3 class="mb-0">@QuizState.Quiz.Name</h3>
+                        </div>
+                        <div class="rope left-rope"></div>
+                        <div class="rope right-rope"></div>
+                    </div>
                 </div>
-            </div>
+
+                <!-- HTML Timer above the main quiz card -->
+                <div class="html-timer-above-card mb-3">
+                    <HtmlQuizTimer TotalMinutes="QuizState.Quiz.TimeInMinutes" OnTimerStop="AutoSubmitQuizAsync" />
+                </div>
+
+                <!-- Main content area with question count to the left and quiz card to the right -->
+                <div class="row">
+                    <div class="col-3">
+                        <!-- Left hanging - question count -->
+                        <div class="hanging-quiz-info hanging-question-current me-2">
+                            <div class="hanging-content hanging-content-smaller">
+                                <h4 class="mb-0">@_questions.Count</h4>
+                            </div>
+                            <div class="rope left-rope"></div>
+                            <div class="rope right-rope"></div>
+                        </div>
+
+                        <!-- Middle hanging - separator -->
+                        <div class="hanging-quiz-info hanging-separator mx-2">
+                            <div class="hanging-content hanging-content-smaller">
+                                <h4 class="mb-0">/</h4>
+                            </div>
+                            <div class="rope left-rope"></div>
+                            <div class="rope right-rope"></div>
+                        </div>
+
+                        <!-- Right hanging - total questions -->
+                        <div class="hanging-quiz-info hanging-question-total ms-2">
+                            <div class="hanging-content hanging-content-smaller">
+                                <h4 class="mb-0">@QuizState.Quiz.TotalQuestions</h4>
+                            </div>
+                            <div class="rope left-rope"></div>
+                            <div class="rope right-rope"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-9">
+                        <!-- Combined card: Question and Options -->
+                        <div class="card card-3d-raised card-light">
+                    <div class="card-body">
+                        <!-- Quiz Audio -->
+                        @if (!string.IsNullOrEmpty(QuizState.Quiz.AudioPath))
+                        {
+                            <div class="quiz-audio-container">
+                                @if (QuizState.Quiz.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <audio controls class="w-100">
+                                        <source src="@QuizAudioService.GetAudioUrl(QuizState.Quiz.AudioPath)" type="audio/mpeg" />
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-info card-3d-raised">Quiz audio file available: @QuizState.Quiz.AudioPath</div>
+                                }
+                            </div>
+                        }
+
+                        <!-- Question Section -->
+                        <div class="question-container">
+                            <!-- Question Image -->
+                            @if (!string.IsNullOrEmpty(_question.ImagePath))
+                            {
+                                <div class="question-image-container">
+                                    <img src="@QuestionImageService.GetImageUrl(_question.ImagePath)" alt="Question Image" class="img-fluid" />
+                                </div>
+                            }
+
+                            <!-- Question Audio -->
+                            @if (!string.IsNullOrEmpty(_question.AudioPath))
+                            {
+                                <div class="question-audio-container">
+                                    @if (_question.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <audio controls class="w-100">
+                                            <source src="@QuestionAudioService.GetAudioUrl(_question.AudioPath)" type="audio/mpeg" />
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-info card-3d-raised">Audio file available: @_question.AudioPath</div>
+                                    }
+                                </div>
+                            }
+
+                            <!-- Question Text -->
+                            <div class="question-text">@_question.Text</div>
+                        </div>
+
+                        <!-- Options Section - Now inside the same card -->
+                        <div class="options-container">
+                            @if (!_question.IsTextAnswer)
+                            {
+                                <!-- Multiple Choice Options as Square Cards -->
+                                <div class="options-grid">
+                                    @foreach (var o in _question.Options)
+                                    {
+                                        <div class="option-square-card @(_selectedOptionId == o.Id ? "selected" : "")" @onclick="() => _selectedOptionId = o.Id">
+                                            <div class="option-content">
+                                                <div class="option-text">@o.Text</div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- Text Input Field -->
+                                <div class="text-answer-input">
+                                    <input type="text" class="form-control form-control-lg" placeholder="Enter your answer" @bind="_textAnswer" />
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Error Message -->
+                        @if (_errorMessage != null)
+                        {
+                            <div class="alert alert-danger card-3d-raised mt-3">
+                                <span>@_errorMessage</span>
+                                <button type="button" class="btn-close float-end" @onclick="() => _errorMessage = null" aria-label="Close"></button>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Quiz Footer with Navigation -->
+                    <div class="card-footer">
+                        <div class="quiz-navigation d-flex justify-content-between align-items-center">
+                            <button type="button" class="btn btn-3d btn-3d-danger" @onclick="() => _showExitQuizConfirmation = true">Exit Test</button>
+                            @if (!IsLastQuestion)
+                            {
+                                <button type="button" class="btn btn-3d btn-3d-primary" @onclick="SaveAndNextQuestionAsync">Save & Next</button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-3d btn-3d-success" @onclick="SubmitQuizAsync">Submit Quiz</button>
+                            }
+                        </div>
+                    </div>
+                </div> <!-- End of card -->
+            </div> <!-- End of col -->
         </div>
-        @if (!string.IsNullOrEmpty(QuizState.Quiz.AudioPath))
-        {
-            <div class="quiz-audio-container my-3">
-                @if (QuizState.Quiz.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
-                {
-                    <audio controls class="w-100">
-                        <source src="@QuizAudioService.GetAudioUrl(QuizState.Quiz.AudioPath)" type="audio/mpeg" />
-                        Your browser does not support the audio element.
-                    </audio>
-                }
-                else
-                {
-                    <div class="alert alert-info">Quiz audio file available: @QuizState.Quiz.AudioPath</div>
-                }
             </div>
-        }
-        <h4 class="mt-3 mb-0 fw-bold">@_question.Text</h4>
-        @if (!string.IsNullOrEmpty(_question.ImagePath))
-        {
-            <div class="question-image-container my-3">
-                <img src="@QuestionImageService.GetImageUrl(_question.ImagePath)" alt="Question Image" class="img-fluid rounded" style="max-width: 100%; max-height: 300px; object-fit: contain;" />
-            </div>
-        }
-        @if (!string.IsNullOrEmpty(_question.AudioPath))
-        {
-            <div class="question-audio-container my-3">
-                @if (_question.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
-                {
-                    <audio controls class="w-100">
-                        <source src="@QuestionAudioService.GetAudioUrl(_question.AudioPath)" type="audio/mpeg" />
-                        Your browser does not support the audio element.
-                    </audio>
-                }
-                else
-                {
-                    <div class="alert alert-info">Audio file available: @_question.AudioPath</div>
-                }
-            </div>
-        }
-        <hr/>
-        @if (!_question.IsTextAnswer)
-        {
-            <!-- Multiple Choice Options -->
-            @foreach (var o in _question.Options)
-            {
-                <div class="d-flex gap-2 p-3 mb-3 bg-white option-box" @onclick="() => _selectedOptionId = o.Id">
-                    <input type="radio" name="rdo_@_question.Id" id="rdo_@o.Id" class="" 
-                    checked="@(_selectedOptionId == o.Id)" 
-                    @onchange="() => _selectedOptionId = o.Id"/>
-                    <label for="rdo_@o.Id" class="d-block">@o.Text</label>
-                </div>
-            }
-        }
-        else
-        {
-            <!-- Text Input Field -->
-            <div class="mb-3">
-                <input type="text" class="form-control" placeholder="Enter your answer" @bind="_textAnswer" />
-            </div>
-        }
-        @if (_errorMessage != null)
-        {
-            <div class="bg-danger my-3 p-2 d-flex justify-content-between align-items-center">
-                <label class="text-white">@_errorMessage</label>
-                <button type="button" class="btn btn-sm btn-light" @onclick="() => _errorMessage = null">X</button>
-            </div>
-        }
-        <hr/>
-        <div class="d-flex justify-content-between align-items-center">
-            <button type="button" class="btn btn-danger" @onclick="() => _showExitQuizConfirmation = true">Exit Test</button>
-            @if (!IsLastQuestion)
-            {
-                <button type="button" class="btn btn-primary" @onclick="SaveAndNextQuestionAsync">Save & Next</button>
-            }
-            else
-            {
-                <button type="button" class="btn btn-success" @onclick="SubmitQuizAsync">Submit Quiz</button>
-            }
         </div>
     </div>
-</div>
-<style>
-    .option-box {
-        transition: all ease 0.2s;
-    }
-    .option-box:hover {
-        border-radius: 10px;
-        box-shadow: 0 0 18px 1px #bebebe;
-    }
-    
-    .emotion-icon {
-        transition: all ease 0.3s;
-        border-radius: 50%;
-        padding: 10px;
-        position: relative;
-    }
-    
-    .emotion-icon.selected {
-        color: #0d6efd !important;
-        -webkit-animation: pulse 2s infinite;
-        animation: pulse 2s infinite;
-        background-color: rgba(13, 110, 253, 0.1);
-        box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
-    }
-    
-    @@keyframes pulse {
-        0% { 
-            box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
-        }
-        50% { 
-            box-shadow: 0 0 20px rgba(13, 110, 253, 0.8);
-        }
-        100% { 
-            box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
-        }
-    }
-    
-    .emotion-icon:hover {
-        transform: scale(1.2);
-        background-color: #f0f8ff;
-    }
-</style>
 }
 
 @if (_showQuizTypeModal)
