@@ -1,8 +1,8 @@
 @implements IDisposable
 @inject IAppState AppState
 
-<div class="html-timer-container">
-    <div class="timer-progress-container">
+<div class="html-timer-container @(IsTimeLow() ? "low-time" : "")">
+    <div class="timer-progress-container @(IsTimeLow() ? "low-time" : "")">
         <div class="timer-progress-bar" style="width: @_progressPercentage%;">
             <div class="timer-text">@_currentDisplayTime/@_totalDisplayTime</div>
         </div>
@@ -47,8 +47,8 @@
                     return;
                 }
                 
-                // Check if time is running low (less than 1 minute)
-                _isLowTime = diff.TotalSeconds <= 60;
+                // Check if time is running low (less than 30 seconds)
+                _isLowTime = diff.TotalSeconds <= 30;
                 
                 _currentDisplayTime = diff.ToString("mm\\:ss");
                 
@@ -72,5 +72,10 @@
         {
             _periodicTimer.Dispose();
         }
+    }
+
+    private bool IsTimeLow()
+    {
+        return _isLowTime;
     }
 }

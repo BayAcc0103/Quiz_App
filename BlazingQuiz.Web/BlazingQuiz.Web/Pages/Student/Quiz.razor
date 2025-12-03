@@ -9,41 +9,16 @@
 @inject QuizAudioService QuizAudioService
 @inject QuestionAudioService QuestionAudioService
 
-@*QuizInfo*@
-@*Timer*@
-@*Question*@
-@*Option*@
-@*NextButton(SubmitTest)*@
-@*ExitTestButton  *@
-
 @if(QuizState.Quiz != null)
 {
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <div class="d-flex justify-content-center mb-4">
-                    <!-- Left hanging - current question number -->
-                    <div class="hanging-quiz-info hanging-question-current me-2">
-                        <div class="hanging-content hanging-content-smaller">
-                            <h4 class="mb-0">@_questions.Count</h4>
-                        </div>
-                        <div class="rope left-rope"></div>
-                        <div class="rope right-rope"></div>
-                    </div>
-
-                    <!-- Middle hanging - separator -->
-                    <div class="hanging-quiz-info hanging-separator mx-2">
-                        <div class="hanging-content hanging-content-smaller">
-                            <h4 class="mb-0">/</h4>
-                        </div>
-                        <div class="rope left-rope"></div>
-                        <div class="rope right-rope"></div>
-                    </div>
-
-                    <!-- Right hanging - total questions -->
-                    <div class="hanging-quiz-info hanging-question-total ms-2">
-                        <div class="hanging-content hanging-content-smaller">
-                            <h4 class="mb-0">@QuizState.Quiz.TotalQuestions</h4>
+                    <!-- Hanging element showing the quiz name -->
+                    <div class="hanging-quiz-info hanging-quiz-title">
+                        <div class="hanging-content">
+                            <h3 class="mb-0">@QuizState.Quiz.Name</h3>
                         </div>
                         <div class="rope left-rope"></div>
                         <div class="rope right-rope"></div>
@@ -59,9 +34,27 @@
                 <div class="row">
                     <div class="col-3">
                         <!-- Left hanging - question count -->
-                        <div class="hanging-quiz-info hanging-question-count">
-                            <div class="hanging-content hanging-content-quiz-info">
-                                <h4>Question: @_questions.Count/@QuizState.Quiz.TotalQuestions</h4>
+                        <div class="hanging-quiz-info hanging-question-current me-2">
+                            <div class="hanging-content hanging-content-smaller">
+                                <h4 class="mb-0">@_questions.Count</h4>
+                            </div>
+                            <div class="rope left-rope"></div>
+                            <div class="rope right-rope"></div>
+                        </div>
+
+                        <!-- Middle hanging - separator -->
+                        <div class="hanging-quiz-info hanging-separator mx-2">
+                            <div class="hanging-content hanging-content-smaller">
+                                <h4 class="mb-0">/</h4>
+                            </div>
+                            <div class="rope left-rope"></div>
+                            <div class="rope right-rope"></div>
+                        </div>
+
+                        <!-- Right hanging - total questions -->
+                        <div class="hanging-quiz-info hanging-question-total ms-2">
+                            <div class="hanging-content hanging-content-smaller">
+                                <h4 class="mb-0">@QuizState.Quiz.TotalQuestions</h4>
                             </div>
                             <div class="rope left-rope"></div>
                             <div class="rope right-rope"></div>
@@ -174,7 +167,7 @@
                 </div> <!-- End of card -->
             </div> <!-- End of col -->
         </div>
-        </div>
+            </div>
         </div>
     </div>
 }
