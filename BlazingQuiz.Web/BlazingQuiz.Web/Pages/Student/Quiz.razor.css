@@ -1,0 +1,315 @@
+/* Hanging container styles for quiz title */
+.hanging-container {
+    position: relative;
+    margin: 20px auto 30px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.hanging-content {
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    padding: 20px 30px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    z-index: 2;
+    color: white;
+    min-width: 300px;
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+    .hanging-content h3 {
+        margin: 0 0 5px 0;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .hanging-content h4 {
+        margin: 0 0 5px 0;
+        font-size: 1.2rem;
+        font-weight: 500;
+    }
+
+    .hanging-content p {
+        margin: 0;
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+/* Hanging content for quiz info (question count and time) */
+.hanging-content-quiz-info {
+    min-width: 250px;
+    padding: 15px 20px;
+}
+
+.rope {
+    position: absolute;
+    width: 8px;
+    height: 100vh; /* Full viewport height */
+    background: linear-gradient(to bottom, #8B4513, #A0522D, #8B4513);
+    top: -100vh; /* Position it so it extends both above and below the hanging container */
+    z-index: -1;
+    border: 2px solid #000;
+    box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.left-rope {
+    left: calc(50% - 70px);
+}
+
+.right-rope {
+    right: calc(50% - 70px);
+}
+
+/* Container for pair of hanging elements */
+.hanging-pair-container {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto 30px auto;
+    gap: 20px;
+}
+
+.hanging-left {
+    margin-right: auto;
+    margin-left: 10%;
+}
+
+.hanging-right {
+    margin-left: auto;
+    margin-right: 10%;
+}
+
+/* Card styles to match the JoinRoom card design */
+.card {
+    transition: all 0.3s ease !important;
+}
+
+.card-3d-raised {
+    border: 3px solid #000 !important;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-height: 500px;
+    transform: perspective(500px) translateY(0px);
+    width: 100%;
+}
+
+.card-3d-raised:hover {
+    transform: perspective(500px) translateY(4px);
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+        0px 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Question section styling */
+.question-container {
+    margin: 15px 0;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    flex: 1; /* Take available space */
+    display: flex;
+    flex-direction: column;
+}
+
+.question-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 15px;
+    color: #333;
+}
+
+/* Media containers */
+.question-image-container {
+    margin: 15px auto;
+    text-align: center;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.question-image-container img {
+    max-width: 100%;
+    max-height: 250px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    object-fit: contain;
+}
+
+.quiz-audio-container, .question-audio-container {
+    margin: 15px 0;
+    text-align: center;
+}
+
+.quiz-audio-container audio, .question-audio-container audio {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Options styling in right card */
+.options-container {
+    margin: 15px 0;
+    flex: 1;
+}
+
+.option-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    background-color: #fff;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.option-box:hover {
+    border-color: #4a90e2;
+    background-color: #f8f9ff;
+    box-shadow: 0 4px 8px rgba(74, 144, 226, 0.2);
+}
+
+.option-box input[type="radio"] {
+    margin: 0;
+    cursor: pointer;
+}
+
+.option-box label {
+    margin: 0;
+    cursor: pointer;
+    flex: 1;
+    display: block;
+    color: #333;
+}
+
+/* Answer input styling */
+.text-answer-input {
+    margin: 15px 0;
+}
+
+.text-answer-input input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.text-answer-input input:focus {
+    border-color: #4a90e2;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.25);
+}
+
+/* Footer styling */
+.card-footer {
+    padding: 15px 20px;
+    border-top: 2px solid #eee;
+    background-color: #f8f9fa;
+    border-bottom-left-radius: calc(0.5rem - 1px);
+    border-bottom-right-radius: calc(0.5rem - 1px);
+    margin-top: auto; /* Push footer to the bottom */
+}
+
+.quiz-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.question-progress {
+    font-weight: 600;
+    color: #4a90e2;
+}
+
+/* Button styling for 3D buttons */
+.btn-3d {
+    width: 100% !important;
+    margin: 5px !important;
+}
+
+.alert {
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Form control styles to match JoinRoom */
+.form-control-lg {
+    border: 3px solid #000 !important;
+    border-radius: 50px !important;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff;
+    font-size: 1rem !important;
+    padding: 10px 20px !important;
+    width: 100% !important;
+}
+
+/* Sinking animation for inputs */
+input:focus {
+    animation: sinkInput 0.4s ease;
+    border: 3px solid #000 !important;
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 0px 0px rgba(0, 0, 0, 0.3) !important;
+    transform: translateY(4px);
+}
+
+@keyframes sinkInput {
+    0% {
+        transform: translateY(0);
+        border: 3px solid #000 !important;
+        box-shadow:
+            -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+            0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    }
+    100% {
+        transform: translateY(4px);
+        border: 3px solid #000 !important;
+        box-shadow:
+            0px 0px 0px 0px rgba(0, 0, 0, 0.75),
+            0px 0px 0px rgba(0, 0, 0, 0.3) !important;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .hanging-pair-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+    }
+
+    .hanging-left,
+    .hanging-right {
+        margin: 0 auto;
+    }
+
+    .card-3d-raised {
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hanging-content {
+        min-width: 250px;
+        padding: 15px 20px;
+    }
+
+    .rope {
+        display: none; /* Hide ropes on small screens */
+    }
+}
