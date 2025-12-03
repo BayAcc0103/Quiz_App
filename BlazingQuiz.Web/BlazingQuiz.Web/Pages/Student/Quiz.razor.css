@@ -20,6 +20,13 @@
     margin: 20px 0 30px 0;
 }
 
+/* Container for the row of 3 hangings */
+.hanging-row {
+    gap: 10px;
+    flex-direction: row;
+    justify-content: center;
+}
+
 /* Hanging container styles */
 .hanging-quiz-info {
     position: relative;
@@ -520,17 +527,81 @@ input:focus {
     }
 }
 
+/* Responsive adjustments for mobile */
 @media (max-width: 768px) {
+    /* Change the main content area to stack vertically on mobile */
+    .row .col-3,
+    .row .col-9 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Position hangings in a row above the question card on mobile */
+    .row {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .col-3, .col-9 {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0.3rem !important; /* Add small padding */
+    }
+
+    /* Make col-3 (hanging elements) appear first and arrange in row */
+    .col-3 {
+        order: 1;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-around !important;
+        align-items: center !important;
+        gap: 0.2rem !important;
+    }
+
+    /* Make col-9 (question card) appear second */
+    .col-9 {
+        order: 2;
+    }
+
+    .hanging-quiz-info {
+        flex: 1;
+        margin: 0 !important; /* Remove default margins */
+        margin-right: 0.2rem !important; /* Add controlled spacing */
+    }
+
+    .hanging-quiz-info:last-child {
+        margin-right: 0 !important; /* Remove margin from last item */
+    }
+
     .rope {
-        display: none; /* Hide ropes on small screens */
+        display: none; /* Hide ropes on small screens for better mobile appearance */
     }
 
     .hanging-content {
-        min-width: 200px;
-        padding: 15px 20px;
+        min-width: 50px; /* Make hangings more compact on mobile */
+        padding: 10px 5px;
+        font-size: 0.9rem; /* Smaller font on mobile */
     }
 
-    .main-content-area {
-        gap: 10px;
+    .hanging-content h4 {
+        font-size: 1.1rem; /* Slightly smaller text on mobile */
+        margin: 0;
+    }
+
+    /* Make sure the question card is full width on mobile */
+    .card-3d-raised {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    /* Adjust the main container for mobile */
+    .container {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
     }
 }
+
