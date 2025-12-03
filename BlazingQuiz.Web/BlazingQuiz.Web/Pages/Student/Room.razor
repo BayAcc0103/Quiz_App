@@ -14,32 +14,81 @@
 @inject QuizAuthStateProvider QuizAuthStateProvider
 @inject QuizHubService QuizHubService
 
-<div class="container-fluid mt-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h3 class="mb-0">@room?.Name</h3>
-                    <div class="d-flex align-items-center">
-                        <span class="badge bg-light text-dark me-3">
-                            <i class="bi bi-people-fill me-1"></i> @participants.Length/@room?.MaxParticipants
-                        </span>
-                        <span class="badge bg-light text-dark me-3">
-                            <i class="bi bi-code-slash me-1"></i> @room?.Code
-                        </span>
-                        <button type="button" class="btn btn-sm btn-light" @onclick="LeaveRoom">
-                            <i class="bi bi-box-arrow-right me-1"></i> Leave Room
-                        </button>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            <div class="d-flex align-items-start">
+                <button type="button" class="btn btn-3d btn-3d-secondary btn-sm me-3 mt-4" @onclick="LeaveRoom">
+                    <span class="material-symbols-outlined me-1">logout</span>Leave Room
+                </button>
+                <div class="hanging-container mb-4 flex-grow-1">
+                    <div class="hanging-content">
+                        <h3>Room: @room?.Name</h3>
+                    </div>
+                    <div class="rope left-rope"></div>
+                    <div class="rope right-rope"></div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card card-3d-raised card-light h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Room Code</h5>
+                            <p class="card-text display-6 fw-bold text-primary">@room?.Code</p>
+                            <div class="d-flex justify-content-center">
+                                <button type="button" class="btn btn-3d btn-3d-primary btn-sm btn-press-down d-flex align-items-center justify-content-center" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.875rem;" @onclick="CopyRoomCode">
+                                    <span class="material-symbols-outlined me-1" style="font-size: 1rem;">content_copy</span>Copy
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="card card-3d-raised card-light h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Room Player</h5>
+                            <span class="material-symbols-outlined display-1 text-success mb-2 icon-person">person_play</span>
+                            <p class="card-text display-5 fw-bold text-success mb-0">
+                                @participants.Length/@room?.MaxParticipants
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="card card-3d-raised card-light h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Host</h5>
+                            <div class="d-flex justify-content-center">
+                                @if (!string.IsNullOrEmpty(hostParticipant?.AvatarPath))
+                                {
+                                    <img src="https://localhost:7048/@(hostParticipant.AvatarPath)" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;" alt="Host Avatar" />
+                                }
+                                else
+                                {
+                                    <img src="https://b861mvjb-7048.asse.devtunnels.ms/images/user-avatars/default-avatar.svg" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;" alt="Host Avatar" />
+                                }
+                            </div>
+                            <div class="card-text"><strong>@room?.CreatedByName</strong></div>
+                            <small class="text-muted">Created on @room?.CreatedAt.ToString("MMM dd, yyyy")</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card card-3d-raised card-light">
                 <div class="card-body">
                     @if (!string.IsNullOrEmpty(errorMessage))
                     {
-                        <div class="alert alert-danger">@errorMessage</div>
+                        <div class="alert alert-danger mb-3" role="alert">
+                            @errorMessage
+                        </div>
                     }
                     else if (isLoading)
                     {
-                        <div class="text-center">
+                        <div class="text-center py-4">
                             <div class="spinner-border" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
@@ -48,23 +97,23 @@
                     }
                     else
                     {
-                        <div class="mb-4">
-                            <h5>Room Description</h5>
-                            <p>@(string.IsNullOrEmpty(room?.Description) ? "No description provided" : room.Description)</p>
+                        <div class="room-info mb-4">
+                            @if (!string.IsNullOrEmpty(room?.Description))
+                            {
+                                <p class="text-muted mb-3"><strong>Description:</strong> @room.Description</p>
+                            }
+
                             <div class="d-flex justify-content-between align-items-center">
                                 <small class="text-muted">
                                     Created by <strong>@room?.CreatedByName</strong> on @room?.CreatedAt.ToString("MMM dd, yyyy HH:mm")
                                 </small>
-                                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="CopyRoomCode">
-                                    <i class="bi bi-clipboard me-1"></i> Copy Room Code
-                                </button>
                             </div>
                         </div>
 
                         <!-- Quiz Information Section -->
                         @if (room?.QuizId.HasValue == true)
                         {
-                            <div class="mb-4 p-3 bg-light rounded">
+                            <div class="quiz-info-section mb-4 p-3 bg-light rounded">
                                 @if (isLoadingQuiz)
                                 {
                                     <div class="text-center py-3">
@@ -76,7 +125,7 @@
                                 }
                                 else if (quizDetails != null)
                                 {
-                                    <h5>Quiz Information</h5>
+                                    <h5 class="mb-3">Quiz Information</h5>
                                     <div class="row">
                                         @if (!string.IsNullOrEmpty(quizDetails.ImagePath))
                                         {
@@ -132,40 +181,43 @@
                             </div>
                         }
 
-                        <hr />
-
                         <!-- Room Control Buttons -->
                         @if (room != null && QuizAuthStateProvider.IsLoggedIn)
                         {
                             bool isHost = room.CreatedBy == QuizAuthStateProvider.User.Id;
-                            <div class="mb-4">
+                            <div class="room-controls mb-4">
                                 @if (isHost)
                                 {
-                                    <button type="button" class="btn btn-success btn-lg me-2" @onclick="StartRoom" disabled="@(room.StartedAt.HasValue || participants.Length < 2 || !AreAllParticipantsReady())">
-                                        <i class="bi bi-play-circle me-1"></i> @(room.StartedAt.HasValue ? "Room Started" : "Start Room")
-                                    </button>
-                                    @if (participants.Length < 2)
-                                    {
-                                        <small class="text-muted">Need at least 2 participants to start</small>
-                                    }
-                                    else if (!AreAllParticipantsReady())
-                                    {
-                                        <small class="text-muted">All participants must be ready</small>
-                                    }
+                                    <div class="d-flex flex-column align-items-center">
+                                        <button type="button" class="btn btn-success btn-lg mb-2" @onclick="StartRoom" disabled="@(room.StartedAt.HasValue || participants.Length < 2 || !AreAllParticipantsReady())">
+                                            <span class="material-symbols-outlined me-1">play_circle</span> @(room.StartedAt.HasValue ? "Room Started" : "Start Room")
+                                        </button>
+                                        @if (participants.Length < 2)
+                                        {
+                                            <small class="text-muted">Need at least 2 participants to start</small>
+                                        }
+                                        else if (!AreAllParticipantsReady())
+                                        {
+                                            <small class="text-muted">All participants must be ready</small>
+                                        }
+                                    </div>
                                 }
                                 else
                                 {
                                     var currentUser = participants.FirstOrDefault(p => p.UserId == QuizAuthStateProvider.User.Id);
-                                    <button type="button" class="btn btn-primary btn-lg" @onclick="ToggleReadyStatus">
-                                        <i class="bi bi-check-circle me-1"></i> @(currentUser?.IsReady == true ? "Not Ready" : "Ready")
-                                    </button>
+                                    <div class="d-flex justify-content-center">
+                                        <button type="button" class="btn btn-primary btn-lg" @onclick="ToggleReadyStatus">
+                                            <span class="material-symbols-outlined me-1">check_circle</span> @(currentUser?.IsReady == true ? "Not Ready" : "Ready")
+                                        </button>
+                                    </div>
                                 }
                             </div>
                         }
 
+
                         <hr />
 
-                        <h5>Participants (@participants.Length)</h5>
+                        <h5 class="mb-3">Participants (@participants.Length)</h5>
                         <div class="row">
                             @if (participants.Length == 0)
                             {
@@ -187,7 +239,7 @@
                                                 <div class="host-badge position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-warning d-flex align-items-center justify-content-center"
                                                      style="width: 24px; height: 24px;"
                                                      title="Room Host">
-                                                    <i class="bi bi-star-fill text-white" style="font-size: 0.75rem;"></i>
+                                                    <span class="material-symbols-outlined text-white" style="font-size: 0.75rem;">star</span>
                                                 </div>
                                             }
                                             else if (isReady)
@@ -195,14 +247,14 @@
                                                 <div class="ready-badge position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-success d-flex align-items-center justify-content-center"
                                                      style="width: 24px; height: 24px;"
                                                      title="Ready">
-                                                    <i class="bi bi-check text-white" style="font-size: 0.75rem;"></i>
+                                                    <span class="material-symbols-outlined text-white" style="font-size: 0.75rem;">check</span>
                                                 </div>
                                             }
                                             @if (isCurrentUserHost && !isHost) // Show delete button only for host and not for the host themselves
                                             {
                                                 <div class="remove-participant position-absolute top-0 start-0 m-2" title="Remove participant from room">
                                                     <button class="btn btn-sm btn-danger" style="width: 24px; height: 24px; padding: 0; border-radius: 50%; font-size: 0.75rem;" @onclick="() => RemoveParticipant(participant.UserId)">
-                                                        <i class="bi bi-x text-white"></i>
+                                                        <span class="material-symbols-outlined text-white">close</span>
                                                     </button>
                                                 </div>
                                             }
@@ -245,6 +297,8 @@
     private bool isLoadingQuiz = false;
     private bool isRemovedFromRoom = false; // Flag to track if user was removed from room
     private string? errorMessage;
+
+    private RoomParticipantDto? hostParticipant => participants.FirstOrDefault(p => p.UserId == room?.CreatedBy);
 
     protected override async Task OnInitializedAsync()
     {
@@ -679,7 +733,7 @@
         notification.id = 'temporary-notification';
         notification.className = 'position-fixed top-50 start-50 translate-middle rounded p-3 text-white bg-danger';
         notification.style.cssText = 'z-index: 9999; min-width: 300px; text-align: center;';
-        notification.innerHTML = '<div class="d-flex align-items-center justify-content-center gap-2"><i class="bi bi-exclamation-triangle-fill me-2"></i><span>' + message + '</span></div>';
+        notification.innerHTML = '<div class="d-flex align-items-center justify-content-center gap-2"><span class="material-symbols-outlined text-white me-2">warning</span><span>' + message + '</span></div>';
 
         document.body.appendChild(notification);
 
