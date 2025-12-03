@@ -14,7 +14,7 @@
 @inject QuizAuthStateProvider QuizAuthStateProvider
 @inject IJSRuntime JSRuntime
 
-@layout QuizPageLayout 
+@layout QuizPageLayout
 
 @if (isLoading)
 {
@@ -27,7 +27,7 @@
 }
 else if (!string.IsNullOrEmpty(errorMessage))
 {
-    <div class="alert alert-danger">@errorMessage</div>
+    <div class="alert alert-danger card-3d-raised">@errorMessage</div>
 }
 else
 {
@@ -39,7 +39,7 @@ else
             <div class="container mt-5">
                 <div class="row justify-content-center">
                     <div class="col-md-8">
-                        <div class="card shadow text-center">
+                        <div class="card card-3d-raised text-center">
                             <div class="card-body p-5">
                                 <div class="mb-4">
                                     <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
@@ -62,88 +62,143 @@ else
         }
         else
         {
-            <div class="row mb-3">
-                @*Timer*@
-                <div class="col-sm-12">
-                    <div class="my-1 d-flex justify-content-between align-items-center">
-                        <h6>@(_currentQuestionIndex + 1) of @_totalQuestions</h6>
-                        <div class="d-flex gap-2">
-                            <div>
-                                <QuizTimer TotalMinutes="quizTimeInMinutes" OnTimerStop="AutoSubmitQuizAsync" />
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <div class="d-flex justify-content-center mb-4">
+                            <!-- Hanging element showing the quiz name -->
+                            <div class="hanging-quiz-info hanging-quiz-title">
+                                <div class="hanging-content">
+                                    <h3 class="mb-0">@quizName</h3>
+                                </div>
+                                <div class="rope left-rope"></div>
+                                <div class="rope right-rope"></div>
                             </div>
                         </div>
-                    </div>
-                    
-                    @if (!string.IsNullOrEmpty(quizName))
-                    {
-                        <h5 class="mt-3 mb-0 fw-bold">@quizName</h5>
-                    }
-                    
-                    @if (!string.IsNullOrEmpty(currentQuestion?.Text))
-                    {
-                        <h4 class="mt-2 mb-0 fw-bold">@currentQuestion.Text</h4>
-                        @if (!string.IsNullOrEmpty(currentQuestion.ImagePath))
-                        {
-                            <div class="question-image-container my-3">
-                                <img src="@QuestionImageService.GetImageUrl(currentQuestion.ImagePath)" alt="Question Image" class="img-fluid rounded" style="max-width: 100%; max-height: 300px; object-fit: contain;" />
-                            </div>
-                        }
-                        @if (!string.IsNullOrEmpty(currentQuestion.AudioPath))
-                        {
-                            <div class="question-audio-container my-3">
-                                @if (currentQuestion.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <audio controls class="w-100">
-                                        <source src="@QuestionAudioService.GetAudioUrl(currentQuestion.AudioPath)" type="audio/mpeg" />
-                                        Your browser does not support the audio element.
-                                    </audio>
-                                }
-                                else
-                                {
-                                    <div class="alert alert-info">Audio file available: @currentQuestion.AudioPath</div>
-                                }
-                            </div>
-                        }
-                    }
-                    <hr/>
-                    @if (currentQuestion != null && !currentQuestion.IsTextAnswer)
-                    {
-                        <!-- Multiple Choice Options -->
-                        @foreach (var o in currentQuestion.Options)
-                        {
-                            <div class="d-flex gap-2 p-3 mb-3 bg-white option-box" @onclick="() => SelectOption(o.Id)">
-                                <input type="radio" name="rdo_@currentQuestion?.Id" id="rdo_@o.Id" class="" 
-                                checked="@(selectedOptionId == o.Id)" 
-                                @onchange="() => SelectOption(o.Id)"/>
-                                <label for="rdo_@o.Id" class="d-block">@o.Text</label>
-                            </div>
-                        }
-                    }
-                    else if (currentQuestion != null && currentQuestion.IsTextAnswer)
-                    {
-                        <!-- Text Input Field -->
-                        <div class="mb-3">
-                            <input type="text" class="form-control" placeholder="Enter your answer" @bind="textAnswer" />
+
+                        <!-- HTML Timer above the main quiz card -->
+                        <div class="html-timer-above-card mb-3">
+                            <HtmlQuizTimer TotalMinutes="quizTimeInMinutes" OnTimerStop="AutoSubmitQuizAsync" />
                         </div>
-                    }
-                    @if (!string.IsNullOrEmpty(errorMessage))
-                    {
-                        <div class="bg-danger my-3 p-2 d-flex justify-content-between align-items-center">
-                            <label class="text-white">@errorMessage</label>
-                            <button type="button" class="btn btn-sm btn-light" @onclick="() => errorMessage = null">X</button>
-                        </div>
-                    }
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <button type="button" class="btn btn-danger" @onclick="ExitQuiz">Exit Quiz</button>
-                            @if (isLastQuestion)
-                            {
-                                <button type="button" class="btn btn-success" @onclick="SubmitQuiz">Submit Quiz</button>
-                            }
-                            else
-                            {
-                                <button type="button" class="btn btn-primary" @onclick="SubmitCurrentAnswer">Submit Answer</button>
-                            }
+
+                        <!-- Main content area with question count to the left and quiz card to the right -->
+                        <div class="row">
+                            <div class="col-3">
+                                <!-- Left hanging - question count -->
+                                <div class="hanging-quiz-info hanging-question-current me-2">
+                                    <div class="hanging-content hanging-content-smaller">
+                                        <h4 class="mb-0">@(_currentQuestionIndex + 1)</h4>
+                                    </div>
+                                    <div class="rope left-rope"></div>
+                                    <div class="rope right-rope"></div>
+                                </div>
+
+                                <!-- Middle hanging - separator -->
+                                <div class="hanging-quiz-info hanging-separator mx-2">
+                                    <div class="hanging-content hanging-content-smaller">
+                                        <h4 class="mb-0">/</h4>
+                                    </div>
+                                    <div class="rope left-rope"></div>
+                                    <div class="rope right-rope"></div>
+                                </div>
+
+                                <!-- Right hanging - total questions -->
+                                <div class="hanging-quiz-info hanging-question-total ms-2">
+                                    <div class="hanging-content hanging-content-smaller">
+                                        <h4 class="mb-0">@_totalQuestions</h4>
+                                    </div>
+                                    <div class="rope left-rope"></div>
+                                    <div class="rope right-rope"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-9">
+                                <!-- Combined card: Question and Options -->
+                                <div class="card card-3d-raised card-light">
+                                    <div class="card-body">
+                                        <!-- Question Section -->
+                                        <div class="question-container">
+                                            <!-- Question Image -->
+                                            @if (!string.IsNullOrEmpty(currentQuestion?.ImagePath))
+                                            {
+                                                <div class="question-image-container">
+                                                    <img src="@QuestionImageService.GetImageUrl(currentQuestion.ImagePath)" alt="Question Image" class="img-fluid" />
+                                                </div>
+                                            }
+
+                                            <!-- Question Audio -->
+                                            @if (!string.IsNullOrEmpty(currentQuestion?.AudioPath))
+                                            {
+                                                <div class="question-audio-container">
+                                                    @if (currentQuestion.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                                                    {
+                                                        <audio controls class="w-100">
+                                                            <source src="@QuestionAudioService.GetAudioUrl(currentQuestion.AudioPath)" type="audio/mpeg" />
+                                                            Your browser does not support the audio element.
+                                                        </audio>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="alert alert-info card-3d-raised">Audio file available: @currentQuestion.AudioPath</div>
+                                                    }
+                                                </div>
+                                            }
+
+                                            <!-- Question Text -->
+                                            <div class="question-text">@currentQuestion?.Text</div>
+                                        </div>
+
+                                        <!-- Options Section - Now inside the same card -->
+                                        <div class="options-container">
+                                            @if (currentQuestion != null && !currentQuestion.IsTextAnswer)
+                                            {
+                                                <!-- Multiple Choice Options as Square Cards -->
+                                                <div class="options-grid">
+                                                    @foreach (var o in currentQuestion.Options)
+                                                    {
+                                                        <div class="option-square-card @(selectedOptionId == o.Id ? "selected" : "")" @onclick="() => SelectOption(o.Id)">
+                                                            <div class="option-content">
+                                                                <div class="option-text">@o.Text</div>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                            else if (currentQuestion != null && currentQuestion.IsTextAnswer)
+                                            {
+                                                <!-- Text Input Field -->
+                                                <div class="text-answer-input">
+                                                    <input type="text" class="form-control form-control-lg" placeholder="Enter your answer" @bind="textAnswer" />
+                                                </div>
+                                            }
+                                        </div>
+
+                                        <!-- Error Message -->
+                                        @if (!string.IsNullOrEmpty(errorMessage))
+                                        {
+                                            <div class="alert alert-danger card-3d-raised mt-3">
+                                                <span>@errorMessage</span>
+                                                <button type="button" class="btn-close float-end" @onclick="() => errorMessage = null" aria-label="Close"></button>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <!-- Quiz Footer with Navigation -->
+                                    <div class="card-footer">
+                                        <div class="quiz-navigation d-flex justify-content-between align-items-center">
+                                            <button type="button" class="btn btn-3d btn-3d-danger" @onclick="ExitQuiz">Exit Quiz</button>
+                                            @if (!isLastQuestion)
+                                            {
+                                                <button type="button" class="btn btn-3d btn-3d-primary" @onclick="SubmitCurrentAnswer">Submit Answer</button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-3d btn-3d-success" @onclick="SubmitQuiz">Submit Quiz</button>
+                                            }
+                                        </div>
+                                    </div>
+                                </div> <!-- End of card -->
+                            </div> <!-- End of col -->
                         </div>
                     </div>
                 </div>
@@ -156,7 +211,7 @@ else
         <div class="container mt-5">
             <div class="row justify-content-center">
                 <div class="col-md-8">
-                    <div class="card shadow">
+                    <div class="card card-3d-raised">
                         <div class="card-header bg-primary text-white">
                             <h4 class="mb-0">Quiz Room</h4>
                         </div>
@@ -165,16 +220,16 @@ else
                             <div class="spinner-border mt-4" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
-                            
+
                             <div class="mt-4">
                                 <h6>Quiz: @quizName</h6>
                                 <p class="text-muted">Room: @roomCode</p>
                             </div>
-                            
+
                             @if (isHost)
                             {
                                 <div class="mt-4">
-                                    <button class="btn btn-success btn-lg" @onclick="StartQuizForRoom">Start Quiz for All</button>
+                                    <button class="btn btn-3d btn-3d-success btn-lg" @onclick="StartQuizForRoom">Start Quiz for All</button>
                                     <p class="mt-2">Click when all participants are ready to begin the quiz</p>
                                 </div>
                             }
@@ -185,48 +240,6 @@ else
         </div>
     }
 }
-
-<style>
-    .option-box {
-        transition: all ease 0.2s;
-    }
-    .option-box:hover {
-        border-radius: 10px;
-        box-shadow: 0 0 18px 1px #bebebe;
-    }
-    
-    .emotion-icon {
-        transition: all ease 0.3s;
-        border-radius: 50%;
-        padding: 10px;
-        position: relative;
-    }
-    
-    .emotion-icon.selected {
-        color: #0d6efd !important;
-        -webkit-animation: pulse 2s infinite;
-        animation: pulse 2s infinite;
-        background-color: rgba(13, 110, 253, 0.1);
-        box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
-    }
-    
-    @@keyframes pulse {
-        0% { 
-            box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
-        }
-        50% { 
-            box-shadow: 0 0 20px rgba(13, 110, 253, 0.8);
-        }
-        100% { 
-            box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
-        }
-    }
-    
-    .emotion-icon:hover {
-        transform: scale(1.2);
-        background-color: #f0f8ff;
-    }
-</style>
 
 @code {
     [Parameter]

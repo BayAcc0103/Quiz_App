@@ -1,0 +1,602 @@
+/* Quiz info container styles - with three small hanging elements in the middle */
+.quiz-info-container {
+    display: flex;
+    justify-content: center; /* Center the hanging elements */
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto 30px auto;
+    padding: 0 20px;
+    gap: 5px; /* Small gap between the three hanging elements */
+}
+
+/* Hanging elements for question numbers */
+.hanging-question-current,
+.hanging-separator,
+.hanging-question-total {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0 30px 0;
+}
+
+/* Container for the row of 3 hangings */
+.hanging-row {
+    gap: 10px;
+    flex-direction: row;
+    justify-content: center;
+}
+
+/* Hanging container styles */
+.hanging-quiz-info {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0 30px 0;
+}
+
+.hanging-content {
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    padding: 20px 30px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    z-index: 2;
+    color: white;
+    min-width: 250px;
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.hanging-content-smaller {
+    min-width: 80px !important; /* Much smaller width for the number elements */
+    padding: 15px 10px !important; /* Adjust padding for smaller elements */
+}
+
+.hanging-content-quiz-info {
+    min-width: 220px;
+    padding: 15px 20px;
+}
+
+.hanging-content h3 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+/* Main content area with question count to the left of the quiz card */
+.main-content-area {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px; /* Space between hanging question count and main card */
+    width: 100%;
+}
+
+/* Adjust the hanging question count when positioned to the left of the quiz card */
+.hanging-question-count {
+    margin-top: 20px; /* Align with the top of the quiz card */
+    align-self: flex-start; /* Align to the top */
+}
+
+.hanging-content h4 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.rope {
+    position: absolute;
+    width: 6px;
+    height: 80px; /* Rope length */
+    background: linear-gradient(to bottom, #8B4513, #A0522D, #8B4513);
+    z-index: -1;
+    border: 1px solid #000;
+    box-shadow: -1px 1px 0px 0px rgba(0, 0, 0, 0.75), 0px 1px 2px rgba(0, 0, 0, 0.3);
+    top: -80px;
+}
+
+/* Rope positions for question count (left hanging) */
+.hanging-question-count .left-rope {
+    left: calc(50% - 35px);
+}
+
+.hanging-question-count .right-rope {
+    right: calc(50% - 35px);
+}
+
+/* Rope positions for smaller hanging elements */
+.hanging-question-current .left-rope,
+.hanging-separator .left-rope,
+.hanging-question-total .left-rope {
+    left: calc(50% - 20px); /* Adjusted for smaller elements */
+}
+
+.hanging-question-current .right-rope,
+.hanging-separator .right-rope,
+.hanging-question-total .right-rope {
+    right: calc(50% - 20px); /* Adjusted for smaller elements */
+}
+
+/* Positioning for question count (left) */
+.hanging-question-count {
+    margin-right: auto; /* Push to the left */
+}
+
+/* Positioning for quiz title (center) - take remaining space and center content */
+.hanging-quiz-title {
+    margin: 0 auto; /* Center it */
+}
+
+/* HTML Timer above the main card */
+.html-timer-above-card {
+    margin: 0 auto 15px auto;
+    width: 100%;
+    max-width: 100%; /* Match the full width of the card */
+}
+
+
+/* Card styles to match the JoinRoom card design */
+.card {
+    transition: all 0.3s ease !important;
+}
+
+.card-3d-raised {
+    border: 3px solid #000 !important;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-height: 500px;  /* Reduced height to make card more compact */
+    transform: perspective(500px) translateY(0px);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-3d-raised:hover {
+    transform: perspective(500px) translateY(4px);
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+        0px 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Card body should take available space to maintain equal heights */
+.card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 25px;
+}
+
+/* Question section styling */
+.question-container {
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    flex: 1; /* Take available space */
+    display: flex;
+    flex-direction: column;
+}
+
+.question-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 15px;
+    color: #333;
+}
+
+/* Media containers */
+.question-image-container {
+    text-align: center;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.question-image-container img {
+    max-width: 100%;
+    max-height: 250px;
+    border: 4px solid #000; /* Bold black border */
+    border-radius: 8px;
+    object-fit: contain;
+}
+
+.quiz-audio-container, .question-audio-container {
+    text-align: center;
+}
+
+.quiz-audio-container audio, .question-audio-container audio {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Options styling in main card */
+.options-container {
+    overflow-y: auto;
+    max-height: calc(100% - 20px); /* Reduced to make container more compact */
+    padding: 10px;  /* Reduced padding for better spacing */
+}
+
+/* Grid layout for option cards - 1 row with 4 columns on large screens */
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);  /* 4 columns on large screens */
+    gap: 8px;  /* Reduced gap for more compact layout */
+    width: 100%;
+    padding: 5px;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* Medium screens: 2 columns */
+@media (min-width: 769px) and (max-width: 1199px) {
+    .options-grid {
+        grid-template-columns: repeat(2, 1fr);  /* 2 columns on medium screens */
+    }
+
+    .option-square-card {
+        min-height: 90px;  /* Reduced height on medium screens */
+    }
+}
+
+.option-square-card {
+    border: 2px solid #000 !important;
+    box-shadow:
+        -3px 3px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+    background-color: #ffffff;
+    border-radius: 8px;  /* Increased border radius for more card-like appearance */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8px;  /* Increased padding for better appearance */
+    position: relative;
+    max-width: 100%;
+    aspect-ratio: 4/3;  /* Reduced aspect ratio (less square, more rectangular) */
+    min-height: 100px;  /* Reduced height */
+}
+
+.option-square-card:hover {
+    background-color: #e9ecef;
+    transform: perspective(500px) translateY(-2px);
+    box-shadow:
+        -2px 2px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.option-square-card.selected {
+    background-color: #d1ecf1;
+    border-color: #0dcaf0 !important;
+    transform: perspective(500px) translateY(-3px);
+    box-shadow:
+        -2px 2px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 6px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.option-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+}
+
+.option-letter {
+    font-size: 1.2rem;  /* Reduced font size to save vertical space */
+    font-weight: bold;
+    margin-bottom: 3px;  /* Reduced margin */
+    color: #4a90e2;
+    display: block;
+    flex: 0 0 auto;
+}
+
+.option-text {
+    font-size: 1.3rem;  /* Reduced font size to save vertical space */
+    color: #333;
+    text-align: center;
+    line-height: 1.2;  /* Reduced line height */
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+}
+
+/* Responsive: For mobile screens, show 2 columns */
+@media (max-width: 768px) {
+    .options-grid {
+        grid-template-columns: repeat(2, 1fr);  /* 2 columns on mobile screens */
+    }
+
+    .option-square-card {
+        min-height: 80px;  /* More compact height for mobile */
+        font-size: 1.1rem;  /* Slightly smaller font on mobile */
+    }
+
+    .card-3d-raised {
+        min-height: 500px;  /* Further reduced height for mobile */
+    }
+
+    .question-container {
+        padding: 10px;  /* Smaller padding */
+        margin: 10px 0;  /* Reduced margin */
+    }
+
+    .question-text {
+        font-size: 1rem;  /* Smaller question text on mobile */
+        margin-top: 10px; /* Reduced margin */
+    }
+
+    .question-image-container img {
+        max-height: 150px;  /* Smaller images on mobile */
+        border: 3px solid #000; /* Slightly thinner border on mobile but still bold */
+    }
+}
+
+@media (max-width: 575px) {
+    .options-grid {
+        grid-template-columns: repeat(2, 1fr);  /* Keep 2 columns on small mobile */
+    }
+
+    .option-square-card {
+        min-height: 70px;  /* More compact height for small mobile */
+        font-size: 1rem;  /* Even smaller font on small mobile */
+    }
+
+    .card-3d-raised {
+        min-height: 450px;  /* Further reduced height for small mobile */
+    }
+
+    .question-container {
+        padding: 8px;  /* Even smaller padding */
+        margin: 8px 0;  /* Reduced margin */
+    }
+
+    .question-text {
+        font-size: 0.9rem;  /* Even smaller question text on small mobile */
+        margin-top: 8px; /* Reduced margin */
+    }
+
+    .question-image-container img {
+        max-height: 120px;  /* Even smaller images on small mobile */
+        border: 3px solid #000; /* Slightly thinner border on small mobile but still bold */
+    }
+}
+
+/* Answer input styling */
+.text-answer-input {
+    margin: 15px 0;
+}
+
+.text-answer-input input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.text-answer-input input:focus {
+    border-color: #4a90e2;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.25);
+}
+
+/* Footer styling */
+.card-footer {
+    padding: 15px 20px;
+    border-top: 2px solid #eee;
+    background-color: #f8f9fa;
+    border-bottom-left-radius: calc(0.5rem - 1px);
+    border-bottom-right-radius: calc(0.5rem - 1px);
+    margin-top: auto; /* Push footer to the bottom */
+}
+
+.quiz-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.question-progress {
+    font-weight: 600;
+    color: #4a90e2;
+}
+
+/* Button styling for 3D buttons */
+.btn-3d {
+    width: 100% !important;
+    margin: 5px !important;
+}
+
+.alert {
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Form control styles to match JoinRoom */
+.form-control-lg {
+    border: 3px solid #000 !important;
+    border-radius: 50px !important;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff;
+    font-size: 1rem !important;
+    padding: 10px 20px !important;
+    width: 100% !important;
+}
+
+/* Sinking animation for inputs */
+input:focus {
+    animation: sinkInput 0.4s ease;
+    border: 3px solid #000 !important;
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 0px 0px rgba(0, 0, 0, 0.3) !important;
+    transform: translateY(4px);
+}
+
+@keyframes sinkInput {
+    0% {
+        transform: translateY(0);
+        border: 3px solid #000 !important;
+        box-shadow:
+            -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+            0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    }
+    100% {
+        transform: translateY(4px);
+        border: 3px solid #000 !important;
+        box-shadow:
+            0px 0px 0px 0px rgba(0, 0, 0, 0.75),
+            0px 0px 0px rgba(0, 0, 0, 0.3) !important;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .quiz-info-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .hanging-quiz-title {
+        margin: 10px 0 20px 0;
+    }
+
+    .hanging-quiz-title,
+    .hanging-question-count,
+    .hanging-question-current,
+    .hanging-separator,
+    .hanging-question-total {
+        margin: 0 auto; /* Center all elements on smaller screens */
+    }
+
+    .main-content-area {
+        flex-direction: column; /* Stack elements vertically on smaller screens */
+        align-items: center;
+        gap: 15px;
+    }
+
+    .rope {
+        height: 60px;
+        top: -60px;
+    }
+
+    .hanging-question-count .left-rope,
+    .hanging-quiz-title .left-rope,
+    .hanging-question-current .left-rope,
+    .hanging-separator .left-rope,
+    .hanging-question-total .left-rope {
+        left: calc(50% - 25px);
+    }
+
+    .hanging-question-count .right-rope,
+    .hanging-quiz-title .right-rope,
+    .hanging-question-current .right-rope,
+    .hanging-separator .right-rope,
+    .hanging-question-total .right-rope {
+        right: calc(50% - 25px);
+    }
+
+    .hanging-content {
+        padding: 15px 25px;
+        min-width: 250px;
+    }
+
+    .card-3d-raised {
+        min-height: 350px;  /* Further reduced height for medium screens */
+        width: 100%;
+    }
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+    /* Change the main content area to stack vertically on mobile */
+    .row .col-3,
+    .row .col-9 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Position hangings in a row above the question card on mobile */
+    .row {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .col-3, .col-9 {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0.3rem !important; /* Add small padding */
+    }
+
+    /* Make col-3 (hanging elements) appear first and arrange in row */
+    .col-3 {
+        order: 1;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-around !important;
+        align-items: center !important;
+        gap: 0.2rem !important;
+    }
+
+    /* Make col-9 (question card) appear second */
+    .col-9 {
+        order: 2;
+    }
+
+    .hanging-quiz-info {
+        flex: 1;
+        margin: 0 !important; /* Remove default margins */
+        margin-right: 0.2rem !important; /* Add controlled spacing */
+    }
+
+    .hanging-quiz-info:last-child {
+        margin-right: 0 !important; /* Remove margin from last item */
+    }
+
+    .rope {
+        display: none; /* Hide ropes on small screens for better mobile appearance */
+    }
+
+    .hanging-content {
+        min-width: 50px; /* Make hangings more compact on mobile */
+        padding: 10px 5px;
+        font-size: 0.9rem; /* Smaller font on mobile */
+    }
+
+    .hanging-content h4 {
+        font-size: 1.1rem; /* Slightly smaller text on mobile */
+        margin: 0;
+    }
+
+    /* Make sure the question card is full width on mobile */
+    .card-3d-raised {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    /* Adjust the main container for mobile */
+    .container {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+}
