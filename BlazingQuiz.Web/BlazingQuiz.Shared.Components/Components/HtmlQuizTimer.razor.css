@@ -1,0 +1,57 @@
+.html-timer-container {
+    width: 100%;
+    margin-bottom: 25px;
+    padding: 0 10px;
+}
+
+.timer-progress-container {
+    width: 100%;
+    height: 40px;
+    border: 3px solid #000; /* Match card border */
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important; /* Match card box shadow */
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: #f8f9fa; /* Light background to match card content area */
+    position: relative;
+}
+
+.timer-progress-bar {
+    height: 100%;
+    background: #4a90e2; /* Match original progress bar color */
+    transition: width 1s linear;
+    min-width: 0%; /* Allow the bar to shrink to 0 */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.timer-text {
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    font-family: 'Consolas', 'Courier New', monospace;
+    text-align: center;
+    white-space: nowrap;
+    z-index: 2; /* Ensure text is above the progress bar */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); /* Add text shadow for better visibility */
+}
+
+/* Color change when time is running low (less than 1 minute) */
+.html-timer-container.low-time .timer-progress-bar,
+.timer-progress-container.low-time .timer-progress-bar {
+    background: #ff4444; /* Red color for low time */
+    animation: pulse 1s infinite;
+}
+
+/* Pulsing animation for low time */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
