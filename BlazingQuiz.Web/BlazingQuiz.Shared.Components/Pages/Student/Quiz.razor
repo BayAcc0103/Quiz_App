@@ -9,7 +9,7 @@
 @inject QuizAudioService QuizAudioService
 @inject QuestionAudioService QuestionAudioService
 
-@if(QuizState.Quiz != null)
+@if (QuizState.Quiz != null)
 {
     <div class="container">
         <div class="row justify-content-center">
@@ -64,109 +64,109 @@
                     <div class="col-9">
                         <!-- Combined card: Question and Options -->
                         <div class="card card-3d-raised card-light">
-                    <div class="card-body">
-                        <!-- Quiz Audio -->
-                        @if (!string.IsNullOrEmpty(QuizState.Quiz.AudioPath))
-                        {
-                            <div class="quiz-audio-container">
-                                @if (QuizState.Quiz.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                            <div class="card-body">
+                                <!-- Quiz Audio -->
+                                @if (!string.IsNullOrEmpty(QuizState.Quiz.AudioPath))
                                 {
-                                    <audio controls class="w-100">
-                                        <source src="@QuizAudioService.GetAudioUrl(QuizState.Quiz.AudioPath)" type="audio/mpeg" />
-                                        Your browser does not support the audio element.
-                                    </audio>
+                                    <div class="quiz-audio-container">
+                                        @if (QuizState.Quiz.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <audio controls class="w-100">
+                                                <source src="@QuizAudioService.GetAudioUrl(QuizState.Quiz.AudioPath)" type="audio/mpeg" />
+                                                Your browser does not support the audio element.
+                                            </audio>
+                                        }
+                                        else
+                                        {
+                                            <div class="alert alert-info card-3d-raised">Quiz audio file available: @QuizState.Quiz.AudioPath</div>
+                                        }
+                                    </div>
                                 }
-                                else
-                                {
-                                    <div class="alert alert-info card-3d-raised">Quiz audio file available: @QuizState.Quiz.AudioPath</div>
-                                }
-                            </div>
-                        }
 
-                        <!-- Question Section -->
-                        <div class="question-container">
-                            <!-- Question Image -->
-                            @if (!string.IsNullOrEmpty(_question.ImagePath))
-                            {
-                                <div class="question-image-container">
-                                    <img src="@QuestionImageService.GetImageUrl(_question.ImagePath)" alt="Question Image" class="img-fluid" />
-                                </div>
-                            }
-
-                            <!-- Question Audio -->
-                            @if (!string.IsNullOrEmpty(_question.AudioPath))
-                            {
-                                <div class="question-audio-container">
-                                    @if (_question.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                                <!-- Question Section -->
+                                <div class="question-container">
+                                    <!-- Question Image -->
+                                    @if (!string.IsNullOrEmpty(_question.ImagePath))
                                     {
-                                        <audio controls class="w-100">
-                                            <source src="@QuestionAudioService.GetAudioUrl(_question.AudioPath)" type="audio/mpeg" />
-                                            Your browser does not support the audio element.
-                                        </audio>
+                                        <div class="question-image-container">
+                                            <img src="@QuestionImageService.GetImageUrl(_question.ImagePath)" alt="Question Image" class="img-fluid" />
+                                        </div>
+                                    }
+
+                                    <!-- Question Audio -->
+                                    @if (!string.IsNullOrEmpty(_question.AudioPath))
+                                    {
+                                        <div class="question-audio-container">
+                                            @if (_question.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <audio controls class="w-100">
+                                                    <source src="@QuestionAudioService.GetAudioUrl(_question.AudioPath)" type="audio/mpeg" />
+                                                    Your browser does not support the audio element.
+                                                </audio>
+                                            }
+                                            else
+                                            {
+                                                <div class="alert alert-info card-3d-raised">Audio file available: @_question.AudioPath</div>
+                                            }
+                                        </div>
+                                    }
+
+                                    <!-- Question Text -->
+                                    <div class="question-text">@_question.Text</div>
+                                </div>
+
+                                <!-- Options Section - Now inside the same card -->
+                                <div class="options-container">
+                                    @if (!_question.IsTextAnswer)
+                                    {
+                                        <!-- Multiple Choice Options as Square Cards -->
+                                        <div class="options-grid">
+                                            @foreach (var o in _question.Options)
+                                            {
+                                                <div class="option-square-card @(_selectedOptionId == o.Id ? "selected" : "")" @onclick="() => _selectedOptionId = o.Id">
+                                                    <div class="option-content">
+                                                        <div class="option-text">@o.Text</div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
                                     }
                                     else
                                     {
-                                        <div class="alert alert-info card-3d-raised">Audio file available: @_question.AudioPath</div>
-                                    }
-                                </div>
-                            }
-
-                            <!-- Question Text -->
-                            <div class="question-text">@_question.Text</div>
-                        </div>
-
-                        <!-- Options Section - Now inside the same card -->
-                        <div class="options-container">
-                            @if (!_question.IsTextAnswer)
-                            {
-                                <!-- Multiple Choice Options as Square Cards -->
-                                <div class="options-grid">
-                                    @foreach (var o in _question.Options)
-                                    {
-                                        <div class="option-square-card @(_selectedOptionId == o.Id ? "selected" : "")" @onclick="() => _selectedOptionId = o.Id">
-                                            <div class="option-content">
-                                                <div class="option-text">@o.Text</div>
-                                            </div>
+                                        <!-- Text Input Field -->
+                                        <div class="text-answer-input">
+                                            <input type="text" class="form-control form-control-lg" placeholder="Enter your answer" @bind="_textAnswer" />
                                         </div>
                                     }
                                 </div>
-                            }
-                            else
-                            {
-                                <!-- Text Input Field -->
-                                <div class="text-answer-input">
-                                    <input type="text" class="form-control form-control-lg" placeholder="Enter your answer" @bind="_textAnswer" />
-                                </div>
-                            }
-                        </div>
 
-                        <!-- Error Message -->
-                        @if (_errorMessage != null)
-                        {
-                            <div class="alert alert-danger card-3d-raised mt-3">
-                                <span>@_errorMessage</span>
-                                <button type="button" class="btn-close float-end" @onclick="() => _errorMessage = null" aria-label="Close"></button>
+                                <!-- Error Message -->
+                                @if (_errorMessage != null)
+                                {
+                                    <div class="alert alert-danger card-3d-raised mt-3">
+                                        <span>@_errorMessage</span>
+                                        <button type="button" class="btn-close float-end" @onclick="() => _errorMessage = null" aria-label="Close"></button>
+                                    </div>
+                                }
                             </div>
-                        }
-                    </div>
 
-                    <!-- Quiz Footer with Navigation -->
-                    <div class="card-footer">
-                        <div class="quiz-navigation d-flex justify-content-between align-items-center">
-                            <button type="button" class="btn btn-3d btn-3d-danger" @onclick="() => _showExitQuizConfirmation = true">Exit Test</button>
-                            @if (!IsLastQuestion)
-                            {
-                                <button type="button" class="btn btn-3d btn-3d-primary" @onclick="SaveAndNextQuestionAsync">Save & Next</button>
-                            }
-                            else
-                            {
-                                <button type="button" class="btn btn-3d btn-3d-success" @onclick="SubmitQuizAsync">Submit Quiz</button>
-                            }
-                        </div>
-                    </div>
-                </div> <!-- End of card -->
-            </div> <!-- End of col -->
-        </div>
+                            <!-- Quiz Footer with Navigation -->
+                            <div class="card-footer">
+                                <div class="quiz-navigation d-flex justify-content-between align-items-center">
+                                    <button type="button" class="btn btn-3d btn-3d-danger" @onclick="() => _showExitQuizConfirmation = true">Exit Test</button>
+                                    @if (!IsLastQuestion)
+                                    {
+                                        <button type="button" class="btn btn-3d btn-3d-primary" @onclick="SaveAndNextQuestionAsync">Save & Next</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-3d btn-3d-success" @onclick="SubmitQuizAsync">Submit Quiz</button>
+                                    }
+                                </div>
+                            </div>
+                        </div> <!-- End of card -->
+                    </div> <!-- End of col -->
+                </div>
             </div>
         </div>
     </div>
@@ -202,6 +202,11 @@
 }
 
 @if (_showSuccessMessage)
+{
+    <Modal Title="Quiz Submitted" OnActionButtonClick="ShowRatingModal" OnCancelClick="ShowRatingModal" ActionButtonText="OK">
+        <p class="text-success h5">Quiz submitted successfully</p>
+    </Modal>
+}
 {
     <Modal Title="Quiz Submitted" OnActionButtonClick="ShowRatingModal" OnCancelClick="ShowRatingModal" ActionButtonText="OK">
         <p class="text-success h5">Quiz submitted successfully</p>
