@@ -17,8 +17,6 @@
 @inject QuizAudioService QuizAudioService
 @inject QuestionAudioService QuestionAudioService
 
-<BackButton />
-
 <EditForm Model="_quiz" OnValidSubmit="SaveQuizAsync">
     <DataAnnotationsValidator />
 
@@ -33,98 +31,19 @@
 
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-sm-3">
-                            <div class="mb-3">
-                                <label class="form-label">Categories</label>
-                                <div class="dropdown">
-                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                        @if (_quiz.CategoryIds.Count == 0)
-                                        {
-                                            <span>Select categories...</span>
-                                        }
-                                        else
-                                        {
-                                            <span>@_quiz.CategoryIds.Count selected</span>
-                                        }
-                                    </button>
-                                    <ul class="dropdown-menu w-100" aria-labelledby="categoryDropdown">
-                                        @foreach (var category in _categories)
-                                        {
-                                            <li>
-                                                <a class="dropdown-item" href="javascript:void(0);" @onclick="() => OnCategorySelectionChanged(category.Id)">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" id="cat_@category.Id" checked="@(_quiz.CategoryIds.Contains(category.Id))" />
-                                                        <label class="form-check-label" for="cat_@category.Id">@category.Name</label>
-                                                    </div>
-                                                </a>
-                                            </li>
-                                        }
-                                    </ul>
-                                </div>
-                                <!-- Display selected categories as tags -->
-                                <div class="mt-2">
-                                    @foreach (var catId in _quiz.CategoryIds.ToList())
-                                    {
-                                        var category = _categories.FirstOrDefault(c => c.Id == catId);
-                                        if (category != null)
-                                        {
-                                            <span class="badge bg-primary me-1 mb-1">
-                                                @category.Name
-                                                <button type="button" class="btn-close btn-close-white ms-2" style="font-size: 0.6em;" @onclick="() => RemoveCategory(catId)"></button>
-                                            </span>
-                                        }
-                                    }
-                                </div>
-                                <ValidationMessage For="() => _quiz.CategoryIds" />
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
+                        <!-- Left side: Quiz Title, Name, and Image -->
+                        <div class="col-md-6 border-end">
                             <div class="mb-3">
                                 <label class="form-label">Name</label>
                                 <InputText @bind-Value="_quiz.Name" class="form-control"></InputText>
                                 <ValidationMessage For="() => _quiz.Name" />
                             </div>
-                        </div>
-                        <div class="col-sm-9">
-                            <div class="mb-3">
-                                <label class="form-label">Description</label>
-                                <InputText @bind-Value="_quiz.Description" class="form-control" placeholder="Enter a description for the quiz"></InputText>
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
-                            <div class="mb-3">
-                                <label class="form-label">Level</label>
-                                <InputSelect @bind-Value="_quiz.Level" class="form-control">
-                                    <option value="">Select level</option>
-                                    <option value="@BlazingQuiz.Shared.Enums.QuizLevel.Easy">@BlazingQuiz.Shared.Enums.QuizLevel.Easy</option>
-                                    <option value="@BlazingQuiz.Shared.Enums.QuizLevel.Normal">@BlazingQuiz.Shared.Enums.QuizLevel.Normal</option>
-                                    <option value="@BlazingQuiz.Shared.Enums.QuizLevel.Hard">@BlazingQuiz.Shared.Enums.QuizLevel.Hard</option>
-                                </InputSelect>
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
-                            <div class="mb-3">
-                                <label class="form-label">Total Questions</label>
-                                <InputNumber @bind-Value="_quiz.TotalQuestions" class="form-control" readonly></InputNumber>
-                                <ValidationMessage For="() => _quiz.TotalQuestions" />
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
-                            <div class="mb-3">
-                                <label class="form-label">Time (in minutes)</label>
-                                <InputNumber @bind-Value="_quiz.TimeInMinutes" class="form-control"></InputNumber>
-                                <ValidationMessage For="() => _quiz.TimeInMinutes" />
-                            </div>
-                        </div>
-
-                        <div class="col-sm-12">
-                            <!-- Image Upload Section -->
                             <div class="mb-3">
                                 <label class="form-label">Quiz Image</label>
                                 @if (!string.IsNullOrEmpty(_quiz.ImagePath))
                                 {
                                     <div class="mb-2">
-                                        <img src="@QuizImageService.GetImageUrl(_quiz.ImagePath)" alt="Quiz Image" class="img-thumbnail" style="max-width: 150px; max-height: 150px;" />
+                                        <img src="@QuizImageService.GetImageUrl(_quiz.ImagePath)" alt="Quiz Image" class="img-thumbnail w-100" style="max-height: 200px; object-fit: cover;" />
                                         <div class="mt-2">
                                             <button type="button" class="btn btn-3d btn-3d-danger" @onclick="RemoveImageAsync" title="Remove Image">Remove Image</button>
                                         </div>
@@ -139,11 +58,90 @@
                             </div>
                         </div>
 
-                        <div class="col-sm-4">
+                        <!-- Right side: Remaining Information -->
+                        <div class="col-md-6">
                             <div class="mb-3">
-                                <div class="form-check form-switch">
-                                    <InputCheckbox @bind-Value="_quiz.IsActive" class="form-check-input" type="checkbox" role="switch" id="quizIsActive" />
-                                    <label class="form-check-label" for="quizIsActive">Is Active?</label>
+                                <label class="form-label">Description</label>
+                                <InputText @bind-Value="_quiz.Description" class="form-control" placeholder="Enter a description for the quiz"></InputText>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="mb-3">
+                                        <label class="form-label">Categories</label>
+                                        <div class="dropdown">
+                                            <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                                @if (_quiz.CategoryIds.Count == 0)
+                                                {
+                                                    <span>Select categories...</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>@_quiz.CategoryIds.Count selected</span>
+                                                }
+                                            </button>
+                                            <ul class="dropdown-menu w-100" aria-labelledby="categoryDropdown">
+                                                @foreach (var category in _categories)
+                                                {
+                                                    <li>
+                                                        <a class="dropdown-item" href="javascript:void(0);" @onclick="() => OnCategorySelectionChanged(category.Id)">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="checkbox" id="cat_@category.Id" checked="@(_quiz.CategoryIds.Contains(category.Id))" />
+                                                                <label class="form-check-label" for="cat_@category.Id">@category.Name</label>
+                                                            </div>
+                                                        </a>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </div>
+                                        <!-- Display selected categories as tags -->
+                                        <div class="mt-2">
+                                            @foreach (var catId in _quiz.CategoryIds.ToList())
+                                            {
+                                                var category = _categories.FirstOrDefault(c => c.Id == catId);
+                                                if (category != null)
+                                                {
+                                                    <span class="badge bg-primary me-1 mb-1">
+                                                        @category.Name
+                                                        <button type="button" class="btn-close btn-close-white ms-2" style="font-size: 0.6em;" @onclick="() => RemoveCategory(catId)"></button>
+                                                    </span>
+                                                }
+                                            }
+                                        </div>
+                                        <ValidationMessage For="() => _quiz.CategoryIds" />
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Level</label>
+                                        <InputSelect @bind-Value="_quiz.Level" class="form-control">
+                                            <option value="">Select level</option>
+                                            <option value="@BlazingQuiz.Shared.Enums.QuizLevel.Easy">@BlazingQuiz.Shared.Enums.QuizLevel.Easy</option>
+                                            <option value="@BlazingQuiz.Shared.Enums.QuizLevel.Normal">@BlazingQuiz.Shared.Enums.QuizLevel.Normal</option>
+                                            <option value="@BlazingQuiz.Shared.Enums.QuizLevel.Hard">@BlazingQuiz.Shared.Enums.QuizLevel.Hard</option>
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Total Questions</label>
+                                        <InputNumber @bind-Value="_quiz.TotalQuestions" class="form-control" readonly></InputNumber>
+                                        <ValidationMessage For="() => _quiz.TotalQuestions" />
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Time (in minutes)</label>
+                                        <InputNumber @bind-Value="_quiz.TimeInMinutes" class="form-control"></InputNumber>
+                                        <ValidationMessage For="() => _quiz.TimeInMinutes" />
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <InputCheckbox @bind-Value="_quiz.IsActive" class="form-check-input" type="checkbox" role="switch" id="quizIsActive" />
+                                            <label class="form-check-label" for="quizIsActive">Is Active?</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -288,18 +286,9 @@
                         }
                     </div>
 
-                    <!-- Navigation buttons -->
-                    <button type="button" class="btn btn-3d btn-3d-primary prev-btn" @onclick="() => GoToCard(i)">Prev</button>
-                    @if (i < _quiz.Questions.Count - 1)
-                    {
-                        <button type="button" class="btn btn-3d btn-3d-primary next-btn" @onclick="() => GoToCard(i + 2)">Next</button>
-                    }
-                    else
-                    {
-                        <button class="btn btn-3d btn-3d-success next-btn" type="submit">Save Quiz</button>
-                    }
                 </div>
             }
+
         </div>
 
         <!-- Navigation buttons for the whole slider -->
@@ -318,6 +307,11 @@
 <!-- Add Question Button positioned on the right side -->
 <button type="button" class="add-question-btn" @onclick="AddNewQuestion" title="Add Question">
     +
+</button>
+
+<!-- Save Quiz Button positioned at the bottom like the Add Question button -->
+<button type="submit" class="save-quiz-btn" title="Save Quiz">
+    Save Quiz
 </button>
 
 @code {

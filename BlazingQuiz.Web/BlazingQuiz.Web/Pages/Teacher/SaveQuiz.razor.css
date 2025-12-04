@@ -1,7 +1,6 @@
 /* Card with bold black border and box shadow - matching Manage Categories style */
 .slider-card {
     border: 3px solid #000 !important;
-    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
     transform: perspective(500px) rotateY(0deg);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border-radius: 15px;
@@ -11,7 +10,6 @@
     color: #333;
     min-width: 100%;
     height: 80vh;
-    padding: 30px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -87,10 +85,10 @@ select.form-control:focus {
     transform: perspective(500px) translateY(4px) !important;
 }
 
-/* Add Question Button - positioned on the right side */
+/* Add Question Button - positioned on the right side with space for navigation buttons */
 .add-question-btn {
     position: fixed;
-    right: 30px;
+    right: 30px; /* Adjusted to original position since navigation buttons are now positioned differently */
     top: 50%;
     transform: translateY(-50%);
     z-index: 1000;
@@ -113,6 +111,34 @@ select.form-control:focus {
     transform: translateY(-50%) scale(1.1);
     box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
     background: linear-gradient(135deg, #218838, #1e7e34);
+}
+
+/* Save Quiz Button - positioned at the bottom similar to Add Question button */
+.save-quiz-btn {
+    position: fixed;
+    right: 30px;
+    bottom: 30px; /* Positioned at the bottom of the screen */
+    z-index: 1000;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    width: 120px;
+    height: 50px;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.save-quiz-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, #0056b3, #004085);
 }
 
 /* Button styling matching Manage Categories */
@@ -193,12 +219,10 @@ select.form-control:focus {
     background: linear-gradient(to bottom, #a92734, #98222d);
 }
 
-/* Navigation buttons */
+/* Navigation buttons - positioned at bottom corners of the slider card */
 .nav-btn {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.7);
     color: white;
     border: none;
     width: 50px;
@@ -210,14 +234,24 @@ select.form-control:focus {
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.8);
 }
 
 .prev-btn {
-    left: 10px;
+    bottom: 20px; /* Positioned at the bottom of the card */
+    left: 20px; /* Positioned at the left corner of the card */
 }
 
 .next-btn {
-    right: 10px;
+    bottom: 20px; /* Positioned at the bottom of the card */
+    right: 20px; /* Positioned at the right corner of the card */
 }
 
 /* Question card specific styling */
