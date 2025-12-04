@@ -1,9 +1,12 @@
-﻿@page "/admin/add-quiz"
+@page "/admin/add-quiz"
 @page "/admin/edit-quiz/{quizId:guid?}"
 
 @using BlazingQuiz.Shared
 @using BlazingQuiz.Shared.DTOs
 @using BlazingQuiz.Shared.Enums
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = nameof(UserRole.Admin))]
+
 @inject NavigationManager NavigationManager
 @inject IQuizApi QuizApi
 @inject ICategoryApi CategoryApi
@@ -14,254 +17,324 @@
 @inject QuizAudioService QuizAudioService
 @inject QuestionAudioService QuestionAudioService
 
-<BackButton />
-
-<h1>@(IsEditCase ? "Update Quiz" : "Add a Quiz")</h1>
-<hr/>
-
 <EditForm Model="_quiz" OnValidSubmit="SaveQuizAsync">
-<DataAnnotationsValidator />
-    <div class="row">
-        <div class="col-sm-3">
-            <div class="mb-3">
-                <label class="form-label">Categories</label>
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        @if (_quiz.CategoryIds.Count == 0)
-                        {
-                            <span>Select categories...</span>
-                        }
-                        else
-                        {
-                            <span>@_quiz.CategoryIds.Count selected</span>
-                        }
-                    </button>
-                    <ul class="dropdown-menu w-100" aria-labelledby="categoryDropdown">
-                        @foreach (var category in _categories)
-                        {
-                            <li>
-                                <a class="dropdown-item" href="javascript:void(0);" @onclick="() => OnCategorySelectionChanged(category.Id)">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="cat_@category.Id" checked="@(_quiz.CategoryIds.Contains(category.Id))" />
-                                        <label class="form-check-label" for="cat_@category.Id">@category.Name</label>
+    <DataAnnotationsValidator />
+
+    <!-- Slider Container -->
+    <div class="slider-container">
+        <div class="slider-track" style="transform: translateX(@(CurrentCardIndex * -100)%);">
+            <!-- Card 1: Quiz Information -->
+            <div class="slider-card">
+                <div class="card-header-3d">
+                    <h4 class="m-0">Quiz Information</h4>
+                </div>
+
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Left side: Quiz Title, Name, and Image -->
+                        <div class="col-md-6 border-end">
+                            <div class="mb-3">
+                                <label for="quizName" class="form-label">Name</label>
+                                <input id="quizName" class="form-control form-control-centered" @bind="_quiz.Name" placeholder="Enter quiz name" style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
+                                <ValidationMessage For="() => _quiz.Name" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Quiz Image</label>
+                                @if (!string.IsNullOrEmpty(_quiz.ImagePath))
+                                {
+                                    <div class="mb-2">
+                                        <img src="@QuizImageService.GetImageUrl(_quiz.ImagePath)" alt="Quiz Image" class="img-thumbnail w-100" style="max-height: 200px; object-fit: cover;" />
+                                        <div class="mt-2">
+                                            <button type="button" class="btn btn-3d btn-3d-danger" @onclick="RemoveImageAsync" title="Remove Image">Remove Image</button>
+                                        </div>
                                     </div>
-                                </a>
-                            </li>
-                        }
-                    </ul>
-                </div>
-                <!-- Display selected categories as tags -->
-                <div class="mt-2">
-                    @foreach (var catId in _quiz.CategoryIds.ToList())
-                    {
-                        var category = _categories.FirstOrDefault(c => c.Id == catId);
-                        if (category != null)
-                        {
-                            <span class="badge bg-primary me-1 mb-1">
-                                @category.Name
-                                <button type="button" class="btn-close btn-close-white ms-2" style="font-size: 0.6em;" @onclick="() => RemoveCategory(catId)"></button>
-                            </span>
-                        }
-                    }
-                </div>
-                <ValidationMessage For="() => _quiz.CategoryIds" />
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="mb-3">
-                <label class="form-label">Name</label>
-                <InputText @bind-Value="_quiz.Name" class="form-control"></InputText>
-                <ValidationMessage For="() => _quiz.Name" />
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="mb-3">
-                <label class="form-label">Level</label>
-                <InputSelect @bind-Value="_quiz.Level" class="form-control">
-                    <option value="">Select level</option>
-                    <option value="@BlazingQuiz.Shared.Enums.QuizLevel.Easy">@BlazingQuiz.Shared.Enums.QuizLevel.Easy</option>
-                    <option value="@BlazingQuiz.Shared.Enums.QuizLevel.Normal">@BlazingQuiz.Shared.Enums.QuizLevel.Normal</option>
-                    <option value="@BlazingQuiz.Shared.Enums.QuizLevel.Hard">@BlazingQuiz.Shared.Enums.QuizLevel.Hard</option>
-                </InputSelect>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="mb-3">
-                <label class="form-label">Total Questions</label>
-                <InputNumber @bind-Value="_quiz.TotalQuestions" class="form-control"></InputNumber>
-                <ValidationMessage For="() => _quiz.TotalQuestions" />
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="mb-3">
-                <label class="form-label">Time (in minutes)</label>
-                <InputNumber @bind-Value="_quiz.TimeInMinutes" class="form-control"></InputNumber>
-                <ValidationMessage For="() => _quiz.TimeInMinutes" />
-            </div>
-        </div>
-
-        <div class="col-sm-12">
-            <!-- Image Upload Section -->
-            <div class="mb-3">
-                <label class="form-label">Quiz Image</label>
-                @if (!string.IsNullOrEmpty(_quiz.ImagePath))
-                {
-                    <div class="mb-2">
-                        <img src="@QuizImageService.GetImageUrl(_quiz.ImagePath)" alt="Quiz Image" class="img-thumbnail" style="max-width: 150px; max-height: 150px;" />
-                        <div class="mt-2">
-                            <button type="button" class="btn btn-sm btn-danger" @onclick="RemoveImageAsync" title="Remove Image">Remove Image</button>
+                                }
+                                <FileUpload CurrentFile="_selectedImageFile"
+                                           OnFileChanged="OnImageFileChanged"
+                                           AcceptedFileTypes="image/*"
+                                           MaxFileSize="10 * 1024 * 1024"
+                                           UploadText="Click or drag image here to upload"
+                                           UploadHint="Supports JPG, PNG, GIF up to 10MB" />
+                            </div>
                         </div>
-                    </div>
-                }
-                <FileUpload CurrentFile="_selectedImageFile" 
-                           OnFileChanged="OnImageFileChanged" 
-                           AcceptedFileTypes="image/*" 
-                           MaxFileSize="10 * 1024 * 1024"
-                           UploadText="Click or drag image here to upload"
-                           UploadHint="Supports JPG, PNG, GIF up to 10MB" />
-            </div>
-        </div>
 
-        <hr/>
-        <h4 class="">Questions</h4>
-
-        <ol>
-            @foreach(var q in _quiz.Questions)
-            {
-                var random = Guid.NewGuid();
-                var questionIndex = _quiz.Questions.IndexOf(q);
-                <li class="shadow p-3 mb-3">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <textarea @bind="q.Text" class="form-control" row="3"></textarea>
-                        <button type="button" class="btn btn-outline-danger ms-2" @onclick="() => DeleteQuestionAsync(q)" title="Delete Question">X</button>
-                    </div>
-                    
-                    <!-- Question Type Selection -->
-                    <div class="mb-3">
-                        <h6>Question Type</h6>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="questionType_@random" value="multiple-choice" checked="@(!q.IsTextAnswer)" @onchange="() => { q.IsTextAnswer = false; OnQuestionTypeChanged(q); }">
-                            <label class="form-check-label">Multiple Choice</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="questionType_@random" value="text-input" checked="@(q.IsTextAnswer)" @onchange="() => { q.IsTextAnswer = true; OnQuestionTypeChanged(q); }">
-                            <label class="form-check-label">Text Input</label>
-                        </div>
-                    </div>
-                    
-                    <!-- Question Image Upload Section -->
-                    <div class="mb-3">
-                        <label class="form-label">Question Image</label>
-                        @if (!string.IsNullOrEmpty(q.ImagePath))
-                        {
-                            <div class="mb-2">
-                                <img src="@QuestionImageService.GetImageUrl(q.ImagePath)" alt="Question Image" class="img-thumbnail" style="max-width: 150px; max-height: 150px;" />
-                                <div class="mt-2">
-                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => RemoveQuestionImageAsync(q)" title="Remove Question Image">Remove Image</button>
+                        <!-- Right side: Remaining Information -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="quizDescription" class="form-label">Description</label>
+                                <input id="quizDescription" class="form-control form-control-centered" @bind="_quiz.Description" placeholder="Enter a description for the quiz" style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="mb-3">
+                                        <label class="form-label">Categories</label>
+                                        <div class="dropdown category-dropdown-container">
+                                            <button class="btn dropdown-toggle category-select-btn w-100 text-start" type="button" id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                                @if (_quiz.CategoryIds.Count == 0)
+                                                {
+                                                    <span>Select categories...</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>@_quiz.CategoryIds.Count selected</span>
+                                                }
+                                            </button>
+                                            <ul class="dropdown-menu w-100 category-dropdown-menu" aria-labelledby="categoryDropdown">
+                                                @foreach (var category in _categories)
+                                                {
+                                                    <li>
+                                                        <a class="dropdown-item category-dropdown-item" href="javascript:void(0);" @onclick="() => OnCategorySelectionChanged(category.Id)">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input category-checkbox" type="checkbox" id="cat_@category.Id" checked="@(_quiz.CategoryIds.Contains(category.Id))" />
+                                                                <label class="form-check-label category-label" for="cat_@category.Id">@category.Name</label>
+                                                            </div>
+                                                        </a>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </div>
+                                        <!-- Display selected categories as tags -->
+                                        <div class="mt-2">
+                                            @foreach (var catId in _quiz.CategoryIds.ToList())
+                                            {
+                                                var category = _categories.FirstOrDefault(c => c.Id == catId);
+                                                if (category != null)
+                                                {
+                                                    <span class="badge bg-primary me-1 mb-1">
+                                                        @category.Name
+                                                        <button type="button" class="btn-close btn-close-white ms-2" style="font-size: 0.6em;" @onclick="() => RemoveCategory(catId)"></button>
+                                                    </span>
+                                                }
+                                            }
+                                        </div>
+                                        <ValidationMessage For="() => _quiz.CategoryIds" />
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="mb-3">
+                                        <label for="quizLevel" class="form-label">Level</label>
+                                        <select id="quizLevel" class="form-control form-control-centered" @bind="_quiz.Level" style="font-size: 1.1rem; letter-spacing: 0.1rem;">
+                                            <option value="">Select level</option>
+                                            <option value="@BlazingQuiz.Shared.Enums.QuizLevel.Easy">@BlazingQuiz.Shared.Enums.QuizLevel.Easy</option>
+                                            <option value="@BlazingQuiz.Shared.Enums.QuizLevel.Normal">@BlazingQuiz.Shared.Enums.QuizLevel.Normal</option>
+                                            <option value="@BlazingQuiz.Shared.Enums.QuizLevel.Hard">@BlazingQuiz.Shared.Enums.QuizLevel.Hard</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="mb-3">
+                                        <label for="totalQuestions" class="form-label">Total Questions</label>
+                                        <input id="totalQuestions" type="number" class="form-control form-control-centered" value="@_quiz.Questions.Count" readonly style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
+                                        <ValidationMessage For="() => _quiz.TotalQuestions" />
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="mb-3">
+                                        <label for="timeInMinutes" class="form-label">Time (in minutes)</label>
+                                        <input id="timeInMinutes" type="number" class="form-control form-control-centered" @bind="_quiz.TimeInMinutes" min="0" style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
+                                        <ValidationMessage For="() => _quiz.TimeInMinutes" />
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="mb-3">
+                                        <div class="form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="quizIsActive" @bind="_quiz.IsActive" />
+                                            <label class="form-check-label" for="quizIsActive">Is Active?</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        }
-                        <FileUpload CurrentFile="@GetQuestionImageFile(q)" 
-                                   OnFileChanged="@(file => OnQuestionImageFileChanged(q, file))" 
-                                   AcceptedFileTypes="image/*" 
-                                   MaxFileSize="10 * 1024 * 1024"
-                                   UploadText="Click or drag question image to upload"
-                                   UploadHint="Supports JPG, PNG, GIF up to 10MB" />
+                        </div>
                     </div>
-                    
-                    <!-- Question Audio Upload Section -->
-                    <div class="mb-3">
-                        <label class="form-label">Question Audio (MP3)</label>
-                        @if (!string.IsNullOrEmpty(q.AudioPath))
-                        {
-                            <div class="mb-2">
-                                @if (q.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                </div>
+
+                <!-- Navigation buttons -->
+                @if (_quiz.Questions.Count > 0)
+                {
+                    <button type="button" class="btn btn-3d btn-3d-primary next-btn" @onclick="() => GoToCard(1)">Next</button>
+                }
+            </div>
+
+            <!-- Cards for Questions -->
+            @for (int i = 0; i < _quiz.Questions.Count; i++)
+            {
+                var question = _quiz.Questions[i];
+                var questionIndex = i;
+
+                <div class="slider-card">
+                    <div class="card-header-3d d-flex justify-content-between align-items-center">
+                        <h4 class="m-0">Question @(i + 1)</h4>
+                        <button type="button" class="btn btn-3d btn-3d-danger btn-sm" @onclick="() => DeleteQuestionAsync(question)" title="Delete Question" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">
+                            <span class="material-symbols-outlined" style="font-size: 1rem;">
+                                delete
+                            </span>
+                        </button>
+                    </div>
+
+                    <div class="question-card-content">
+                        <div class="row">
+                            <!-- Left side: Question Text, Image, and Audio -->
+                            <div class="col-md-6 border-end">
+                                <div class="mb-3">
+                                    <label class="form-label">Question Text</label>
+                                    <textarea @bind="question.Text" class="form-control form-control-centered" rows="3" style="font-size: 1.1rem; letter-spacing: 0.1rem;"></textarea>
+                                </div>
+
+                                <!-- Question Image Upload Section -->
+                                <div class="mb-3">
+                                    <label class="form-label">Question Image</label>
+                                    @if (!string.IsNullOrEmpty(question.ImagePath))
+                                    {
+                                        <div class="mb-2">
+                                            <img src="@QuestionImageService.GetImageUrl(question.ImagePath)" alt="Question Image" class="img-thumbnail w-100" style="max-height: 200px; object-fit: cover;" />
+                                            <div class="mt-2">
+                                                <button type="button" class="btn btn-3d btn-3d-danger" @onclick="() => RemoveQuestionImageAsync(question)" title="Remove Question Image">Remove Image</button>
+                                            </div>
+                                        </div>
+                                    }
+                                    <FileUpload CurrentFile="@GetQuestionImageFile(question)"
+                                               OnFileChanged="@(file => OnQuestionImageFileChanged(question, file))"
+                                               AcceptedFileTypes="image/*"
+                                               MaxFileSize="10 * 1024 * 1024"
+                                               UploadText="Click or drag question image to upload"
+                                               UploadHint="Supports JPG, PNG, GIF up to 10MB" />
+                                </div>
+
+                                <!-- Question Audio Upload Section -->
+                                <div class="mb-3">
+                                    <label class="form-label">Question Audio (MP3)</label>
+                                    @if (!string.IsNullOrEmpty(question.AudioPath))
+                                    {
+                                        <div class="mb-2">
+                                            @if (question.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <audio controls class="w-100">
+                                                    <source src="@QuestionAudioService.GetAudioUrl(question.AudioPath)" type="audio/mpeg" />
+                                                    Your browser does not support the audio element.
+                                                </audio>
+                                            }
+                                            else
+                                            {
+                                                <span>Audio file: @question.AudioPath</span>
+                                            }
+                                            <div class="mt-2">
+                                                <button type="button" class="btn btn-3d btn-3d-danger" @onclick="() => RemoveQuestionAudioAsync(question)" title="Remove Question Audio">Remove Audio</button>
+                                            </div>
+                                        </div>
+                                    }
+                                    <FileUpload CurrentFile="@GetQuestionAudioFile(question)"
+                                               OnFileChanged="@(file => OnQuestionImageFileChanged(question, file))"
+                                               AcceptedFileTypes=".mp3,audio/*"
+                                               MaxFileSize="20 * 1024 * 1024"
+                                               UploadText="Click or drag MP3 file to upload"
+                                               UploadHint="Supports MP3 files up to 20MB" />
+                                </div>
+                            </div>
+
+                            <!-- Right side: Question Type, Options, and Answer Explanation -->
+                            <div class="col-md-6">
+                                <!-- Question Type Selection -->
+                                <div class="mb-3">
+                                    <h6>Question Type</h6>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-3d @(question.IsTextAnswer ? "btn-3d-primary" : "btn-3d-success") btn-sm" @onclick="() => { question.IsTextAnswer = false; OnQuestionTypeChanged(question); }">
+                                            Multiple Choice
+                                        </button>
+                                        <button type="button" class="btn btn-3d @(question.IsTextAnswer ? "btn-3d-success" : "btn-3d-primary") btn-sm" @onclick="() => { question.IsTextAnswer = true; OnQuestionTypeChanged(question); }">
+                                            Text Input
+                                        </button>
+                                    </div>
+                                </div>
+
+                                @if (!question.IsTextAnswer)
                                 {
-                                    <audio controls class="w-100">
-                                        <source src="@QuestionAudioService.GetAudioUrl(q.AudioPath)" type="audio/mpeg" />
-                                        Your browser does not support the audio element.
-                                    </audio>
+                                    <!-- Multiple Choice Options -->
+                                    <h6>Options</h6>
+                                    <ol>
+                                        @foreach (var o in question.Options)
+                                        {
+                                            var optionIndex = question.Options.IndexOf(o);
+                                            <li class="p-2 mb-2">
+                                                <div class="input-group @(o.IsCorrect ? "correct-option" : "") @(ReferenceEquals(_selectedOption, o) ? "selected-option" : "")" @onclick="() => SelectOption(question, o)">
+                                                    <div class="input-group-text custom-input-group-text toggle-checkbox">
+                                                        <input type="checkbox" class="form-check-input mt-0" checked="@o.IsCorrect" @onchange="args => SetOptionAsCorrectAnswer(question, o)" style="display:none;" id="option_@o.GetHashCode()" />
+                                                        <label for="option_@o.GetHashCode()" class="toggle-label m-0 d-flex align-items-center justify-content-center" style="min-width: 20px;">
+                                                            @if (o.IsCorrect)
+                                                            {
+                                                                <span class="material-symbols-outlined">check</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="material-symbols-outlined">close</span>
+                                                            }
+                                                        </label>
+                                                    </div>
+                                                    <input type="text" class="form-control no-border-radius" aria-label="Text input with checkbox" @bind="o.Text"/>
+                                                    <button type="button" class="btn btn-3d btn-3d-danger option-delete-btn @(ReferenceEquals(_selectedOption, o) ? "selected-delete-btn" : "")" @onclick="() => question.Options.Remove(o)">X</button>
+                                                </div>
+                                            </li>
+                                        }
+                                    </ol>
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-3d btn-3d-primary btn-sm" @onclick="() => AddOptionToQuestion(question)">+ Add Option</button>
+                                    </div>
                                 }
                                 else
                                 {
-                                    <span>Audio file: @q.AudioPath</span>
+                                    <!-- Text Input Answer -->
+                                    <h6>Possible Correct Answers</h6>
+                                    <div class="mb-3">
+                                        @if (question.TextAnswers != null)
+                                        {
+                                            @foreach (var textAnswer in question.TextAnswers.ToList()) // Use ToList() to avoid collection modification during enumeration
+                                            {
+                                                var textAnswerIndex = question.TextAnswers.IndexOf(textAnswer);
+                                                <div class="input-group mb-2">
+                                                    <input type="text" class="form-control" placeholder="Enter a correct answer" @bind="textAnswer.Text"/>
+                                                    <button type="button" class="btn btn-3d btn-3d-danger" @onclick="() => question.TextAnswers.Remove(textAnswer)">X</button>
+                                                </div>
+                                            }
+                                        }
+                                        <button type="button" class="btn btn-3d btn-3d-primary" @onclick="() => question.TextAnswers.Add(new TextAnswerDto())">+ Add Correct Answer</button>
+                                    </div>
                                 }
-                                <div class="mt-2">
-                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => RemoveQuestionAudioAsync(q)" title="Remove Question Audio">Remove Audio</button>
+
+                                <!-- Answer Explanation Section -->
+                                <div class="mb-3">
+                                    <label class="form-label">Answer Explanation</label>
+                                    <input type="text" class="form-control form-control-centered" @bind="question.AnswerExplanation" placeholder="Enter explanation for the correct answer" style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
                                 </div>
                             </div>
-                        }
-                        <FileUpload CurrentFile="@GetQuestionAudioFile(q)" 
-                                   OnFileChanged="@(file => OnQuestionAudioFileChanged(q, file))" 
-                                   AcceptedFileTypes=".mp3,audio/*" 
-                                   MaxFileSize="20 * 1024 * 1024"
-                                   UploadText="Click or drag MP3 file to upload"
-                                   UploadHint="Supports MP3 files up to 20MB" />
+                        </div>
                     </div>
-                    
-                    @if (!q.IsTextAnswer)
-                    {
-                        <!-- Multiple Choice Options -->
-                        <h6>Options</h6>
-                        <ol>
-                            @foreach (var o in q.Options)
-                            {
-                                <li class="p-2 mb-2">
-                                    <div class="input-group">
-                                        <div class="input-group-text">
-                                            <input class="form-check-input mt-0" type="radio" name="option_radio_@random" checked="@o.IsCorrect" @onchange="() => SetOptionAsCorrectAnswer(q, o)">
-                                        </div>
-                                        <input type="text" class="form-control" aria-label="Text input with checkbox" @bind="o.Text"/>
-                                        <button type="button" class="btn btn-outline-danger" @onclick="() => q.Options.Remove(o)">X</button>
-                                    </div>
-                                </li>
-                            }
-                        </ol>
-                        <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-sm btn-info" @onclick="() => AddOptionToQuestion(q)">+ Add Option</button>
-                        </div>
-                    }
-                    else
-                    {
-                        <!-- Text Input Answer -->
-                        <h6>Possible Correct Answers</h6>
-                        <div class="mb-3">
-                            @if (q.TextAnswers != null)
-                            {
-                                @for (int i = 0; i < q.TextAnswers.Count; i++)
-                                {
-                                    var index = i; // Capture the current index
-                                    var textAnswer = q.TextAnswers[index]; // Capture the text answer to prevent index issues
-                                    <div class="input-group mb-2">
-                                        <input type="text" class="form-control" placeholder="Enter a correct answer" @bind="textAnswer.Text"/>
-                                        <button type="button" class="btn btn-outline-danger" @onclick="() => RemoveTextAnswer(q, index)">X</button>
-                                    </div>
-                                }
-                            }
-                            <button type="button" class="btn btn-sm btn-info" @onclick="() => q.TextAnswers.Add(new TextAnswerDto())">+ Add Correct Answer</button>
-                        </div>
-                    }
-                </li>
-            }
-        </ol>
-        <div class="mt-3 d-flex justify-content-center">
-            <button type="button" class="btn btn-info" @onclick="() => _quiz.Questions.Add(GetDefaultEmptyQuestion())">+ Add Question </button>
-        </div>
 
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <div class="form-check form-switch">
-                    <InputCheckbox @bind-Value="_quiz.IsActive" class="form-check-input" type="checkbox" role="switch" id="quizIsActive" />
-                    <label class="form-check-label" for="quizIsActive">Is Active?</label>
                 </div>
-            </div>
+            }
+
         </div>
 
-        <hr/>
-        <button type="submit" class="btn btn-success">Save Quiz</button>
+        <!-- Navigation buttons for the whole slider -->
+        @if (CurrentCardIndex > 0)
+        {
+            <button type="button" class="nav-btn prev-btn" @onclick="GoToPrevCard">❮</button>
+        }
+
+        @if (CurrentCardIndex < TotalCards - 1)
+        {
+            <button type="button" class="nav-btn next-btn" @onclick="GoToNextCard">❯</button>
+        }
     </div>
 </EditForm>
 
+<!-- Add Question Button positioned on the right side -->
+<button type="button" class="add-question-btn" @onclick="AddNewQuestion" title="Add Question">
+    +
+</button>
+
+<!-- Save Quiz Button positioned at the bottom like the Add Question button -->
+<button type="submit" class="save-quiz-btn" title="Save Quiz">
+    Save Quiz
+</button>
 
 @code {
     [Parameter]
@@ -277,6 +350,12 @@
     private IBrowserFile? _selectedAudioFile;
     private int _imageUploadProgress;
     private int _audioUploadProgress;
+
+    private int CurrentCardIndex { get; set; } = 0;
+
+    private int TotalCards => 1 + _quiz.Questions.Count; // 1 for quiz info + number of questions
+
+    private OptionDto? _selectedOption = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -297,11 +376,15 @@
                 return;
             }
             _quiz = quiz;
+            // Update TotalQuestions to reflect the actual count
+            _quiz.TotalQuestions = _quiz.Questions.Count;
         }
         else
         {
             var question = GetDefaultEmptyQuestion();
             _quiz.Questions = [question];
+            // Update TotalQuestions to reflect the actual count
+            _quiz.TotalQuestions = _quiz.Questions.Count;
         }
     }
 
@@ -312,6 +395,9 @@
             //We are in EditMode, and we clicked on Add new Quiz on the left nav menu
             _quiz = new();
             _quiz.Questions = [GetDefaultEmptyQuestion()];
+            // Update TotalQuestions to reflect the actual count
+            _quiz.TotalQuestions = _quiz.Questions.Count;
+            CurrentCardIndex = 0; // Reset to first card
         }
     }
 
@@ -324,11 +410,20 @@
 
     private void SetOptionAsCorrectAnswer(QuestionDto q, OptionDto o)
     {
-        foreach (var option in q.Options)
+        // If the clicked option is currently correct, toggle it off (uncheck)
+        if (o.IsCorrect)
         {
-            option.IsCorrect = false;
+            o.IsCorrect = false;
         }
-        o.IsCorrect = true;
+        else
+        {
+            // If the clicked option is not correct, make it correct and uncheck all others
+            foreach (var option in q.Options)
+            {
+                option.IsCorrect = false;
+            }
+            o.IsCorrect = true;
+        }
     }
 
     private async Task SaveQuizAsync()
@@ -343,7 +438,7 @@
         AppState.ShowLoader("Saving quiz");
         var response = await QuizApi.SaveQuizAsync(_quiz);
         AppState.HideLoader();
-        
+
         if (!response.IsSuccess)
         {
             await ShowAlertAsync(response.ErrorMessage);
@@ -365,7 +460,7 @@
                 }
 
                 var result = await QuizImageService.UploadQuizImageAsync(_quiz.Id, _selectedImageFile);
-                
+
                 if (result.IsSuccess)
                 {
                     // Update the current quiz with the new image path (we need to reload quiz to get the updated image path)
@@ -399,7 +494,7 @@
             try
             {
                 var result = await QuizAudioService.UploadQuizAudioAsync(_quiz.Id, _selectedAudioFile);
-                
+
                 if (result.IsSuccess)
                 {
                     // Update the current quiz with the new audio path (we need to reload quiz to get the updated audio path)
@@ -425,10 +520,10 @@
             }
         }
 
-        // Handle question images upload after the quiz is saved
+        // Handle question images and audio upload after the quiz is saved
         if (_quiz.Id != Guid.Empty)
         {
-            AppState.ShowLoader("Uploading question images...");
+            AppState.ShowLoader("Uploading question media...");
             try
             {
                 // Reload the quiz to get the actual question IDs after saving
@@ -438,15 +533,15 @@
                     foreach (var question in updatedQuiz.Questions)
                     {
                         // Find the corresponding question in the original list to get its image file
-                        var originalQuestion = _quiz.Questions.FirstOrDefault(q => 
-                            q.Text == question.Text && 
+                        var originalQuestion = _quiz.Questions.FirstOrDefault(q =>
+                            q.Text == question.Text &&
                             (q.Id == question.Id || q.Id == 0) // Match by ID if available, or by text if it's new
                         );
-                        
+
                         if (originalQuestion != null && _questionImageFiles.ContainsKey(originalQuestion) && _questionImageFiles[originalQuestion] != null)
                         {
                             var questionImageFile = _questionImageFiles[originalQuestion];
-                            
+
                             // Upload the image for this question if there's an image file
                             if (questionImageFile != null)
                             {
@@ -457,12 +552,12 @@
                                 }
                             }
                         }
-                        
+
                         // Handle audio file upload for this question
                         if (originalQuestion != null && _questionAudioFiles.ContainsKey(originalQuestion) && _questionAudioFiles[originalQuestion] != null)
                         {
                             var questionAudioFile = _questionAudioFiles[originalQuestion];
-                            
+
                             // Upload the audio for this question if there's an audio file
                             if (questionAudioFile != null)
                             {
@@ -474,7 +569,7 @@
                             }
                         }
                     }
-                    
+
                     // Now reload the quiz again to get the updated image and audio paths
                     var quizWithMedia = await QuizApi.GetQuizToEditAsync(_quiz.Id);
                     if (quizWithMedia != null)
@@ -520,12 +615,12 @@
         // }
     }
 
-    private async Task ShowAlertAsync(string message, string title = "Error") => 
+    private async Task ShowAlertAsync(string message, string title = "Error") =>
         await JsRuntime.InvokeVoidAsync("alert", $"{title}\n{message}");
-    
-    private async Task<bool> ShowConfirmAsync(string message) => 
+
+    private async Task<bool> ShowConfirmAsync(string message) =>
         await JsRuntime.InvokeAsync<bool>("confirm", message);
-    
+
     private async Task DeleteQuestionAsync(QuestionDto question)
     {
         bool confirmed = await ShowConfirmAsync("Are you sure you want to delete this question?");
@@ -537,109 +632,24 @@
         }
     }
 
-    private void RemoveTextAnswer(QuestionDto question, int index)
+    private void AddNewQuestion()
     {
-        if (question.TextAnswers != null && index >= 0 && index < question.TextAnswers.Count)
-        {
-            question.TextAnswers.RemoveAt(index);
-            StateHasChanged();
-        }
-    }
-
-    private async Task RemoveImageAsync()
-    {
-        if (_quiz.Id == Guid.Empty || string.IsNullOrEmpty(_quiz.ImagePath)) return;
-
-        var result = await QuizImageService.RemoveQuizImageAsync(_quiz.Id);
-        if (result.IsSuccess)
-        {
-            _quiz.ImagePath = null;
-        }
-    }
-
-    // Dictionary to keep track of image files for each question
-    private Dictionary<QuestionDto, IBrowserFile?> _questionImageFiles = new Dictionary<QuestionDto, IBrowserFile?>();
-
-    // Dictionary to keep track of audio files for each question
-    private Dictionary<QuestionDto, IBrowserFile?> _questionAudioFiles = new Dictionary<QuestionDto, IBrowserFile?>();
-
-    private IBrowserFile? GetQuestionImageFile(QuestionDto question)
-    {
-        if (!_questionImageFiles.ContainsKey(question))
-        {
-            _questionImageFiles[question] = null;
-        }
-        return _questionImageFiles[question];
-    }
-
-    private IBrowserFile? GetQuestionAudioFile(QuestionDto question)
-    {
-        if (!_questionAudioFiles.ContainsKey(question))
-        {
-            _questionAudioFiles[question] = null;
-        }
-        return _questionAudioFiles[question];
-    }
-
-    private async Task OnQuestionImageFileChanged(QuestionDto question, IBrowserFile? file)
-    {
-        _questionImageFiles[question] = file;
+        _quiz.Questions.Add(GetDefaultEmptyQuestion());
+        // Update TotalQuestions to reflect the actual count
+        _quiz.TotalQuestions = _quiz.Questions.Count;
         StateHasChanged();
     }
 
-    private async Task OnQuestionAudioFileChanged(QuestionDto question, IBrowserFile? file)
+    private void SelectOption(QuestionDto question, OptionDto option)
     {
-        _questionAudioFiles[question] = file;
-        StateHasChanged();
-    }
-
-    private async Task RemoveQuestionImageAsync(QuestionDto question)
-    {
-        if (question.Id == 0 || string.IsNullOrEmpty(question.ImagePath)) return;
-
-        var result = await QuestionImageService.RemoveQuestionImageAsync(question.Id);
-        if (result.IsSuccess)
+        // Toggle selection: if the same option is clicked again, deselect it
+        if (_selectedOption == option)
         {
-            question.ImagePath = null;
-        }
-    }
-
-    private async Task OnImageFileChanged(IBrowserFile? file)
-    {
-        _selectedImageFile = file;
-        StateHasChanged();
-    }
-        
-
-    private void OnQuestionTypeChanged(QuestionDto question)
-    {
-        // When changing question type, ensure proper initialization
-        if (question.IsTextAnswer)
-        {
-            // Clear options when switching to text answer
-            question.Options.Clear();
+            _selectedOption = null;
         }
         else
         {
-            // Initialize with at least 2 options when switching back to multiple choice
-            if (question.Options.Count == 0)
-            {
-                question.Options.Add(new OptionDto());
-                question.Options.Add(new OptionDto());
-            }
-        }
-        StateHasChanged();
-    }
-
-    private void OnCategorySelectionChanged(int categoryId)
-    {
-        if (!_quiz.CategoryIds.Contains(categoryId))
-        {
-            _quiz.CategoryIds.Add(categoryId);
-        }
-        else
-        {
-            _quiz.CategoryIds.Remove(categoryId);
+            _selectedOption = option;
         }
         StateHasChanged();
     }
@@ -647,44 +657,156 @@
     private void RemoveCategory(int categoryId)
     {
         _quiz.CategoryIds.Remove(categoryId);
+    }
+
+    private void OnCategorySelectionChanged(int categoryId)
+    {
+        if (_quiz.CategoryIds.Contains(categoryId))
+        {
+            _quiz.CategoryIds.Remove(categoryId);
+        }
+        else
+        {
+            _quiz.CategoryIds.Add(categoryId);
+        }
+    }
+
+    private async Task RemoveImageAsync()
+    {
+        if (_quiz.Id == Guid.Empty)
+        {
+            // If the quiz hasn't been saved yet, just clear the local property
+            _quiz.ImagePath = null;
+            _selectedImageFile = null;
+        }
+        else
+        {
+            // If the quiz has been saved, call the API to remove the image
+            var result = await QuizImageService.RemoveQuizImageAsync(_quiz.Id);
+            if (result.IsSuccess)
+            {
+                _quiz.ImagePath = null;
+            }
+            else
+            {
+                await ShowAlertAsync("Failed to remove image: " + result.ErrorMessage);
+            }
+        }
+    }
+
+    private void OnImageFileChanged(IBrowserFile file)
+    {
+        _selectedImageFile = file;
+    }
+
+    private IBrowserFile? GetQuestionImageFile(QuestionDto question)
+    {
+        if (_questionImageFiles.ContainsKey(question))
+        {
+            return _questionImageFiles[question];
+        }
+        return null;
+    }
+
+    private IBrowserFile? GetQuestionAudioFile(QuestionDto question)
+    {
+        if (_questionAudioFiles.ContainsKey(question))
+        {
+            return _questionAudioFiles[question];
+        }
+        return null;
+    }
+
+    private async Task OnQuestionImageFileChanged(QuestionDto question, IBrowserFile file)
+    {
+        _questionImageFiles[question] = file;
         StateHasChanged();
+    }
+
+    private async Task RemoveQuestionImageAsync(QuestionDto question)
+    {
+        if (question.Id == 0) // New question, not saved yet
+        {
+            question.ImagePath = null;
+            if (_questionImageFiles.ContainsKey(question))
+            {
+                _questionImageFiles.Remove(question);
+            }
+        }
+        else // Saved question
+        {
+            var result = await QuestionImageService.RemoveQuestionImageAsync(question.Id);
+            if (result.IsSuccess)
+            {
+                question.ImagePath = null;
+            }
+            else
+            {
+                await ShowAlertAsync("Failed to remove image: " + result.ErrorMessage);
+            }
+        }
+    }
+
+    private async Task RemoveQuestionAudioAsync(QuestionDto question)
+    {
+        if (question.Id == 0) // New question, not saved yet
+        {
+            question.AudioPath = null;
+            if (_questionAudioFiles.ContainsKey(question))
+            {
+                _questionAudioFiles.Remove(question);
+            }
+        }
+        else // Saved question
+        {
+            var result = await QuestionAudioService.RemoveQuestionAudioAsync(question.Id);
+            if (result.IsSuccess)
+            {
+                question.AudioPath = null;
+            }
+            else
+            {
+                await ShowAlertAsync("Failed to remove audio: " + result.ErrorMessage);
+            }
+        }
     }
 
     private void AddOptionToQuestion(QuestionDto question)
     {
         question.Options.Add(new OptionDto());
-        StateHasChanged();
     }
 
-    private async Task OnAudioFileChanged(IBrowserFile? file)
+    private void OnQuestionTypeChanged(QuestionDto question)
     {
-        _selectedAudioFile = file;
-        StateHasChanged();
-    }
-
-    private async Task RemoveAudioAsync()
-    {
-        if (_quiz.Id == Guid.Empty || string.IsNullOrEmpty(_quiz.AudioPath)) return;
-
-        var result = await QuizAudioService.RemoveQuizAudioAsync(_quiz.Id);
-        if (result.IsSuccess)
+        if (question.IsTextAnswer)
         {
-            _quiz.AudioPath = null;
+            // Clear options when switching to text answer
+            question.Options.Clear();
         }
-        StateHasChanged();
-    }
-
-    private async Task RemoveQuestionAudioAsync(QuestionDto question)
-    {
-        if (question.Id == 0 || string.IsNullOrEmpty(question.AudioPath)) return;
-
-        var result = await QuestionAudioService.RemoveQuestionAudioAsync(question.Id);
-        if (result.IsSuccess)
+        else
         {
-            question.AudioPath = null;
+            // Clear text answers when switching to multiple choice
+            question.TextAnswers.Clear();
         }
-        StateHasChanged();
     }
 
+    private Dictionary<QuestionDto, IBrowserFile?> _questionImageFiles = new();
+    private Dictionary<QuestionDto, IBrowserFile?> _questionAudioFiles = new();
 
+    private void GoToCard(int index)
+    {
+        CurrentCardIndex = index;
+    }
+
+    private void GoToPrevCard()
+    {
+        if (CurrentCardIndex > 0)
+            CurrentCardIndex--;
+    }
+
+    private void GoToNextCard()
+    {
+        if (CurrentCardIndex < TotalCards - 1)
+            CurrentCardIndex++;
+    }
 }
