@@ -16,24 +16,33 @@
 
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-12 position-relative">
-            <button type="button" class="btn btn-3d-leave-room btn-3d-secondary btn-sm position-absolute start-0" style="top: -50px; z-index: 10;" @onclick="LeaveRoom">
-                <span class="material-symbols-outlined me-1">logout</span>Leave Room
-            </button>
+        <div class="col-md-12">
             <div class="hanging-container mb-4">
                 <div class="hanging-content">
-                    <h3>Room: @room?.Name</h3>
+                    <h5 class="room-name-text">Room: @room?.Name</h5>
                 </div>
                 <div class="rope left-rope"></div>
                 <div class="rope right-rope"></div>
             </div>
+            <!-- Leave Room button shown below the hanging container on mobile -->
+            <div class="d-flex justify-content-start d-md-none mb-3">
+                <button type="button" class="btn btn-3d btn-3d-secondary btn-sm d-flex align-items-center justify-content-center" @onclick="LeaveRoom">
+                    <span class="material-symbols-outlined me-1">logout</span><span>Leave Room</span>
+                </button>
+            </div>
+            <!-- Leave Room button for desktop view (original position) -->
+            <div class="d-none d-md-block position-relative">
+                <button type="button" class="btn btn-3d btn-3d-secondary btn-sm position-absolute start-0 d-flex align-items-center justify-content-center" style="top: -100px; z-index: 10;" @onclick="LeaveRoom">
+                    <span class="material-symbols-outlined me-1">logout</span><span>Leave Room</span>
+                </button>
+            </div>
 
             <div class="row mb-4">
-                <div class="col-md-4 mb-3">
+                <div class="col-lg-4 col-md-4 col-sm-4 col-4 mb-3">
                     <div class="card card-3d-raised card-light h-100">
                         <div class="card-body text-center">
                             <h5 class="card-title">Room Code</h5>
-                            <p class="card-text display-6 fw-bold text-primary">@room?.Code</p>
+                            <p class="card-text display-6 fw-bold text-primary room-code-text">@room?.Code</p>
                             <div class="d-flex justify-content-center">
                                 <button type="button" class="btn btn-3d btn-3d-primary btn-sm btn-press-down d-flex align-items-center justify-content-center" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.875rem;" @onclick="CopyRoomCode">
                                     <span class="material-symbols-outlined me-1" style="font-size: 1rem;">content_copy</span>Copy
@@ -43,19 +52,19 @@
                     </div>
                 </div>
 
-                <div class="col-md-4 mb-3">
+                <div class="col-lg-4 col-md-4 col-sm-4 col-4 mb-3">
                     <div class="card card-3d-raised card-light h-100">
                         <div class="card-body text-center">
                             <h5 class="card-title">Room Player</h5>
                             <span class="material-symbols-outlined display-1 text-success mb-2 icon-person">person_play</span>
-                            <p class="card-text display-5 fw-bold text-success mb-0">
+                            <p class="card-text display-5 fw-bold text-success mb-0 room-player-text">
                                 @participants.Length/@room?.MaxParticipants
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-4 mb-3">
+                <div class="col-lg-4 col-md-4 col-sm-4 col-4 mb-3">
                     <div class="card card-3d-raised card-light h-100">
                         <div class="card-body text-center">
                             <h5 class="card-title">Host</h5>
@@ -69,8 +78,9 @@
                                     <img src="https://b861mvjb-7048.asse.devtunnels.ms/images/user-avatars/default-avatar.svg" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;" alt="Host Avatar" />
                                 }
                             </div>
-                            <div class="card-text"><strong>@room?.CreatedByName</strong></div>
-                            <small class="text-muted">Created on @room?.CreatedAt.ToString("MMM dd, yyyy")</small>
+                            <div class="card-text host-name-text"><strong>@room?.CreatedByName</strong></div>
+                            <small class="text-muted d-none d-sm-block">Created on @room?.CreatedAt.ToString("MMM dd, yyyy")</small>
+                            <small class="text-muted d-block d-sm-none">@room?.CreatedAt.ToString("MMM dd, yyyy")</small>
                         </div>
                     </div>
                 </div>
@@ -181,8 +191,8 @@
                                 {
                                     var currentUser = participants.FirstOrDefault(p => p.UserId == QuizAuthStateProvider.User.Id);
                                     <div class="d-flex justify-content-center">
-                                        <button type="button" class="btn btn-primary btn-lg" @onclick="ToggleReadyStatus">
-                                            <span class="material-symbols-outlined me-1">check_circle</span> @(currentUser?.IsReady == true ? "Not Ready" : "Ready")
+                                        <button type="button" class="btn btn-3d btn-3d-primary btn-lg d-flex align-items-center" @onclick="ToggleReadyStatus">
+                                            <span class="material-symbols-outlined me-1">check_circle</span><span>@(currentUser?.IsReady == true ? "Not Ready" : "Ready")</span>
                                         </button>
                                     </div>
                                 }
@@ -202,8 +212,8 @@
                                 if (isHost)
                                 {
                                     <div class="d-flex flex-column align-items-center mb-3">
-                                        <button type="button" class="btn btn-success btn-lg mb-2" @onclick="StartRoom" disabled="@(room.StartedAt.HasValue || participants.Length < 2 || !AreAllParticipantsReady())">
-                                            <span class="material-symbols-outlined me-1">play_circle</span> @(room.StartedAt.HasValue ? "Room Started" : "Start Room")
+                                        <button type="button" class="btn btn-3d btn-3d-success btn-lg mb-2 d-flex align-items-center justify-content-center" @onclick="StartRoom" disabled="@(room.StartedAt.HasValue || participants.Length < 2 || !AreAllParticipantsReady())">
+                                            <span class="material-symbols-outlined me-1">play_circle</span><span>@(room.StartedAt.HasValue ? "Room Started" : "Start Room")</span>
                                         </button>
                                         @if (participants.Length < 2)
                                         {
@@ -219,8 +229,8 @@
                                 {
                                     var currentUser = participants.FirstOrDefault(p => p.UserId == QuizAuthStateProvider.User.Id);
                                     <div class="d-flex justify-content-center mb-3">
-                                        <button type="button" class="btn btn-primary btn-lg" @onclick="ToggleReadyStatus">
-                                            <span class="material-symbols-outlined me-1">check_circle</span> @(currentUser?.IsReady == true ? "Not Ready" : "Ready")
+                                        <button type="button" class="btn btn-3d btn-3d-primary btn-lg d-flex align-items-center" @onclick="ToggleReadyStatus">
+                                            <span class="material-symbols-outlined me-1">check_circle</span><span>@(currentUser?.IsReady == true ? "Not Ready" : "Ready")</span>
                                         </button>
                                     </div>
                                 }
@@ -240,7 +250,7 @@
                                         var isHost = room?.CreatedBy == participant.UserId;
                                         var isReady = participant.IsReady;
                                         var isCurrentUserHost = room?.CreatedBy == QuizAuthStateProvider.User.Id;
-                                        <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 mb-4">
+                                        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-6 mb-4">
                                             <div class="card h-100 @(isHost ? "border border-2 border-warning" : "") @(isReady && !isHost ? "border border-2 border-success" : "")" style="@(isHost ? "position: relative;" : "")">
                                                 @if (isHost)
                                                 {
