@@ -34,8 +34,8 @@
                         <!-- Left side: Quiz Title, Name, and Image -->
                         <div class="col-md-6 border-end">
                             <div class="mb-3">
-                                <label class="form-label">Name</label>
-                                <InputText @bind-Value="_quiz.Name" class="form-control"></InputText>
+                                <label for="quizName" class="form-label">Name</label>
+                                <input id="quizName" class="form-control form-control-centered" @bind="_quiz.Name" placeholder="Enter quiz name" style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
                                 <ValidationMessage For="() => _quiz.Name" />
                             </div>
                             <div class="mb-3">
@@ -61,8 +61,8 @@
                         <!-- Right side: Remaining Information -->
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Description</label>
-                                <InputText @bind-Value="_quiz.Description" class="form-control" placeholder="Enter a description for the quiz"></InputText>
+                                <label for="quizDescription" class="form-label">Description</label>
+                                <input id="quizDescription" class="form-control form-control-centered" @bind="_quiz.Description" placeholder="Enter a description for the quiz" style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
                             </div>
                             <div class="row">
                                 <div class="col-sm-12">
@@ -112,33 +112,33 @@
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Level</label>
-                                        <InputSelect @bind-Value="_quiz.Level" class="form-control">
+                                        <label for="quizLevel" class="form-label">Level</label>
+                                        <select id="quizLevel" class="form-control form-control-centered" @bind="_quiz.Level" style="font-size: 1.1rem; letter-spacing: 0.1rem;">
                                             <option value="">Select level</option>
                                             <option value="@BlazingQuiz.Shared.Enums.QuizLevel.Easy">@BlazingQuiz.Shared.Enums.QuizLevel.Easy</option>
                                             <option value="@BlazingQuiz.Shared.Enums.QuizLevel.Normal">@BlazingQuiz.Shared.Enums.QuizLevel.Normal</option>
                                             <option value="@BlazingQuiz.Shared.Enums.QuizLevel.Hard">@BlazingQuiz.Shared.Enums.QuizLevel.Hard</option>
-                                        </InputSelect>
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Total Questions</label>
-                                        <InputNumber @bind-Value="_quiz.TotalQuestions" class="form-control" readonly></InputNumber>
+                                        <label for="totalQuestions" class="form-label">Total Questions</label>
+                                        <input id="totalQuestions" type="number" class="form-control form-control-centered" value="@_quiz.Questions.Count" readonly style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
                                         <ValidationMessage For="() => _quiz.TotalQuestions" />
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Time (in minutes)</label>
-                                        <InputNumber @bind-Value="_quiz.TimeInMinutes" class="form-control"></InputNumber>
+                                        <label for="timeInMinutes" class="form-label">Time (in minutes)</label>
+                                        <input id="timeInMinutes" type="number" class="form-control form-control-centered" @bind="_quiz.TimeInMinutes" min="0" style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
                                         <ValidationMessage For="() => _quiz.TimeInMinutes" />
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="mb-3">
-                                        <div class="form-check form-switch">
-                                            <InputCheckbox @bind-Value="_quiz.IsActive" class="form-check-input" type="checkbox" role="switch" id="quizIsActive" />
+                                        <div class="form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="quizIsActive" @bind="_quiz.IsActive" />
                                             <label class="form-check-label" for="quizIsActive">Is Active?</label>
                                         </div>
                                     </div>
@@ -209,7 +209,7 @@
                         <!-- Answer Explanation Section -->
                         <div class="mb-3">
                             <label class="form-label">Answer Explanation</label>
-                            <InputText @bind-Value="question.AnswerExplanation" class="form-control" placeholder="Enter explanation for the correct answer"></InputText>
+                            <input type="text" class="form-control form-control-centered" @bind="question.AnswerExplanation" placeholder="Enter explanation for the correct answer" style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
                         </div>
 
                         <!-- Question Audio Upload Section -->
@@ -352,11 +352,15 @@
                 return;
             }
             _quiz = quiz;
+            // Update TotalQuestions to reflect the actual count
+            _quiz.TotalQuestions = _quiz.Questions.Count;
         }
         else
         {
             var question = GetDefaultEmptyQuestion();
             _quiz.Questions = [question];
+            // Update TotalQuestions to reflect the actual count
+            _quiz.TotalQuestions = _quiz.Questions.Count;
         }
     }
 
@@ -367,6 +371,8 @@
             //We are in EditMode, and we clicked on Add new Quiz on the left nav menu
             _quiz = new();
             _quiz.Questions = [GetDefaultEmptyQuestion()];
+            // Update TotalQuestions to reflect the actual count
+            _quiz.TotalQuestions = _quiz.Questions.Count;
             CurrentCardIndex = 0; // Reset to first card
         }
     }
@@ -596,6 +602,8 @@
     private void AddNewQuestion()
     {
         _quiz.Questions.Add(GetDefaultEmptyQuestion());
+        // Update TotalQuestions to reflect the actual count
+        _quiz.TotalQuestions = _quiz.Questions.Count;
         StateHasChanged();
     }
 

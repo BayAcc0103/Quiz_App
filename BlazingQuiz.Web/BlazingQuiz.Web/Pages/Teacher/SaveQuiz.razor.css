@@ -67,6 +67,29 @@
     transform: perspective(500px) translateY(4px) !important; /* Move down like card on hover */
 }
 
+/* Matching Create Room input styling */
+.form-control-lg {
+    border: 3px solid #000 !important;
+    border-radius: 50px !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff;
+    font-size: 1.5rem !important;
+    letter-spacing: 0.3rem !important;
+    text-align: center !important;
+    transition: all 0.3s ease;
+}
+
+.form-control-centered {
+    border: 3px solid #000 !important;
+    border-radius: 12px !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff;
+    font-size: 1.1rem !important;
+    letter-spacing: 0.1rem !important;
+    text-align: center !important;
+    transition: all 0.3s ease;
+}
+
 /* InputSelect component styling */
 select.form-control {
     border: 3px solid #000 !important;
