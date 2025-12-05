@@ -1,5 +1,5 @@
 <!-- Modal -->
-<div class="modal fade show" id="exampleModalLive" tabindex="-1" aria-labelledby="exampleModalLiveLabel" aria-modal="true" role="dialog" style="display: block;">
+<div class="modal fade show" id="exampleModalLive" tabindex="-1" aria-labelledby="exampleModalLiveLabel" aria-modal="true" role="dialog" style="display: block; z-index: 1050;">
     <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered @SizeClass">
         <div class="modal-content">
             <div class="modal-header">
@@ -9,14 +9,23 @@
             <div class="modal-body">
                 @ChildContent
             </div>
-            <div class="modal-footer d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @onclick="OnCancelClick">@CancelText</button>
-                <button type="button" class="btn btn-primary" @onclick="OnActionButtonClick">@ActionButtonText</button>
-            </div>
+            @if (!string.IsNullOrEmpty(ActionButtonText) || !string.IsNullOrEmpty(CancelText))
+            {
+                <div class="modal-footer d-flex justify-content-between">
+                    @if (!string.IsNullOrEmpty(CancelText))
+                    {
+                        <button type="button" class="btn btn-3d btn-3d-secondary btn-sm" data-bs-dismiss="modal" @onclick="OnCancelClick">@CancelText</button>
+                    }
+                    @if (!string.IsNullOrEmpty(ActionButtonText))
+                    {
+                        <button type="button" class="btn btn-3d btn-3d-primary btn-sm" @onclick="OnActionButtonClick">@ActionButtonText</button>
+                    }
+                </div>
+            }
         </div>
     </div>
 </div>
-<div class="modal-backdrop fade show"></div>
+<div class="modal-backdrop fade show" style="z-index: 1040;"></div>
 
 @code{
     [Parameter, EditorRequired]

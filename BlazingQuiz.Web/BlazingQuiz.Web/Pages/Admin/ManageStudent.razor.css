@@ -288,3 +288,30 @@
     transform: perspective(500px) translateY(2px) !important;
     box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 1px 2px rgba(0, 0, 0, 0.3) !important;
 }
+
+/* User Details Modal Styling */
+.user-details-content {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.user-details-content .table {
+    margin: 15px auto 0 auto;
+    max-width: 400px;
+}
+
+.user-details-content .table td {
+    padding: 8px 0;
+    vertical-align: middle;
+}
+
+.user-details-content .table td:first-child {
+    padding-right: 15px;
+}
+
+.user-details-content .badge {
+    font-size: 0.875em;
+}
+

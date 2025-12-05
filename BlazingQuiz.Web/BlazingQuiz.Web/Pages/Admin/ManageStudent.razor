@@ -143,6 +143,74 @@
             }
         </div>
     </div>
+
+    <!-- User Details Modal -->
+    @if (_showUserDetailsModal && _selectedUser != null)
+    {
+        <Modal Title="User Details"
+               OnCancelClick="CloseUserDetailsModal"
+               OnActionButtonClick="() => ToggleIsApproved(_selectedUser, !_selectedUser.IsApproved)"
+               ActionButtonText="@(_selectedUser.IsApproved ? "Unapprove User" : "Approve User")"
+               CancelText="Close"
+               Size="ModalSize.Large">
+            <div class="user-details-content d-flex flex-column align-items-center">
+                <div class="d-flex align-items-center mb-4">
+                    <!-- User Avatar -->
+                    <div class="me-3">
+                        @if (!string.IsNullOrEmpty(_selectedUser.AvatarPath))
+                        {
+                            <img src="@GetUserAvatarUrl(_selectedUser.AvatarPath)"
+                                 class="rounded-circle"
+                                 alt="@_selectedUser.Name"
+                                 style="width: 80px; height: 80px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="user-placeholder rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width: 80px; height: 80px; background-color: #dee2e6;">
+                                <span class="text-muted">@GetInitials(_selectedUser.Name)</span>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- User Name -->
+                    <div>
+                        <h4 class="mb-1">@_selectedUser.Name</h4>
+                        <div class="badge @(GetApprovalBadgeClass())">@(_selectedUser.IsApproved ? "Approved" : "Pending Approval")</div>
+                    </div>
+                </div>
+
+                <!-- User Information Table -->
+                <table class="table table-borderless text-center" style="max-width: 400px;">
+                    <tbody>
+                        <tr>
+                            <td class="fw-bold" style="width: 40%;">Email:</td>
+                            <td class="text-start">@(_selectedUser.Email ?? "N/A")</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold" style="width: 40%;">Phone:</td>
+                            <td class="text-start">@(_selectedUser.Phone ?? "N/A")</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold" style="width: 40%;">Role:</td>
+                            <td class="text-start"><span class="badge bg-info">@_selectedUser.Role</span></td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold" style="width: 40%;">Status:</td>
+                            <td class="text-start">
+                                <span class="@(GetApprovalBadgeClass())">@(_selectedUser.IsApproved ? "Active" : "Inactive")</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold" style="width: 40%;">Account ID:</td>
+                            <td class="text-start">@_selectedUser.Id</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+        </Modal>
+    }
 </div>
 
 @code {
@@ -211,33 +279,42 @@
         AppState.HideLoader();
     }
 
-    private async Task ToggleIsApproved(UserDto user, object? value)
+    private async Task ToggleIsApproved(UserDto user, object? value = null)
     {
-        if (value is bool isApproved)
+        try
         {
-            try
-            {
-                _isBusy = true;
-                AppState.ShowLoader("Updating student approval status...");
+            _isBusy = true;
+            AppState.ShowLoader("Updating student approval status...");
 
-                // Save the updated user approval status
-                await UserApi.ToggleUserApprovedStatusAsync(user.Id);
+            // Determine the new status - if value is provided (from checkbox), use it; otherwise toggle
+            bool targetStatus;
+            if (value is bool boolValue)
+            {
+                targetStatus = boolValue;
+            }
+            else
+            {
+                // If no value provided, toggle the current status (for modal button clicks)
+                targetStatus = !user.IsApproved;
+            }
 
-                // Update the local copy after successful API call
-                user.IsApproved = isApproved;
-            }
-            catch (Exception ex)
-            {
-                _errorMessage = $"Error updating student approval status: {ex.Message}";
-                // Revert the change if there's an exception
-                user.IsApproved = !isApproved;
-            }
-            finally
-            {
-                _isBusy = false;
-                AppState.HideLoader();
-                StateHasChanged();
-            }
+            // Save the updated user approval status
+            await UserApi.ToggleUserApprovedStatusAsync(user.Id);
+
+            // Update the local copy after successful API call
+            user.IsApproved = targetStatus;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error updating student approval status: {ex.Message}";
+            // Revert the change if there's an exception
+            user.IsApproved = !user.IsApproved;
+        }
+        finally
+        {
+            _isBusy = false;
+            AppState.HideLoader();
+            StateHasChanged();
         }
     }
 
@@ -279,10 +356,25 @@
         }
     }
 
+    private UserDto? _selectedUser;
+    private bool _showUserDetailsModal = false;
+
     private async Task ViewUserDetails(UserDto user)
     {
-        // For now, just show an alert with user details
-        await JSRuntime.InvokeVoidAsync("alert",
-            $"User Details:\nName: {user.Name}\nEmail: {user.Email}\nPhone: {user.Phone}\nRole: {user.Role}\nApproved: {(user.IsApproved ? "Yes" : "No")}");
+        _selectedUser = user;
+        _showUserDetailsModal = true;
+        StateHasChanged();
+    }
+
+    private void CloseUserDetailsModal()
+    {
+        _showUserDetailsModal = false;
+        _selectedUser = null;
+        StateHasChanged();
+    }
+
+    private string GetApprovalBadgeClass()
+    {
+        return _selectedUser?.IsApproved == true ? "badge bg-success" : "badge bg-warning";
     }
 }
