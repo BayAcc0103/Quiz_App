@@ -201,6 +201,17 @@
     transform: perspective(500px) translateY(4px) !important; /* Move down like card on hover */
 }
 
+/* Select element styling to match form-control */
+select.form-control {
+    appearance: none; /* Remove default dropdown arrow */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236c757d' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+    padding-right: 2.5rem !important;
+    padding-left: 1rem !important;
+}
+
 /* InputFile component styling to match Create Room */
 ::deep .form-control[type="file"] {
     border: 3px solid #000 !important;

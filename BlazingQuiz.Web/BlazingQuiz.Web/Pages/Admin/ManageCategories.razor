@@ -126,8 +126,9 @@
         </div>
 
         <div class="col-md-6">
-            <div class="d-flex justify-content-center align-items-start pt-4">
-                <div class="w-100 position-relative">
+            <div class="d-flex flex-column gap-3">
+                <!-- Search input -->
+                <div class="position-relative">
                     <input type="text"
                            class="form-control ps-4"
                            placeholder="Search categories by name..."
@@ -145,6 +146,16 @@
                             <i class="fas fa-times"></i>
                         </button>
                     }
+                </div>
+
+                <!-- Filter dropdown -->
+                <div>
+                    <label class="form-label">Filter by display status:</label>
+                    <select class="form-select form-control" @onchange="OnDisplayFilterChanged">
+                        <option value="">Show all categories</option>
+                        <option value="true">Show displayed categories only</option>
+                        <option value="false">Show hidden categories only</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -230,6 +241,7 @@
     private string? _errorMessage;
     private int _uploadProgress = 0;
     private string _searchTerm = string.Empty;
+    private string? _displayFilter = null; // null = all, "true" = displayed, "false" = hidden
 
     private int CurrentUserId { get; set; }
 
@@ -237,12 +249,35 @@
     {
         get
         {
-            if (string.IsNullOrWhiteSpace(_searchTerm))
-                return _categories;
+            var result = _categories.AsEnumerable();
 
-            return _categories.Where(c =>
-                c.Name.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)).ToArray();
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(_searchTerm))
+            {
+                result = result.Where(c =>
+                    c.Name.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Apply display status filter
+            if (!string.IsNullOrEmpty(_displayFilter))
+            {
+                if (_displayFilter == "true") // Show displayed categories only
+                {
+                    result = result.Where(c => c.IsDisplay);
+                }
+                else if (_displayFilter == "false") // Show hidden categories only
+                {
+                    result = result.Where(c => !c.IsDisplay);
+                }
+            }
+
+            return result.ToArray();
         }
+    }
+
+    private void OnDisplayFilterChanged(ChangeEventArgs e)
+    {
+        _displayFilter = e.Value?.ToString();
     }
 
     protected override async Task OnInitializedAsync()

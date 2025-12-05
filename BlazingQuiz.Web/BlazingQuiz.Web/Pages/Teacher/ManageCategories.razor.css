@@ -264,6 +264,10 @@
     box-shadow: -12px 12px 0px 2px rgba(0, 0, 0, 0.8), 0px 6px 12px rgba(0, 0, 0, 0.4) !important;
 }
 
+.form-check-input {
+    border: 3px solid #000 !important;
+    box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
 /* Edit button style (pencil icon) */
 .btn-edit-pencil {
     width: 30px;

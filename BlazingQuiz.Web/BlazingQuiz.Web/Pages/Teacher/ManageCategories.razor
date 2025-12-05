@@ -114,8 +114,8 @@
         </div>
 
         <div class="col-md-6">
-            <div class="d-flex justify-content-center align-items-start pt-4">
-                <div class="w-100 position-relative">
+            <div class="d-flex flex-column align-items-start pt-4">
+                <div class="w-100 position-relative mb-2">
                     <input type="text"
                            class="form-control ps-4"
                            placeholder="Search categories by name..."
@@ -133,6 +133,15 @@
                             <i class="fas fa-times"></i>
                         </button>
                     }
+                </div>
+                <div class="form-check mt-2">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           id="showMyCategoriesOnly"
+                           @bind="_showMyCategoriesOnly" />
+                    <label class="form-check-label" for="showMyCategoriesOnly">
+                        Show only my categories
+                    </label>
                 </div>
             </div>
         </div>
@@ -203,10 +212,21 @@
                     }
                 </div>
 
-                @if (FilteredCategories.Length == 0 && !string.IsNullOrEmpty(_searchTerm))
+                @if (FilteredCategories.Length == 0 && (!string.IsNullOrEmpty(_searchTerm) || _showMyCategoriesOnly))
                 {
                     <div class="text-center mt-4">
-                        <p class="text-muted">No categories found matching "@_searchTerm"</p>
+                        @if (!string.IsNullOrEmpty(_searchTerm) && _showMyCategoriesOnly)
+                        {
+                            <p class="text-muted">No categories created by you match "@_searchTerm"</p>
+                        }
+                        else if (!string.IsNullOrEmpty(_searchTerm))
+                        {
+                            <p class="text-muted">No categories found matching "@_searchTerm"</p>
+                        }
+                        else if (_showMyCategoriesOnly)
+                        {
+                            <p class="text-muted">You haven't created any categories yet</p>
+                        }
                     </div>
                 }
             }
@@ -222,6 +242,7 @@
     private string? _errorMessage;
     private int _uploadProgress = 0;
     private string _searchTerm = string.Empty;
+    private bool _showMyCategoriesOnly = false;
 
     private int CurrentUserId { get; set; }
 
@@ -229,11 +250,23 @@
     {
         get
         {
-            if (string.IsNullOrWhiteSpace(_searchTerm))
-                return _categories;
+            var filtered = _categories;
 
-            return _categories.Where(c =>
-                c.Name.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)).ToArray();
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(_searchTerm))
+            {
+                filtered = filtered.Where(c =>
+                    c.Name.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)).ToArray();
+            }
+
+            // Apply "my categories only" filter
+            if (_showMyCategoriesOnly)
+            {
+                filtered = filtered.Where(c =>
+                    c.CreatedBy.HasValue && c.CreatedBy == CurrentUserId).ToArray();
+            }
+
+            return filtered;
         }
     }
 
