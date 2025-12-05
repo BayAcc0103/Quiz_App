@@ -2,6 +2,7 @@
 @using BlazingQuiz.Shared
 @using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
+@using System.Linq
 @attribute [Authorize(Roles = nameof(UserRole.Teacher))]
 
 @inject ICategoryApi CategoryApi
@@ -28,85 +29,111 @@
         </div>
     </div>
 
-    <!-- Top section: Category form -->
+    <!-- Top section: Category form and Search -->
     <div class="row mb-4">
-        <div class="col-12 d-flex justify-content-center">
-            <div class="col-md-6 col-lg-4">
-                <EditForm Model="_category" OnValidSubmit="SaveCategoryAsync">
-                    <DataAnnotationsValidator/>
-                    <div class="card category-card-3d">
+        <div class="col-md-6">
+            <div class="d-flex justify-content-center">
+                <div class="w-100">
+                    <EditForm Model="_category" OnValidSubmit="SaveCategoryAsync">
+                        <DataAnnotationsValidator/>
+                        <div class="card category-card-3d">
 @*                         <div class="card-header">
                             <h4 class="m-0">Add/Edit Category</h4>
                         </div> *@
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label">
-                                    Category Name
-                                </label>
-                                <input @bind="_category.Name" class="form-control" placeholder="Enter category name" />
-                                <ValidationMessage For="() => _category.Name" />
-                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        Category Name
+                                    </label>
+                                    <input @bind="_category.Name" class="form-control" placeholder="Enter category name" />
+                                    <ValidationMessage For="() => _category.Name" />
+                                </div>
 
-                            <!-- Image Upload Section -->
-                            <div class="mb-3">
-                                <label class="form-label">Category Image</label>
-                                @if (!string.IsNullOrEmpty(_category.ImagePath) || _selectedImageFile != null)
-                                {
-                                    <div class="position-relative d-flex justify-content-center mb-2">
-                                        <img src="@GetImageSource()"
-                                             alt="Category Image" class="img-thumbnail category-image-preview" />
-                                        <button type="button" class="btn-remove-image" @onclick="RemoveImage" title="Remove image">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </div>
-                                }
-                                <div class="input-group">
-                                    <InputFile type="file" class="form-control" OnChange="OnImageFileChanged" accept="image/*" />
-                                    @if (_uploadProgress > 0)
+                                <!-- Image Upload Section -->
+                                <div class="mb-3">
+                                    <label class="form-label">Category Image</label>
+                                    @if (!string.IsNullOrEmpty(_category.ImagePath) || _selectedImageFile != null)
                                     {
-                                        <div class="mt-2 w-100">
-                                            <div class="progress">
-                                                <div class="progress-bar" role="progressbar" style="width: @_uploadProgress%"
-                                                     aria-valuenow="@_uploadProgress" aria-valuemin="0" aria-valuemax="100">
-                                                    @_uploadProgress%
+                                        <div class="position-relative d-flex justify-content-center mb-2">
+                                            <img src="@GetImageSource()"
+                                                 alt="Category Image" class="img-thumbnail category-image-preview" />
+                                            <button type="button" class="btn-remove-image" @onclick="RemoveImage" title="Remove image">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                    <div class="input-group">
+                                        <InputFile type="file" class="form-control" OnChange="OnImageFileChanged" accept="image/*" />
+                                        @if (_uploadProgress > 0)
+                                        {
+                                            <div class="mt-2 w-100">
+                                                <div class="progress">
+                                                    <div class="progress-bar" role="progressbar" style="width: @_uploadProgress%"
+                                                         aria-valuenow="@_uploadProgress" aria-valuemin="0" aria-valuemax="100">
+                                                        @_uploadProgress%
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        }
+                                    </div>
+                                </div>
+
+                                @if(_errorMessage != null)
+                                {
+                                    <div class="mb-3 border-danger border-1 d-flex justify-content-between gap-2 mt-3">
+                                        <p class="m-0">@_errorMessage</p>
+                                        <button type="button" class="btn btn-3d btn-3d-danger btn-sm" @onclick="() => _errorMessage = null">X</button>
+                                    </div>
+                                }
+
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    @if(!_isBusy)
+                                    {
+                                        <button type="button" class="btn btn-3d btn-3d-secondary btn-sm" @onclick="() => _category = new()" title="Cancel">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                        <button type="submit" class="btn btn-3d btn-3d-primary" title="Save">
+                                            <i class="fas fa-save"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-3d btn-3d-secondary btn-sm" disabled title="Cancel">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                        <button type="submit" class="btn btn-3d btn-3d-primary" disabled title="Saving...">
+                                            <i class="fas fa-save"></i> Saving...
+                                        </button>
                                     }
                                 </div>
                             </div>
-
-                            @if(_errorMessage != null)
-                            {
-                                <div class="mb-3 border-danger border-1 d-flex justify-content-between gap-2 mt-3">
-                                    <p class="m-0">@_errorMessage</p>
-                                    <button type="button" class="btn btn-3d btn-3d-danger btn-sm" @onclick="() => _errorMessage = null">X</button>
-                                </div>
-                            }
-
-                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                @if(!_isBusy)
-                                {
-                                    <button type="button" class="btn btn-3d btn-3d-secondary btn-sm" @onclick="() => _category = new()" title="Cancel">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                    <button type="submit" class="btn btn-3d btn-3d-primary" title="Save">
-                                        <i class="fas fa-save"></i>
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button type="button" class="btn btn-3d btn-3d-secondary btn-sm" disabled title="Cancel">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                    <button type="submit" class="btn btn-3d btn-3d-primary" disabled title="Saving...">
-                                        <i class="fas fa-save"></i> Saving...
-                                    </button>
-                                }
-                            </div>
                         </div>
-                    </div>
-                </EditForm>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="d-flex justify-content-center align-items-start pt-4">
+                <div class="w-100 position-relative">
+                    <input type="text"
+                           class="form-control ps-4"
+                           placeholder="Search categories by name..."
+                           @bind="_searchTerm"
+                           @bind:event="oninput" />
+                    <span class="position-absolute start-0 top-50 translate-middle-y ms-2">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    @if (!string.IsNullOrEmpty(_searchTerm))
+                    {
+                        <button class="position-absolute end-0 top-50 translate-middle-y me-2 btn btn-link p-0 text-decoration-none"
+                                type="button"
+                                style="border: none; background: none; color: #6c757d;"
+                                @onclick="() => { _searchTerm = string.Empty; }">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    }
+                </div>
             </div>
         </div>
     </div>
@@ -124,7 +151,7 @@
             else
             {
                 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 row-cols-xl-10 g-3">
-                    @foreach (var category in _categories)
+                    @foreach (var category in FilteredCategories)
                     {
                         <div class="col">
                             <div class="card h-100 category-card category-card-3d">
@@ -175,6 +202,13 @@
                         </div>
                     }
                 </div>
+
+                @if (FilteredCategories.Length == 0 && !string.IsNullOrEmpty(_searchTerm))
+                {
+                    <div class="text-center mt-4">
+                        <p class="text-muted">No categories found matching "@_searchTerm"</p>
+                    </div>
+                }
             }
         </div>
     </div>
@@ -187,8 +221,21 @@
     private bool _isBusy;
     private string? _errorMessage;
     private int _uploadProgress = 0;
+    private string _searchTerm = string.Empty;
 
     private int CurrentUserId { get; set; }
+
+    private CategoryDto[] FilteredCategories
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_searchTerm))
+                return _categories;
+
+            return _categories.Where(c =>
+                c.Name.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)).ToArray();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
