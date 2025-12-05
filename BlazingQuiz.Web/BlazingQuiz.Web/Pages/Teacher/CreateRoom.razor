@@ -35,7 +35,7 @@
     }
 }
 
-<div class="container mt-4">
+<div class="container">
     <div class="row justify-content-center">
         <div class="col-12">
             <!-- Hanging container with 2 ropes -->
@@ -112,45 +112,52 @@
                             {
                                 var quizDetails = availableQuizzes.First(q => q.Id == createRoomDto.QuizId.Value);
                                 <div class="selected-quiz-container">
-                                    <div class="quiz-image-container">
-                                        @if (!string.IsNullOrEmpty(quizDetails.ImagePath))
-                                        {
-                                            <img src="@QuizImageService.GetImageUrl(quizDetails.ImagePath)" alt="@quizDetails.Name" class="quiz-image" />
-                                        }
-                                        else
-                                        {
-                                            <div class="quiz-image-placeholder">
-                                                <i class="bi bi-card-checklist quiz-placeholder-icon"></i>
+                                    <div class="row">
+                                        <!-- Left side: Quiz name and image -->
+                                        <div class="col-md-6">
+                                            <div class="quiz-image-container">
+                                                @if (!string.IsNullOrEmpty(quizDetails.ImagePath))
+                                                {
+                                                    <img src="@QuizImageService.GetImageUrl(quizDetails.ImagePath)" alt="@quizDetails.Name" class="quiz-image" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="quiz-image-placeholder">
+                                                        <i class="bi bi-card-checklist quiz-placeholder-icon"></i>
+                                                    </div>
+                                                }
                                             </div>
-                                        }
-                                    </div>
-
-                                    <div class="quiz-title text-center mt-3">
-                                        <h5>@quizDetails.Name</h5>
-                                    </div>
-
-                                    <div class="quiz-details-grid mt-3">
-                                        <div class="quiz-detail-card">
-                                            <i class="bi bi-list-ol detail-icon"></i>
-                                            <div class="detail-text">
-                                                <span class="detail-value">@quizDetails.TotalQuestions</span>
-                                                <span class="detail-label">Questions</span>
+                                            <div class="quiz-title text-center mt-3">
+                                                <h5>@quizDetails.Name</h5>
                                             </div>
                                         </div>
 
-                                        <div class="quiz-detail-card">
-                                            <i class="bi bi-bar-chart detail-icon"></i>
-                                            <div class="detail-text">
-                                                <span class="detail-value">@quizDetails.Level</span>
-                                                <span class="detail-label">Level</span>
-                                            </div>
-                                        </div>
+                                        <!-- Right side: Quiz details in individual boxes aligned vertically -->
+                                        <div class="col-md-6">
+                                            <div class="quiz-details-vertical-container">
+                                                <div class="quiz-detail-card mb-2">
+                                                    <i class="bi bi-list-ol detail-icon"></i>
+                                                    <div class="detail-text">
+                                                        <span class="detail-value">@quizDetails.TotalQuestions</span>
+                                                        <span class="detail-label">Questions</span>
+                                                    </div>
+                                                </div>
 
-                                        <div class="quiz-detail-card">
-                                            <i class="bi bi-clock detail-icon"></i>
-                                            <div class="detail-text">
-                                                <span class="detail-value">@quizDetails.TimeInMinutes min</span>
-                                                <span class="detail-label">Time</span>
+                                                <div class="quiz-detail-card mb-2">
+                                                    <i class="bi bi-bar-chart detail-icon"></i>
+                                                    <div class="detail-text">
+                                                        <span class="detail-value">@quizDetails.Level</span>
+                                                        <span class="detail-label">Level</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="quiz-detail-card">
+                                                    <i class="bi bi-clock detail-icon"></i>
+                                                    <div class="detail-text">
+                                                        <span class="detail-value">@quizDetails.TimeInMinutes min</span>
+                                                        <span class="detail-label">Time</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -189,7 +196,7 @@
         <!-- Buttons centered below both containers -->
         <div class="row">
             <div class="col-12">
-                <div class="d-grid gap-2 d-flex justify-content-center">
+                <div class="mb-2 d-grid gap-2 d-flex justify-content-center">
                     <button type="submit" class="btn btn-3d btn-3d-primary" disabled="@isCreating" style="width: auto;">
                         @if (isCreating)
                         {
