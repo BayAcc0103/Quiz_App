@@ -1,73 +1,252 @@
 ﻿@page "/admin/manage-students"
+@using BlazingQuiz.Shared
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using System.Linq
+@attribute [Authorize(Roles = nameof(UserRole.Admin))]
+
 @inject IAdminApi UserApi
+@inject UserAvatarService UserAvatarService
 @inject IAppState AppState
+@inject IJSRuntime JSRuntime
+@inject HttpClient HttpClient
 
-<BackButton />
+<div class="container">
+    <!-- Hanging container with 2 ropes -->
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <!-- Hanging container with 2 ropes -->
+            <div class="hanging-container">
+                <div class="hanging-content">
+                    <h3>Manage Students</h3>
+                </div>
+                <!-- Ropes connecting hanging container to main card -->
+                <div class="rope left-rope"></div>
+                <div class="rope right-rope"></div>
+            </div>
+        </div>
+    </div>
+    <BackButton />
+    <!-- Top section: Search and Filter -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="d-flex flex-column gap-3">
+                <!-- Search input -->
+                <div class="position-relative">
+                    <input type="text"
+                           class="form-control ps-4"
+                           placeholder="Search students by name..."
+                           @bind="_searchTerm"
+                           @bind:event="oninput" />
+                    <span class="position-absolute start-0 top-50 translate-middle-y ms-2">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    @if (!string.IsNullOrEmpty(_searchTerm))
+                    {
+                        <button class="position-absolute end-0 top-50 translate-middle-y me-2 btn btn-link p-0 text-decoration-none"
+                                type="button"
+                                style="border: none; background: none; color: #6c757d;"
+                                @onclick="() => { _searchTerm = string.Empty; }">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
 
-<SectionContent SectionName="pageTitle">Manage Students</SectionContent>
+        <div class="col-md-6">
+            <div class="d-flex flex-column gap-3">
+                <!-- Filter dropdown -->
+                <div>
+                    <label class="form-label">Filter by approval status:</label>
+                    <select class="form-select form-control" @onchange="OnFilterChanged">
+                        <option value="">Show all students</option>
+                        <option value="true">Show approved students only</option>
+                        <option value="false">Show unapproved students only</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div class="row">
-    <div class="col-sm-4 ms-auto mb-3">
-        <label class="form-label">Filter by Approved Status</label>
-        <select class="form-control" @bind="_filter" @bind:after="OnFilterChangedAsync">
-            @foreach (var f in Enum.GetValues<UserApprovedFilter>())
+    <!-- Bottom section: Students grid -->
+    <div class="row">
+        <div class="col-12">
+            <h3>Students</h3>
+            @if(_users.Length == 0)
             {
-                <option value="@f">@f</option>
+                <div class="text-center">
+                    <p class="text-danger h5">No students available</p>
+                </div>
             }
-        </select>
+            else
+            {
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3">
+                    @foreach (var user in FilteredUsers)
+                    {
+                        <div class="col">
+                            <div class="card h-100 user-card user-card-3d">
+                                @if (!string.IsNullOrEmpty(user.AvatarPath))
+                                {
+                                    <img src="@GetUserAvatarUrl(user.AvatarPath)"
+                                         class="card-img-top user-avatar"
+                                         alt="@user.Name" />
+                                }
+                                else
+                                {
+                                    <div class="user-placeholder d-flex align-items-center justify-content-center">
+                                        <span class="text-muted">@GetInitials(user.Name)</span>
+                                    </div>
+                                }
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title text-center">@user.Name</h5>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                   id="approvedToggle_@user.Id"
+                                                   checked="@user.IsApproved"
+                                                   @onchange="async (e) => await ToggleIsApproved(user, e.Value)" />
+                                            <label class="form-check-label ms-1" for="approvedToggle_@user.Id">
+                                                @(user.IsApproved ? "Approved" : "Pending")
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @if (FilteredUsers.Length == 0 && !string.IsNullOrEmpty(_searchTerm))
+                {
+                    <div class="text-center mt-4">
+                        <p class="text-muted">No students found matching "@_searchTerm"</p>
+                    </div>
+                }
+            }
+        </div>
     </div>
 </div>
-<div class="row">
-    <QuickGrid ItemsProvider="_usersProvider" @ref="_grid" Pagination="_paginationState" Class="table table-striped table-hover">
-        <PropertyColumn Property="u => u.Id" />
-        <PropertyColumn Property="u => u.Name" />
-        <PropertyColumn Property="u => u.Email" />
-        <PropertyColumn Property="u => u.Phone" />
 
-        <TemplateColumn Title="Is Approved ?">
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" checked="@(context.IsApproved)" role="switch" id="u_@context.Id" @onchange="() => OnUserApprovedToggleAsync(context)" />
-                <label class="form-check-label" for="u_@context.Id">@(context.IsApproved ? "Yes" : "No")</label>
-            </div>
-        </TemplateColumn>
-    </QuickGrid>
-    <Paginator State="_paginationState" />
-</div>
 @code {
-    private const int DefaultPageSize = 10;
-    private QuickGrid<UserDto>? _grid;
-    private GridItemsProvider<UserDto> _usersProvider;
-    private UserApprovedFilter _filter = UserApprovedFilter.All;
-    private PaginationState _paginationState = new PaginationState{ItemsPerPage = DefaultPageSize};
+    private UserDto[] _users = [];
+    private bool _isBusy;
+    private string? _errorMessage;
+    private string _searchTerm = string.Empty;
+    private string? _approvalFilter = null; // null = all, "true" = approved, "false" = not approved
 
-    protected override void OnInitialized()
+    private UserDto[] FilteredUsers
     {
-        _usersProvider = async request =>
+        get
         {
-            AppState.ShowLoader("Loading students");
-            var pagedResult = await UserApi.GetUsersAsync(_filter, request.StartIndex, request.Count ?? DefaultPageSize);
-            AppState.HideLoader();
-            return GridItemsProviderResult.From(pagedResult.Records, pagedResult.TotalCount);
-        };
+            var result = _users.AsEnumerable();
+
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(_searchTerm))
+            {
+                result = result.Where(c =>
+                    c.Name.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Apply approval status filter
+            if (!string.IsNullOrEmpty(_approvalFilter))
+            {
+                if (_approvalFilter == "true") // Show approved students only
+                {
+                    result = result.Where(c => c.IsApproved);
+                }
+                else if (_approvalFilter == "false") // Show unapproved students only
+                {
+                    result = result.Where(c => !c.IsApproved);
+                }
+            }
+
+            return result.ToArray();
+        }
     }
-    private async Task OnUserApprovedToggleAsync(UserDto user)
+
+    private void OnFilterChanged(ChangeEventArgs e)
     {
-        user.IsApproved = !user.IsApproved;
-        _shouldReRender = false;
-        AppState.ShowLoader("Updating status...");
-        await UserApi.ToggleUserApprovedStatusAsync(user.Id);
-        _shouldReRender = true;
+        _approvalFilter = e.Value?.ToString();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsersAsync();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        AppState.ShowLoader("Loading students...");
+        _users = (await UserApi.GetUsersAsync(UserApprovedFilter.All, 0, 1000)).Records; // Get all users
         AppState.HideLoader();
     }
 
-    private bool _shouldReRender = true;
-    protected override bool ShouldRender()
+    private async Task ToggleIsApproved(UserDto user, object? value)
     {
-        return _shouldReRender;
+        if (value is bool isApproved)
+        {
+            try
+            {
+                _isBusy = true;
+                AppState.ShowLoader("Updating student approval status...");
+
+                // Save the updated user approval status
+                await UserApi.ToggleUserApprovedStatusAsync(user.Id);
+
+                // Update the local copy after successful API call
+                user.IsApproved = isApproved;
+            }
+            catch (Exception ex)
+            {
+                _errorMessage = $"Error updating student approval status: {ex.Message}";
+                // Revert the change if there's an exception
+                user.IsApproved = !isApproved;
+            }
+            finally
+            {
+                _isBusy = false;
+                AppState.HideLoader();
+                StateHasChanged();
+            }
+        }
     }
-    private async Task OnFilterChangedAsync()
+
+    private string GetInitials(string fullName)
     {
-        if(_grid != null)
-           await _grid.RefreshDataAsync();
+        if (string.IsNullOrWhiteSpace(fullName))
+            return "?";
+
+        var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+        {
+            return $"{parts[0][0]}{parts[parts.Length - 1][0]}".ToUpper();
+        }
+        else if (parts.Length == 1)
+        {
+            return $"{parts[0][0]}".ToUpper();
+        }
+        else
+        {
+            return "?";
+        }
+    }
+
+    private string GetUserAvatarUrl(string imagePath)
+    {
+        if (string.IsNullOrEmpty(imagePath))
+            return string.Empty;
+
+        // Construct the full URL using HttpClient BaseAddress
+        if (HttpClient.BaseAddress != null)
+        {
+            var baseUrl = HttpClient.BaseAddress.ToString().TrimEnd('/');
+            return $"{baseUrl}/{imagePath}";
+        }
+        else
+        {
+            // Fallback if BaseAddress is null
+            return $"https://localhost:7048/{imagePath}";
+        }
     }
 }
