@@ -18,7 +18,7 @@
             <!-- Hanging container with 2 ropes -->
             <div class="hanging-container">
                 <div class="hanging-content">
-                    <h3>Manage Students</h3>
+                    <h3>Manage Users</h3>
                 </div>
                 <!-- Ropes connecting hanging container to main card -->
                 <div class="rope left-rope"></div>
@@ -27,12 +27,12 @@
         </div>
     </div>
     <BackButton />
-    <!-- Top section: Search and Filter -->
+    <!-- Top section: Search and Filters -->
     <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="d-flex flex-column gap-3">
-                <!-- Search input -->
-                <div class="position-relative">
+        <div class="col-12">
+            <div class="d-flex flex-column align-items-center gap-3">
+                <!-- Search input - centered -->
+                <div class="position-relative w-50">
                     <input type="text"
                            class="form-control ps-4"
                            placeholder="Search students by name..."
@@ -51,19 +51,28 @@
                         </button>
                     }
                 </div>
-            </div>
-        </div>
 
-        <div class="col-md-6">
-            <div class="d-flex flex-column gap-3">
-                <!-- Filter dropdown -->
-                <div>
-                    <label class="form-label">Filter by approval status:</label>
-                    <select class="form-select form-control" @onchange="OnFilterChanged">
-                        <option value="">Show all students</option>
-                        <option value="true">Show approved students only</option>
-                        <option value="false">Show unapproved students only</option>
-                    </select>
+                <!-- Two filters in one row - side by side with equal width -->
+                <div class="d-flex flex-wrap justify-content-center gap-4 w-100">
+                    <!-- Filter dropdown - approval status -->
+                    <div class="d-flex flex-column align-items-center flex-fill" style="min-width: 200px;">
+                        <label class="form-label">Filter by approval status:</label>
+                        <select class="form-select form-control" @onchange="OnFilterChanged">
+                            <option value="">Show all users</option>
+                            <option value="true">Show approved users only</option>
+                            <option value="false">Show unapproved users only</option>
+                        </select>
+                    </div>
+
+                    <!-- Role filter - side by approval filter -->
+                    <div class="d-flex flex-column align-items-center flex-fill" style="min-width: 200px;">
+                        <label class="form-label">Filter by role:</label>
+                        <select class="form-select form-control" @onchange="OnRoleFilterChanged">
+                            <option value="">All roles</option>
+                            <option value="Student">Student</option>
+                            <option value="Teacher">Teacher</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
@@ -72,11 +81,11 @@
     <!-- Bottom section: Students grid -->
     <div class="row">
         <div class="col-12">
-            <h3>Students</h3>
+            <h3>Users</h3>
             @if(_users.Length == 0)
             {
                 <div class="text-center">
-                    <p class="text-danger h5">No students available</p>
+                    <p class="text-danger h5">No users available</p>
                 </div>
             }
             else
@@ -86,41 +95,49 @@
                     {
                         <div class="col">
                             <div class="card h-100 user-card user-card-3d">
-                                @if (!string.IsNullOrEmpty(user.AvatarPath))
-                                {
-                                    <img src="@GetUserAvatarUrl(user.AvatarPath)"
-                                         class="card-img-top user-avatar"
-                                         alt="@user.Name" />
-                                }
-                                else
-                                {
-                                    <div class="user-placeholder d-flex align-items-center justify-content-center">
-                                        <span class="text-muted">@GetInitials(user.Name)</span>
-                                    </div>
-                                }
-                                <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title text-center">@user.Name</h5>
-                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                <div class="avatar-container position-relative">
+                                    @if (!string.IsNullOrEmpty(user.AvatarPath))
+                                    {
+                                        <img src="@GetUserAvatarUrl(user.AvatarPath)"
+                                             class="user-avatar"
+                                             alt="@user.Name" />
+                                    }
+                                    else
+                                    {
+                                        <div class="user-placeholder d-flex align-items-center justify-content-center">
+                                            <span class="text-muted">@GetInitials(user.Name)</span>
+                                        </div>
+                                    }
+                                    <div class="avatar-overlay">
                                         <div class="form-check form-switch">
                                             <input class="form-check-input" type="checkbox" role="switch"
                                                    id="approvedToggle_@user.Id"
                                                    checked="@user.IsApproved"
                                                    @onchange="async (e) => await ToggleIsApproved(user, e.Value)" />
-                                            <label class="form-check-label ms-1" for="approvedToggle_@user.Id">
+                                            <label class="form-check-label" for="approvedToggle_@user.Id">
                                                 @(user.IsApproved ? "Approved" : "Pending")
                                             </label>
                                         </div>
                                     </div>
                                 </div>
+                                <div class="card-body d-flex flex-column position-relative">
+                                    <h5 class="card-title text-center">@user.Name</h5>
+                                    <div class="card-button-overlay">
+                                        <button type="button" class="btn btn-3d btn-3d-primary btn-sm card-action-btn" @onclick="() => ViewUserDetails(user)">
+                                            View Details
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                            </div>
+                 
                     }
                 </div>
 
                 @if (FilteredUsers.Length == 0 && !string.IsNullOrEmpty(_searchTerm))
                 {
                     <div class="text-center mt-4">
-                        <p class="text-muted">No students found matching "@_searchTerm"</p>
+                        <p class="text-muted">No users found matching "@_searchTerm"</p>
                     </div>
                 }
             }
@@ -134,6 +151,7 @@
     private string? _errorMessage;
     private string _searchTerm = string.Empty;
     private string? _approvalFilter = null; // null = all, "true" = approved, "false" = not approved
+    private string? _roleFilter = null; // null = all, or specific role
 
     private UserDto[] FilteredUsers
     {
@@ -161,6 +179,12 @@
                 }
             }
 
+            // Apply role filter
+            if (!string.IsNullOrEmpty(_roleFilter))
+            {
+                result = result.Where(c => c.Role == _roleFilter);
+            }
+
             return result.ToArray();
         }
     }
@@ -168,6 +192,11 @@
     private void OnFilterChanged(ChangeEventArgs e)
     {
         _approvalFilter = e.Value?.ToString();
+    }
+
+    private void OnRoleFilterChanged(ChangeEventArgs e)
+    {
+        _roleFilter = e.Value?.ToString();
     }
 
     protected override async Task OnInitializedAsync()
@@ -248,5 +277,12 @@
             // Fallback if BaseAddress is null
             return $"https://localhost:7048/{imagePath}";
         }
+    }
+
+    private async Task ViewUserDetails(UserDto user)
+    {
+        // For now, just show an alert with user details
+        await JSRuntime.InvokeVoidAsync("alert",
+            $"User Details:\nName: {user.Name}\nEmail: {user.Email}\nPhone: {user.Phone}\nRole: {user.Role}\nApproved: {(user.IsApproved ? "Yes" : "No")}");
     }
 }

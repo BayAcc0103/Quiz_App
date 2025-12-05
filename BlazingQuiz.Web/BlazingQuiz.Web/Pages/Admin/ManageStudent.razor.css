@@ -14,6 +14,35 @@
     display: block;
 }
 
+.avatar-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.avatar-overlay {
+    position: absolute;
+    top: 5px; /* Position at the top of the avatar */
+    right: 5px; /* Position at the right edge of the avatar */
+    background: rgba(255, 255, 255, 0.9);
+    padding: 5px 8px;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 6; /* Higher than card content but below hover button */
+    min-width: 120px;
+    text-align: center;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    opacity: 1; /* Always visible by default */
+    visibility: visible;
+}
+
+/* Optional: Show with animation on hover */
+.user-card-3d:hover .avatar-overlay {
+    opacity: 1;
+    visibility: visible;
+}
+
 .user-placeholder {
     border: 1px dashed #ccc;
     height: 100px;
@@ -35,7 +64,7 @@
     transform: perspective(500px) rotateY(0deg);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border-radius: 15px;
-    overflow: hidden;
+    overflow: visible; /* Changed from hidden to visible to allow button to show outside */
     position: relative;
     background-color: #ffffff;
     color: #333;
@@ -56,7 +85,7 @@
     display: block;
     transition: transform 0.3s ease;
     position: relative;
-    margin: 10px auto 5px auto;
+    margin: 50px auto 0px auto;
 }
 
 .user-card-3d:hover .user-avatar {
@@ -67,7 +96,7 @@
     height: 100px;
     width: 100px;
     border-radius: 50%; /* Make placeholder circular */
-    margin: 10px auto 5px auto;
+    margin: 50px auto 0px auto;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -79,11 +108,12 @@
 
 /* User card body */
 .user-card-3d .card-body {
-    padding: 0.75rem;
+    padding: 0.1rem;
     display: flex;
     flex-direction: column;
-    height: calc(100% - 120px); /* Adjust for avatar size */
+    height: calc(100% - 125px); /* Adjust for avatar size (with top overlay) */
     text-align: center;
+    justify-content: space-between; /* Add space between content and button */
 }
 
 .user-card-3d .card-title {
@@ -199,10 +229,62 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 5px;
+    margin: 0;
+    padding: 0;
 }
 
 .user-card-3d .form-check-label {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     margin-left: 0.25rem;
+    white-space: nowrap;
+}
+
+.avatar-overlay .form-switch .form-check-input {
+    border: 1px solid #000 !important;
+    box-shadow: -1px 1px 0px 0px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.3) !important;
+    margin: 0;
+}
+
+/* Card button overlay - slides down from bottom edge on hover, appearing below the card */
+.card-button-overlay {
+    position: absolute;
+    bottom: 0; /* Start at the bottom edge of the card */
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 5;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.user-card-3d:hover .card-button-overlay {
+    bottom: 10px; /* Slide down below the card */
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Card action button styling */
+.card-action-btn {
+    border: 3px solid #000 !important;
+    border-radius: 12px !important;
+    box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 1px 2px rgba(0, 0, 0, 0.3) !important;
+    background: linear-gradient(to bottom, #0d6efd, #0b5ed7) !important;
+    color: white !important;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.8rem !important;
+    transition: all 0.2s ease !important;
+    transform: perspective(500px) rotateY(0deg);
+}
+
+.card-action-btn:hover {
+    background: linear-gradient(to bottom, #0b5ed7, #0a53be) !important;
+    transform: perspective(500px) translateY(-1px) !important;
+    box-shadow: -3px 3px 0px 0px rgba(0, 0, 0, 0.8), 0px 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+.card-action-btn:active {
+    transform: perspective(500px) translateY(2px) !important;
+    box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 1px 2px rgba(0, 0, 0, 0.3) !important;
 }
