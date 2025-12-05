@@ -50,6 +50,27 @@
         </div>
     </div>
 
+    @if (createdRoom != null)
+    {
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-12">
+                <div class="alert alert-success" role="alert">
+                    <h5 class="d-flex justify-content-center">Room Created Successfully!</h5>
+                    <p><strong>Room Name:</strong> @createdRoom.Name</p>
+                    <p><strong>Room Code:</strong> <span class="badge bg-primary fs-5">@createdRoom.Code</span></p>
+                    @if (createdRoom.QuizName != null)
+                    {
+                        <p><strong>Quiz:</strong> @createdRoom.QuizName</p>
+                    }
+                    <p>Share this code with others to join the room.</p>
+                    <div class="d-flex justify-content-center">
+                        <button type="button" class="btn btn-3d btn-3d-outline btn-sm" @onclick="CopyCode">Copy Code</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     <EditForm Model="createRoomDto" OnValidSubmit="HandleCreateRoom">
         <DataAnnotationsValidator />
 
@@ -87,7 +108,7 @@
 
             <!-- Right Container: Quiz selection -->
             <div class="col-md-6 mb-4">
-                <div class="card card-3d-raised card-light">
+                <div class="card card-3d-raised-right card-light">
                     <div class="card-body">
                         <h5 class="card-title mb-4">Quiz Selection</h5>
 
@@ -113,45 +134,52 @@
                             {
                                 var quizDetails = availableQuizzes.First(q => q.Id == createRoomDto.QuizId.Value);
                                 <div class="selected-quiz-container">
-                                    <div class="quiz-image-container">
-                                        @if (!string.IsNullOrEmpty(quizDetails.ImagePath))
-                                        {
-                                            <img src="@QuizImageService.GetImageUrl(quizDetails.ImagePath)" alt="@quizDetails.Name" class="quiz-image" />
-                                        }
-                                        else
-                                        {
-                                            <div class="quiz-image-placeholder">
-                                                <i class="bi bi-card-checklist quiz-placeholder-icon"></i>
+                                    <div class="row">
+                                        <!-- Left side: Quiz name and image -->
+                                        <div class="col-md-6">
+                                            <div class="quiz-image-container">
+                                                @if (!string.IsNullOrEmpty(quizDetails.ImagePath))
+                                                {
+                                                    <img src="@QuizImageService.GetImageUrl(quizDetails.ImagePath)" alt="@quizDetails.Name" class="quiz-image" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="quiz-image-placeholder">
+                                                        <i class="bi bi-card-checklist quiz-placeholder-icon"></i>
+                                                    </div>
+                                                }
                                             </div>
-                                        }
-                                    </div>
-
-                                    <div class="quiz-title text-center mt-3">
-                                        <h5>@quizDetails.Name</h5>
-                                    </div>
-
-                                    <div class="quiz-details-grid mt-3">
-                                        <div class="quiz-detail-card">
-                                            <i class="bi bi-list-ol detail-icon"></i>
-                                            <div class="detail-text">
-                                                <span class="detail-value">@quizDetails.TotalQuestions</span>
-                                                <span class="detail-label">Questions</span>
+                                            <div class="quiz-title text-center mt-3">
+                                                <h5>@quizDetails.Name</h5>
                                             </div>
                                         </div>
 
-                                        <div class="quiz-detail-card">
-                                            <i class="bi bi-bar-chart detail-icon"></i>
-                                            <div class="detail-text">
-                                                <span class="detail-value">@quizDetails.Level</span>
-                                                <span class="detail-label">Level</span>
-                                            </div>
-                                        </div>
+                                        <!-- Right side: Quiz details in individual boxes aligned vertically -->
+                                        <div class="col-md-6">
+                                            <div class="quiz-details-vertical-container">
+                                                <div class="quiz-detail-card mb-2">
+                                                    <i class="bi bi-list-ol detail-icon"></i>
+                                                    <div class="detail-text">
+                                                        <span class="detail-value">@quizDetails.TotalQuestions</span>
+                                                        <span class="detail-label">Questions</span>
+                                                    </div>
+                                                </div>
 
-                                        <div class="quiz-detail-card">
-                                            <i class="bi bi-clock detail-icon"></i>
-                                            <div class="detail-text">
-                                                <span class="detail-value">@quizDetails.TimeInMinutes min</span>
-                                                <span class="detail-label">Time</span>
+                                                <div class="quiz-detail-card mb-2">
+                                                    <i class="bi bi-bar-chart detail-icon"></i>
+                                                    <div class="detail-text">
+                                                        <span class="detail-value">@quizDetails.Level</span>
+                                                        <span class="detail-label">Level</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="quiz-detail-card">
+                                                    <i class="bi bi-clock detail-icon"></i>
+                                                    <div class="detail-text">
+                                                        <span class="detail-value">@quizDetails.TimeInMinutes min</span>
+                                                        <span class="detail-label">Time</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -163,23 +191,6 @@
                         {
                             <div class="alert alert-danger mt-3 card-3d-raised" role="alert">
                                 @errorMessage
-                            </div>
-                        }
-
-                        @if (createdRoom != null)
-                        {
-                            <div class="alert alert-success mt-3" role="alert">
-                                <h5 class="d-flex justify-content-center">Room Created Successfully!</h5>
-                                <p><strong>Room Name:</strong> @createdRoom.Name</p>
-                                <p><strong>Room Code:</strong> <span class="badge bg-primary fs-5">@createdRoom.Code</span></p>
-                                @if (createdRoom.QuizName != null)
-                                {
-                                    <p><strong>Quiz:</strong> @createdRoom.QuizName</p>
-                                }
-                                <p>Share this code with others to join the room.</p>
-                                <div class="d-flex justify-content-center">
-                                    <button type="button" class="btn btn-3d btn-3d-outline btn-sm" @onclick="CopyCode">Copy Code</button>
-                                </div>
                             </div>
                         }
                     </div>

@@ -94,6 +94,7 @@
 
 .alert {
     border: 3px solid #000 !important;
+    border-radius: 12px !important;
     box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
     transform: perspective(500px) rotateY(0deg);
     transition: transform 0.3s ease, box-shadow 0.3s ease;

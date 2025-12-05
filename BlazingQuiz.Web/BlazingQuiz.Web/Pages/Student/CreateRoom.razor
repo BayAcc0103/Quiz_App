@@ -50,6 +50,27 @@
         </div>
     </div>
 
+    @if (createdRoom != null)
+    {
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-6">
+                <div class="alert alert-success" role="alert">
+                    <h5 class="d-flex justify-content-center">Room Created Successfully!</h5>
+                    <p><strong>Room Name:</strong> @createdRoom.Name</p>
+                    <p><strong>Room Code:</strong> <span class="badge bg-primary fs-5">@createdRoom.Code</span></p>
+                    @if (createdRoom.QuizName != null)
+                    {
+                        <p><strong>Quiz:</strong> @createdRoom.QuizName</p>
+                    }
+                    <p>Share this code with others to join the room.</p>
+                    <div class="d-flex justify-content-center">
+                        <button type="button" class="btn btn-3d btn-3d-outline btn-sm" @onclick="CopyCode">Copy Code</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     <EditForm Model="createRoomDto" OnValidSubmit="HandleCreateRoom">
         <DataAnnotationsValidator />
 
@@ -170,23 +191,6 @@
                         {
                             <div class="alert alert-danger mt-3 card-3d-raised" role="alert">
                                 @errorMessage
-                            </div>
-                        }
-
-                        @if (createdRoom != null)
-                        {
-                            <div class="alert alert-success mt-3" role="alert">
-                                <h5 class="d-flex justify-content-center">Room Created Successfully!</h5>
-                                <p><strong>Room Name:</strong> @createdRoom.Name</p>
-                                <p><strong>Room Code:</strong> <span class="badge bg-primary fs-5">@createdRoom.Code</span></p>
-                                @if (createdRoom.QuizName != null)
-                                {
-                                    <p><strong>Quiz:</strong> @createdRoom.QuizName</p>
-                                }
-                                <p>Share this code with others to join the room.</p>
-                                <div class="d-flex justify-content-center">
-                                    <button type="button" class="btn btn-3d btn-3d-outline btn-sm" @onclick="CopyCode">Copy Code</button>
-                                </div>
                             </div>
                         }
                     </div>
