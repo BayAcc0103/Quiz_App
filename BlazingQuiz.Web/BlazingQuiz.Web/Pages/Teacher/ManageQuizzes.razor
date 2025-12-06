@@ -61,7 +61,16 @@
                                 </td>
                                 <td>@q.Name</td>
                                 <td>@q.Description</td>
-                                <td>@q.CategoryName</td>
+                                <td>
+                                    @if (q.AllCategoryNames != null && q.AllCategoryNames.Count > 0)
+                                    {
+                                        @string.Join(", ", q.AllCategoryNames)
+                                    }
+                                    else
+                                    {
+                                        @q.CategoryName
+                                    }
+                                </td>
                                 <td>@(string.IsNullOrEmpty(q.Level) ? "Not specified" : q.Level)</td>
                                 <td>@q.TotalQuestions questions</td>
                                 <td>@q.TimeInMinutes minutes</td>
@@ -228,7 +237,8 @@
         if(_selectedCategory == 0)
             _filteredQuizes = _quizes;
         else
-            _filteredQuizes = _quizes.Where(q => q.CategoryId == _selectedCategory).ToArray();
+            _filteredQuizes = _quizes.Where(q => q.CategoryId == _selectedCategory ||
+                                               (q.AllCategoryNames != null && q.AllCategoryNames.Contains(_categories.FirstOrDefault(c => c.Id == _selectedCategory)?.Name))).ToArray();
     }
     private async Task ViewQuestionsAsync(QuizListDto q)
     {

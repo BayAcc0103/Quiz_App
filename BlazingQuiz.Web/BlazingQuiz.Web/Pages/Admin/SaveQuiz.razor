@@ -17,7 +17,7 @@
 @inject QuizAudioService QuizAudioService
 @inject QuestionAudioService QuestionAudioService
 
-<EditForm Model="_quiz" OnValidSubmit="SaveQuizAsync">
+<EditForm Model="_quiz">
     <DataAnnotationsValidator />
 
     <!-- Slider Container -->
@@ -332,7 +332,7 @@
 </button>
 
 <!-- Save Quiz Button positioned at the bottom like the Add Question button -->
-<button type="submit" class="save-quiz-btn" title="Save Quiz">
+<button type="button" class="save-quiz-btn" title="Save Quiz" @onclick="HandleSaveQuizClick">
     Save Quiz
 </button>
 
@@ -424,6 +424,18 @@
             }
             o.IsCorrect = true;
         }
+    }
+
+    private async Task HandleSaveQuizClick()
+    {
+        var isValid = _quiz.Validate();
+        if (!string.IsNullOrEmpty(isValid))
+        {
+            await ShowAlertAsync(isValid);
+            return;
+        }
+
+        await SaveQuizAsync();
     }
 
     private async Task SaveQuizAsync()

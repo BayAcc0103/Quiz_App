@@ -22,5 +22,8 @@ namespace BlazingQuiz.Shared.DTOs
         public string? AudioPath { get; set; }
         public string? CreatedByName { get; set; }
         public DateTime? CreatedAt { get; set; }
+
+        // Collection of all categories for the quiz
+        public List<string> AllCategoryNames { get; set; } = new List<string>();
     }
 }

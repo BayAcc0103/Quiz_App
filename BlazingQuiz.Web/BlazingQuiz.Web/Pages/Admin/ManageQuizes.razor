@@ -1,75 +1,143 @@
 ﻿@page "/admin/manage-quizes"
+@using BlazingQuiz.Shared
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using System.Linq
+@attribute [Authorize(Roles = nameof(UserRole.Admin))]
 
-@using BlazingQuiz.Shared.Components.Components
 @inject IQuizApi QuizApi
 @inject ICategoryApi CategoryApi
 @inject IAppState AppState
 @inject QuizImageService QuizImageService
-
-<BackButton />
+@inject IJSRuntime JSRuntime
 
 <div class="container">
-    <h1>Manage Quizes</h1>
-    <hr/>
-    <div class="row">
-        <div class="col-sm-3 ms-auto">
-            <label class="form-label">Select Category</label>
+    <!-- Hanging container with 2 ropes -->
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <!-- Hanging container with 2 ropes -->
+            <div class="hanging-container">
+                <div class="hanging-content">
+                    <h3>Manage Quizes</h3>
+                </div>
+                <!-- Ropes connecting hanging container to main card -->
+                <div class="rope left-rope"></div>
+                <div class="rope right-rope"></div>
+            </div>
+        </div>
+    </div>
+    <BackButton />
+
+    <!-- Top section: Category filter -->
+    <div class="row mb-4">
+        <div class="col-md-4 ms-auto">
+            <label class="form-label">Filter by Category:</label>
             <select class="form-control" @bind="_selectedCategory" @bind:after="OnSelectedCategoryChanged">
-                <option value="0">Select Category</option>
+                <option value="0">All Categories</option>
                 @foreach (var category in _categories)
                 {
                     <option value="@category.Id">@category.Name</option>
                 }
             </select>
         </div>
-        <div class="row">
-            <table class="table table-striped table-hover">
-                <thead>
-                   <tr>
-                        <th>Image</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Level</th>
-                        <th>Number of Questions</th>
-                        <th>Time (in minutes)</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if(_filteredQuizes.Length == 0)
+    </div>
+
+    <!-- Bottom section: Quiz grid -->
+    <div class="row">
+        <div class="col-12">
+            <h3>Quizes</h3>
+            @if(_filteredQuizes.Length == 0)
+            {
+                <div class="text-center">
+                    <p class="text-danger h5">No quizes available</p>
+                </div>
+            }
+            else
+            {
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    @foreach (var quiz in _filteredQuizes)
                     {
-                        <tr>
-                            <td colspan="6" class="text-danger">No quizes found</td>
-                        </tr>
-                    }
-                    else
-                    {
-                        foreach(var q in _filteredQuizes)
-                        {
-                            <tr>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(q.ImagePath))
-                                    {
-                                        <img src="@QuizImageService.GetImageUrl(q.ImagePath)" alt="Quiz Image" class="img-thumbnail" style="max-width: 50px; max-height: 50px;" />
-                                    }
-                                </td>
-                                <td>@q.Name</td>
-                                <td>@q.CategoryName</td>
-                                <td>@(string.IsNullOrEmpty(q.Level) ? "Not specified" : q.Level)</td>
-                                <td>@q.TotalQuestions questions</td>
-                                <td>@q.TimeInMinutes minutes</td>
-                                <td>
-                                    <div class="d-flex justify-content-around">
-                                        <button type="button" class="btn btn-sm btn-info" @onclick="() => ViewQuestionsAsync(q)">View Questions</button>
-                                        <a href="admin/quizes/{@q.Id}/view-students" class="btn btn-sm btn-success">View Attempts</a>
-                                        <a href="admin/edit-quiz/@q.Id" type="button" class="btn btn-sm btn-primary">Edit</a>
+                        <div class="col">
+                            <div class="card h-100 quiz-card-3d">
+                                <!-- Part 1: Quiz name and image on left, other details on right -->
+                                <div class="d-flex">
+                                    <!-- Left half: Quiz name and image -->
+                                    <div class="col-6 p-2">
+                                        @if (!string.IsNullOrEmpty(quiz.ImagePath))
+                                        {
+                                            <img src="@QuizImageService.GetImageUrl(quiz.ImagePath)"
+                                                 class="card-img-top quiz-image"
+                                                 alt="@quiz.Name" />
+                                        }
+                                        else
+                                        {
+                                            <div class="quiz-placeholder d-flex align-items-center justify-content-center">
+                                                <span class="text-muted">No Image</span>
+                                            </div>
+                                        }
+                                        <h5 class="card-title text-center mt-2">@quiz.Name</h5>
                                     </div>
-                                </td>
-                            </tr>
-                        }
+
+                                    <!-- Right half: Other details -->
+                                    <div class="col-6 p-2">
+                                        <div class="quiz-details-section">
+                                            <!-- Level, Questions, Time as stacked cards -->
+                                            <div class="stacked-detail-cards">
+                                                <div class="mini-detail-card bg-primary text-white mb-2">
+                                                    <span class="material-symbols-outlined mini-detail-icon">grading</span>
+                                                    <div class="mini-detail-content">
+                                                        <div class="mini-detail-value">@(string.IsNullOrEmpty(quiz.Level) ? "N/A" : quiz.Level)</div>
+                                                        <div class="mini-detail-label">Level</div>
+                                                    </div>
+                                                </div>
+                                                <div class="mini-detail-card bg-success text-white mb-2">
+                                                    <span class="material-symbols-outlined mini-detail-icon">help</span>
+                                                    <div class="mini-detail-content">
+                                                        <div class="mini-detail-value">@quiz.TotalQuestions</div>
+                                                        <div class="mini-detail-label">Questions</div>
+                                                    </div>
+                                                </div>
+                                                <div class="mini-detail-card bg-warning text-dark">
+                                                    <span class="material-symbols-outlined mini-detail-icon">schedule</span>
+                                                    <div class="mini-detail-content">
+                                                        <div class="mini-detail-value">@quiz.TimeInMinutes</div>
+                                                        <div class="mini-detail-label">Minutes</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Part 2: Categories of the quiz -->
+                                <div class="quiz-categories-section">
+                                    <h6>Categories</h6>
+                                    <div>
+                                        @if (quiz.AllCategoryNames != null && quiz.AllCategoryNames.Count > 0)
+                                        {
+                                            @foreach (var categoryName in quiz.AllCategoryNames)
+                                            {
+                                                <span class="badge bg-primary me-1">@categoryName</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No categories assigned</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Part 3: Task buttons -->
+                                <div class="quiz-actions-section d-flex gap-1">
+                                    <button type="button" class="btn btn-3d btn-3d-info btn-sm flex-fill" @onclick="() => ViewQuestionsAsync(quiz)">View Qs</button>
+                                    <a href="admin/quizes/@quiz.Id/view-students" class="btn btn-3d btn-3d-success btn-sm flex-fill">Attempts</a>
+                                    <a href="admin/edit-quiz/@quiz.Id" class="btn btn-3d btn-3d-primary btn-sm flex-fill">Edit</a>
+                                </div>
+                            </div>
+                        </div>
                     }
-                </tbody>
-            </table>
+                </div>
+            }
         </div>
     </div>
 </div>
@@ -124,7 +192,8 @@
         if(_selectedCategory == 0)
             _filteredQuizes = _quizes;
         else
-            _filteredQuizes = _quizes.Where(q => q.CategoryId == _selectedCategory).ToArray();
+            _filteredQuizes = _quizes.Where(q => q.CategoryId == _selectedCategory ||
+                                               (q.AllCategoryNames != null && q.AllCategoryNames.Contains(_categories.FirstOrDefault(c => c.Id == _selectedCategory)?.Name))).ToArray();
     }
     private async Task ViewQuestionsAsync(QuizListDto q)
     {
