@@ -2,7 +2,9 @@
 @using BlazingQuiz.Shared
 @using BlazingQuiz.Shared.Components.Components
 @using BlazingQuiz.Shared.Components
+@using BlazingQuiz.Shared.Enums
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components
 @using System.Security.Claims
 @using System.Linq
 @attribute [Authorize(Roles = nameof(UserRole.Admin))]
@@ -30,17 +32,58 @@
     </div>
     <BackButton />
 
-    <!-- Top section: Category filter -->
+    <!-- Top section: Search and Filters -->
     <div class="row mb-4">
-        <div class="col-md-4 ms-auto">
-            <label class="form-label">Filter by Category:</label>
-            <select class="form-control" @bind="_selectedCategory" @bind:after="OnSelectedCategoryChanged">
-                <option value="0">All Categories</option>
-                @foreach (var category in _categories)
-                {
-                    <option value="@category.Id">@category.Name</option>
-                }
-            </select>
+        <div class="col-12">
+            <div class="d-flex flex-column align-items-center gap-3">
+                <!-- Search input - centered -->
+                <div class="position-relative w-50">
+                    <input type="text"
+                           class="form-control ps-4"
+                           placeholder="Search quizzes by name..."
+                           @bind="_searchTerm"
+                           @bind:event="oninput" />
+                    <span class="position-absolute start-0 top-50 translate-middle-y ms-2">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    @if (!string.IsNullOrEmpty(_searchTerm))
+                    {
+                        <button class="position-absolute end-0 top-50 translate-middle-y me-2 btn btn-link p-0 text-decoration-none"
+                                type="button"
+                                style="border: none; background: none; color: #6c757d;"
+                                @onclick="() => { _searchTerm = string.Empty; }">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    }
+                </div>
+
+                <!-- Two filters in one row - side by side with equal width -->
+                <div class="d-flex flex-wrap justify-content-center gap-4 w-100">
+                    <!-- Filter dropdown - category -->
+                    <div class="d-flex flex-column align-items-center flex-fill" style="min-width: 200px;">
+                        <label class="form-label">Filter by Category:</label>
+                        <select class="form-select form-control" @onchange="OnCategoryFilterChanged">
+                            <option value="0">All Categories</option>
+                            @foreach (var category in _categories)
+                            {
+                                <option value="@category.Id">@category.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Level filter - side by category filter -->
+                    <div class="d-flex flex-column align-items-center flex-fill" style="min-width: 200px;">
+                        <label class="form-label">Filter by Level:</label>
+                        <select class="form-select form-control" @onchange="OnLevelFilterChanged">
+                            <option value="">All Levels</option>
+                            @foreach (var level in QuizLevel.AllLevels)
+                            {
+                                <option value="@level">@level</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -48,16 +91,23 @@
     <div class="row">
         <div class="col-12">
             <h3>Quizes</h3>
-            @if(_filteredQuizes.Length == 0)
+            @if(FinalFilteredQuizes.Length == 0)
             {
                 <div class="text-center">
-                    <p class="text-danger h5">No quizes available</p>
+                    @if (!string.IsNullOrEmpty(_searchTerm))
+                    {
+                        <p class="text-danger h5">No quizzes found matching "@_searchTerm"</p>
+                    }
+                    else
+                    {
+                        <p class="text-danger h5">No quizzes available</p>
+                    }
                 </div>
             }
             else
             {
                 <div class="row row-cols-1 row-cols-md-2 g-4">
-                    @foreach (var quiz in _filteredQuizes)
+                    @foreach (var quiz in FinalFilteredQuizes)
                     {
                         <div class="col">
                             <div class="card h-100 quiz-card-3d">
@@ -149,26 +199,97 @@
 
 @if (_showQuestionsModal)
 {
-    <Modal Title="Questions" 
+    <Modal Title="Questions and Answers"
            Size="ModalSize.ExtraLarge"
-           ActionButtonText="Ok" 
+           ActionButtonText="Ok"
            OnActionButtonClick="() => _showQuestionsModal = false"
            OnCancelClick="() => _showQuestionsModal = false">
-           @foreach(var q in _viewQuestions)
-           {
-           <div class="mb-2 shadow p-2">
-                @q.Text
-           </div>
-           }
+        @foreach (var q in _viewQuestions)
+        {
+            <div class="mb-4 shadow p-3 question-container">
+                <div class="question-text mb-3">
+                    <h5 class="fw-bold">Question:</h5>
+                    <p class="mb-2">@q.Text</p>
+                </div>
+
+                <div class="options-container">
+                    <h6 class="fw-bold">Options:</h6>
+                    <div class="options-list">
+                        @if (q.IsTextAnswer)
+                        {
+                            <div class="text-answer-section">
+                                <p><strong>Expected Text Answer:</strong></p>
+                                @foreach (var textAnswer in q.TextAnswers.Where(ta => ta != null))
+                                {
+                                    <div class="text-answer-item mb-2 p-2 bg-light rounded">
+                                        <span class="badge bg-info">Sample Answer</span>
+                                        <p class="mb-0">@textAnswer.Text</p>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var option in q.Options.Where(o => o != null))
+                            {
+                                <div class="option-item mb-2 p-2 @(option.IsCorrect ? "bg-success bg-opacity-10 border border-success rounded" : "bg-light rounded")">
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-2">@(option.IsCorrect ? "✓" : "○")</span>
+                                        <span class="flex-grow-1">@option.Text</span>
+                                        @if (option.IsCorrect)
+                                        {
+                                            <span class="badge bg-success ms-2">Correct</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(q.AnswerExplanation))
+                {
+                    <div class="explanation-container mt-3 p-2 bg-info bg-opacity-10 border border-info rounded">
+                        <h6 class="fw-bold">Explanation:</h6>
+                        <p class="mb-0">@q.AnswerExplanation</p>
+                    </div>
+                }
+            </div>
+        }
     </Modal>
 }
 
 @code {
     private QuizListDto[] _quizes = [];
-    private QuizListDto[] _filteredQuizes = [];
+    private QuizListDto[] _filteredQuizesByCategory = []; // Quizzes filtered by category only
+    private string _searchTerm = string.Empty;
+    private string? _levelFilter = null; // null = all levels, or specific level (Easy, Normal, Hard)
 
     private CategoryDto[] _categories = [];
     private int _selectedCategory;
+
+    private QuizListDto[] FinalFilteredQuizes
+    {
+        get
+        {
+            var result = _filteredQuizesByCategory.AsEnumerable();
+
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(_searchTerm))
+            {
+                result = result.Where(q =>
+                    q.Name.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Apply level filter
+            if (!string.IsNullOrEmpty(_levelFilter))
+            {
+                result = result.Where(q => q.Level == _levelFilter);
+            }
+
+            return result.ToArray();
+        }
+    }
 
     private QuestionDto[] _viewQuestions = [];
     private bool _showQuestionsModal;
@@ -186,7 +307,7 @@
             var quizesTask = QuizApi.GetQuizesAsync();
             _categories = await CategoryApi.GetCategoriesAsync();
             _quizes = await quizesTask;
-            _filteredQuizes = _quizes;
+            _filteredQuizesByCategory = _quizes; // Initialize with all quizzes, then filters will be applied
         }
         catch (Exception ex)
         {
@@ -197,13 +318,23 @@
             AppState.HideLoader();
         }
     }
-    private void OnSelectedCategoryChanged()
+
+    private void OnCategoryFilterChanged(ChangeEventArgs e)
     {
-        if(_selectedCategory == 0)
-            _filteredQuizes = _quizes;
-        else
-            _filteredQuizes = _quizes.Where(q => q.CategoryId == _selectedCategory ||
-                                               (q.AllCategoryNames != null && q.AllCategoryNames.Contains(_categories.FirstOrDefault(c => c.Id == _selectedCategory)?.Name))).ToArray();
+        if (int.TryParse(e.Value?.ToString(), out var selectedCategoryId))
+        {
+            _selectedCategory = selectedCategoryId;
+            if(_selectedCategory == 0)
+                _filteredQuizesByCategory = _quizes;
+            else
+                _filteredQuizesByCategory = _quizes.Where(q => q.CategoryId == _selectedCategory ||
+                                                   (q.AllCategoryNames != null && q.AllCategoryNames.Contains(_categories.FirstOrDefault(c => c.Id == _selectedCategory)?.Name))).ToArray();
+        }
+    }
+
+    private void OnLevelFilterChanged(ChangeEventArgs e)
+    {
+        _levelFilter = e.Value?.ToString();
     }
     private async Task ViewQuestionsAsync(QuizListDto q)
     {
