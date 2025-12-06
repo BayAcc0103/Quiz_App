@@ -14,7 +14,55 @@
 @inject CategoryImageService CategoryImageService
 
 <div class="student-home-background">
-    <div class="pl-1 pr-1 ">
+    <div class="container-fluid px-0">
+    <!-- Category Section for Visible Categories -->
+    <div class="mb-5 category-section">
+        <div class="card card-3d-raised card-light">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <a href="/student/categories" class="btn btn-outline-primary">View All</a>
+                </div>
+                @if (_visibleCategories.Length > 0)
+                {
+                    @for (int row = 0; row < Math.Ceiling((double)_visibleCategories.Length / 10); row++)
+                    {
+                        <div class="row mb-3 g-2">
+                            @for (int col = 0; col < 10; col++)
+                            {
+                                var index = row * 10 + col;
+                                if (index < _visibleCategories.Length)
+                                {
+                                    var category = _visibleCategories[index];
+                                    <div class="col">
+                                        <div class="category-item text-center h-100" @onclick="() => OnCategoryClick(category)">
+                                            @if (!string.IsNullOrEmpty(category.ImagePath))
+                                            {
+                                                <img src="@CategoryImageService.GetImageUrl(category.ImagePath)" alt="@category.Name" class="category-image img-fluid rounded mb-2" />
+                                            }
+                                            else
+                                            {
+                                                <div class="category-placeholder rounded mb-2 d-flex align-items-center justify-content-center">
+                                                    <i class="bi bi-folder fs-3 text-muted"></i>
+                                                </div>
+                                            }
+                                            <div class="category-name">@category.Name</div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <p class="text-muted">No categories available at the moment.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
     <!-- Hero Section for Room Actions -->
     <div class="row mb-5">
         <div class="col-md-6 mb-4">
@@ -41,56 +89,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Category Section for Visible Categories -->
-    <div class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <a href="/student/categories" class="btn btn-outline-primary">View All</a>
-        </div>
-        @if (_visibleCategories.Length > 0)
-        {
-            @for (int row = 0; row < 2; row++)
-            {
-                <div class="row mb-3">
-                    @for (int col = 0; col < 6; col++)
-                    {
-                        var index = row * 6 + col;
-                        if (index < _visibleCategories.Length)
-                        {
-                            var category = _visibleCategories[index];
-                            <div class="col-md-2 col-4 mb-3">
-                                <div class="category-item text-center" @onclick="() => OnCategoryClick(category)">
-                                    @if (!string.IsNullOrEmpty(category.ImagePath))
-                                    {
-                                        <img src="@CategoryImageService.GetImageUrl(category.ImagePath)" alt="@category.Name" class="category-image img-fluid rounded mb-2" />
-                                    }
-                                    else
-                                    {
-                                        <div class="category-placeholder rounded mb-2 d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-folder fs-3 text-muted"></i>
-                                        </div>
-                                    }
-                                    <div class="category-name">@category.Name</div>
-                                </div>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="col-md-2 col-4 mb-3">
-                                <div class="category-item-placeholder"></div>
-                            </div>
-                        }
-                    }
-                </div>
-            }
-        }
-        else
-        {
-            <div class="text-center py-4">
-                <p class="text-muted">No categories available at the moment.</p>
-            </div>
-        }
     </div>
 
     <!-- Random Easy Level Quizzes Section -->

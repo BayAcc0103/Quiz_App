@@ -216,10 +216,10 @@
 
 .category-item {
     cursor: pointer;
-    padding: 10px;
+    padding: 12px 6px;
     border-radius: 8px;
     transition: all 0.2s ease;
-    height: 140px;
+    height: 150px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -238,7 +238,6 @@
     object-fit: cover;
     border-radius: 8px;
     margin-bottom: 8px;
-    border: 1px solid #ddd;
 }
 
 .category-placeholder {
@@ -251,7 +250,7 @@
 }
 
 .category-name {
-    font-size: 0.9rem;
+    font-size: 1rem;
     margin-top: 5px;
     text-align: center;
     word-break: break-word;
@@ -262,8 +261,21 @@
 }
 
 .category-item-placeholder {
-    height: 140px;
+    height: 150px;
     opacity: 0;
+}
+
+/* Full width category section */
+.category-section {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+/* Adjust the category section within the card */
+.card .category-item {
+    padding: 12px 6px;
 }
 
 .student-home-background {
