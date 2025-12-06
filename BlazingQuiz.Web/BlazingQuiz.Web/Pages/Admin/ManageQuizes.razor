@@ -1,5 +1,7 @@
 ﻿@page "/admin/manage-quizes"
 @using BlazingQuiz.Shared
+@using BlazingQuiz.Shared.Components.Components
+@using BlazingQuiz.Shared.Components
 @using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
 @using System.Linq
@@ -62,7 +64,7 @@
                                 <!-- Part 1: Quiz name and image on left, other details on right -->
                                 <div class="d-flex">
                                     <!-- Left half: Quiz name and image -->
-                                    <div class="col-6 p-2">
+                                    <div class="col-6 px-2 pt-2">
                                         @if (!string.IsNullOrEmpty(quiz.ImagePath))
                                         {
                                             <img src="@QuizImageService.GetImageUrl(quiz.ImagePath)"
@@ -79,7 +81,7 @@
                                     </div>
 
                                     <!-- Right half: Other details -->
-                                    <div class="col-6 p-2">
+                                    <div class="col-6 px-2 pt-2">
                                         <div class="quiz-details-section">
                                             <!-- Level, Questions, Time as stacked cards -->
                                             <div class="stacked-detail-cards">
@@ -128,12 +130,15 @@
                                 </div>
 
                                 <!-- Part 3: Task buttons -->
-                                <div class="quiz-actions-section d-flex gap-1">
-                                    <button type="button" class="btn btn-3d btn-3d-info btn-sm flex-fill" @onclick="() => ViewQuestionsAsync(quiz)">View Qs</button>
-                                    <a href="admin/quizes/@quiz.Id/view-students" class="btn btn-3d btn-3d-success btn-sm flex-fill">Attempts</a>
-                                    <a href="admin/edit-quiz/@quiz.Id" class="btn btn-3d btn-3d-primary btn-sm flex-fill">Edit</a>
+                                <div class="card-button-overlay">
+                                    <div class="quiz-actions-section d-flex gap-1">
+                                        <button type="button" class="btn btn-3d btn-3d-info btn-sm flex-fill" @onclick="() => ViewQuestionsAsync(quiz)">View Qs</button>
+                                        <a href="admin/quizes/@quiz.Id/view-students" class="btn btn-3d btn-3d-success btn-sm flex-fill">Attempts</a>
+                                        <a href="admin/edit-quiz/@quiz.Id" class="btn btn-3d btn-3d-primary btn-sm flex-fill">Edit</a>
+                                        <button type="button" class="btn btn-3d btn-3d-warning btn-sm flex-fill" @onclick="() => ShowQuizFeedbackAsync(quiz)">View Rate</button>
+                                    </div>
                                 </div>
-                            </div>
+                            </div> <!-- Close the quiz-card-3d div -->
                         </div>
                     }
                 </div>
@@ -167,6 +172,11 @@
 
     private QuestionDto[] _viewQuestions = [];
     private bool _showQuestionsModal;
+
+    // For feedback modal
+    private bool _showFeedbackModal = false;
+    private TeacherQuizFeedbackDto? _quizFeedback;
+    private bool _loadingFeedback = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -205,5 +215,123 @@
         //_viewQuestions = [.. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .. _viewQuestions, .._viewQuestions];
 
         _showQuestionsModal = true;
+    }
+
+    private async Task ShowQuizFeedbackAsync(QuizListDto quiz)
+    {
+        _loadingFeedback = true;
+        _quizFeedback = null;
+        _showFeedbackModal = true;
+
+        try
+        {
+            var response = await QuizApi.GetQuizFeedbackAsync(quiz.Id);
+            if (response.IsSuccess && response.Data != null)
+            {
+                _quizFeedback = response.Data;
+            }
+            else
+            {
+                AppState.ShowError(response.ErrorMessage ?? "Failed to load feedback");
+                _showFeedbackModal = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading feedback: {ex.Message}");
+            _showFeedbackModal = false;
+        }
+        finally
+        {
+            _loadingFeedback = false;
+            StateHasChanged();
+        }
+    }
+}
+
+<BottomSheet IsOpen="@_showFeedbackModal" Title="Quiz Ratings and Comments" IsOpenChanged="OnFeedbackModalVisibilityChanged" OnCancelClick="() => _showFeedbackModal = false" ShowFooter="false">
+    @if (_quizFeedback != null)
+    {
+        <div class="quiz-feedback-content" style="max-height: 60vh; overflow-y: auto;">
+            @if (_quizFeedback.CombinedFeedback.Any())
+            {
+                <div class="feedback-list">
+                    @foreach (var feedback in _quizFeedback.CombinedFeedback)
+                    {
+                        <div class="feedback-item p-3 mb-3 border rounded">
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>@feedback.StudentName</strong>
+                                @if (!string.IsNullOrEmpty(feedback.Score))
+                                {
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-primary">@GetRatingIcon(feedback.Score) @GetRatingDisplayText(feedback.Score)</span>
+                                    </div>
+                                }
+                            </div>
+                            <small class="text-muted">@feedback.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
+
+                            @if (!string.IsNullOrEmpty(feedback.Content))
+                            {
+                                <div class="mt-2">
+                                    <p class="mb-0"><strong>Comment:</strong> @feedback.Content</p>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-3">
+                    <p class="text-muted mb-0">No ratings or comments yet for this quiz</p>
+                </div>
+            }
+        </div>
+    }
+    else if (_loadingFeedback)
+    {
+        <div class="text-center py-3">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+</BottomSheet>
+
+@code {
+    private string GetRatingIcon(string? rating)
+    {
+        if (string.IsNullOrEmpty(rating)) return "😐";
+
+        return rating?.ToLower().Trim() switch
+        {
+            "very bad" => "😞",
+            "bad" => "😟",
+            "normal" => "😐",
+            "good" => "😄",
+            "very good" => "😁",
+            _ => "😐" // Default to neutral face for unknown ratings
+        };
+    }
+
+    private string GetRatingDisplayText(string? rating)
+    {
+        if (string.IsNullOrEmpty(rating)) return "";
+
+        return rating?.ToLower().Trim() switch
+        {
+            "very bad" => "Very Bad",
+            "bad" => "Bad",
+            "normal" => "Normal",
+            "good" => "Good",
+            "very good" => "Very Good",
+            _ => rating ?? "" // Default to original value for unknown ratings
+        };
+    }
+
+    private void OnFeedbackModalVisibilityChanged(bool isVisible)
+    {
+        _showFeedbackModal = isVisible;
+        StateHasChanged();
     }
 }
