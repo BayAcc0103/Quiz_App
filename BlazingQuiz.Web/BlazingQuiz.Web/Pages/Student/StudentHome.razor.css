@@ -249,8 +249,14 @@
     margin-bottom: 8px;
 }
 
+.col{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .category-name {
-    font-size: 1rem;
+    font-size: 0.8rem;
     margin-top: 5px;
     text-align: center;
     word-break: break-word;
@@ -258,6 +264,32 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* Special style for the toggle button (more/less) */
+.toggle-button {
+    cursor: pointer;
+    padding: 8px 4px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    height: 50px;
+    width:50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #f8f9fa;
+}
+
+    .toggle-button:hover {
+        background-color: #e9ecef;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+/* Style for Google-style arrow icons */
+.google-arrow-icon {
+    transition: transform 0.2s ease;
 }
 
 .category-item-placeholder {
@@ -282,7 +314,6 @@
     position: relative;
     overflow: hidden;
     margin: 0;
-    padding: 20px 0;
 }
 
 .student-home-background::before {
@@ -305,4 +336,10 @@ html:not(.dark-theme) .student-home-background::before {
 
 html.dark-theme .student-home-background::before {
     background-image: url('/asset/background/dark/bg-dark5.jpg');
+}
+
+/* Animation for additional categories container */
+.additional-categories-container {
+    transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    overflow: hidden;
 }

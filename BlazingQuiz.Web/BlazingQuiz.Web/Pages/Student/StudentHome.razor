@@ -12,6 +12,7 @@
 @inject QuizImageService QuizImageService
 @inject QuizAuthStateProvider QuizAuthStateProvider
 @inject CategoryImageService CategoryImageService
+@inject IJSRuntime JSRuntime
 
 <div class="student-home-background">
     <div class="container-fluid px-0">
@@ -19,39 +20,97 @@
     <div class="mb-5 category-section">
         <div class="card card-3d-raised card-light">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <a href="/student/categories" class="btn btn-outline-primary">View All</a>
-                </div>
                 @if (_visibleCategories.Length > 0)
                 {
-                    @for (int row = 0; row < Math.Ceiling((double)_visibleCategories.Length / 10); row++)
-                    {
-                        <div class="row mb-3 g-2">
-                            @for (int col = 0; col < 10; col++)
+                    <!-- First row of categories -->
+                    <div class="row mb-3 g-2">
+                        @{
+                            var firstRowCategories = Math.Min(9, _visibleCategories.Length); // Reserve one spot for the More button
+                            if (_visibleCategories.Length <= 9) // If 9 or fewer categories, use all spots
                             {
-                                var index = row * 10 + col;
-                                if (index < _visibleCategories.Length)
-                                {
-                                    var category = _visibleCategories[index];
-                                    <div class="col">
-                                        <div class="category-item text-center h-100" @onclick="() => OnCategoryClick(category)">
-                                            @if (!string.IsNullOrEmpty(category.ImagePath))
+                                firstRowCategories = _visibleCategories.Length;
+                            }
+
+                            @for (int i = 0; i < firstRowCategories; i++)
+                            {
+                                var category = _visibleCategories[i];
+                                <div class="col">
+                                    <div class="category-item text-center h-100" @onclick="() => OnCategoryClick(category)">
+                                        @if (!string.IsNullOrEmpty(category.ImagePath))
+                                        {
+                                            <img src="@CategoryImageService.GetImageUrl(category.ImagePath)" alt="@category.Name" class="category-image img-fluid rounded mb-2" />
+                                        }
+                                        else
+                                        {
+                                            <div class="category-placeholder rounded mb-2 d-flex align-items-center justify-content-center">
+                                                <i class="bi bi-folder fs-3 text-muted"></i>
+                                            </div>
+                                        }
+                                        <div class="category-name">@category.Name</div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Add More button if there are more categories -->
+                            @if (_visibleCategories.Length > firstRowCategories)
+                            {
+                                <div class="col">
+                                    <div class="toggle-button text-center d-flex flex-column justify-content-center align-items-center" @onclick="ToggleCategoryContainer">
+                                        <svg class="google-arrow-icon" style="width: 24px; height: 24px; color: #495057;" viewBox="0 0 24 24">
+                                            @if (_categoriesExpanded)
                                             {
-                                                <img src="@CategoryImageService.GetImageUrl(category.ImagePath)" alt="@category.Name" class="category-image img-fluid rounded mb-2" />
+                                                <path fill="currentColor" d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z" />
                                             }
                                             else
                                             {
-                                                <div class="category-placeholder rounded mb-2 d-flex align-items-center justify-content-center">
-                                                    <i class="bi bi-folder fs-3 text-muted"></i>
-                                                </div>
+                                                <path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z" />
                                             }
-                                            <div class="category-name">@category.Name</div>
-                                        </div>
+                                        </svg>
                                     </div>
-                                }
+                                </div>
                             }
-                        </div>
-                    }
+                        }
+                    </div>
+
+                    <!-- Additional categories container that starts hidden -->
+                    <div id="additional-categories"
+                         class="additional-categories-container"
+                         style="max-height: 0; overflow: hidden; opacity: 0;">
+                        @{
+                            for (int row = 1; row < Math.Ceiling((double)_visibleCategories.Length / 10); row++)
+                            {
+                                var startIndex = row * 10;
+                                var endIndex = Math.Min((row + 1) * 10, _visibleCategories.Length);
+
+                                <div class="row g-2">
+                                    @for (int col = 0; col < 10; col++)
+                                    {
+                                        var index = startIndex + col;
+
+                                        if (index < _visibleCategories.Length)
+                                        {
+                                            var category = _visibleCategories[index];
+                                            <div class="col">
+                                                <div class="category-item text-center h-100" @onclick="() => OnCategoryClick(category)">
+                                                    @if (!string.IsNullOrEmpty(category.ImagePath))
+                                                    {
+                                                        <img src="@CategoryImageService.GetImageUrl(category.ImagePath)" alt="@category.Name" class="category-image img-fluid rounded mb-2" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="category-placeholder rounded mb-2 d-flex align-items-center justify-content-center">
+                                                            <i class="bi bi-folder fs-3 text-muted"></i>
+                                                        </div>
+                                                    }
+                                                    <div class="category-name">@category.Name</div>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            }
+                        }
+                    </div>
                 }
                 else
                 {
@@ -447,6 +506,38 @@
 </BottomSheet>
     </div>
 
+    <script>
+        window.expandCategories = async () => {
+            const container = document.getElementById('additional-categories');
+            if (container) {
+                // Remove the max-height restriction to calculate the full height
+                container.style.maxHeight = 'none';
+                container.style.opacity = '1';
+
+                // Get the actual scroll height
+                const height = container.scrollHeight + 'px';
+
+                // Set the container back to 0 to start the transition
+                container.style.maxHeight = '0';
+
+                // Trigger the browser to paint
+                await new Promise(resolve => setTimeout(resolve, 10));
+
+                // Start the transition
+                container.style.maxHeight = height;
+            }
+        };
+
+        window.collapseCategories = () => {
+            const container = document.getElementById('additional-categories');
+            if (container) {
+                container.style.maxHeight = '0';
+                container.style.opacity = '0';
+                container.style.overflow = 'hidden';
+            }
+        };
+    </script>
+
 @code {
     private CategoryDto[] _categories = [];
     private CategoryDto[] _visibleCategories = [];
@@ -471,6 +562,7 @@
 
     [Parameter] public int? categoryId { get; set; }
     private enum QuestionType { MCQ, Flashcard }
+    private bool _categoriesExpanded = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -507,6 +599,50 @@
             AppState.HideLoader();
             _isLoading = false;
         }
+    }
+
+    private async Task ExpandCategories()
+    {
+        _categoriesExpanded = true;
+        StateHasChanged(); // Trigger re-render to update the UI state
+
+        // Execute JavaScript to handle the animation
+        await JSRuntime.InvokeVoidAsync("expandCategories");
+    }
+
+    private async Task CollapseCategories()
+    {
+        _categoriesExpanded = false;
+        StateHasChanged(); // Trigger re-render to update the UI state
+
+        // Execute JavaScript to handle the animation
+        await JSRuntime.InvokeVoidAsync("collapseCategories");
+    }
+
+    private async Task ToggleCategoryContainer()
+    {
+        _categoriesExpanded = !_categoriesExpanded;
+        StateHasChanged(); // Trigger re-render to update the UI state
+
+        // Execute JavaScript to handle the animation
+        if (_categoriesExpanded)
+        {
+            await JSRuntime.InvokeVoidAsync("expandCategories");
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("collapseCategories");
+        }
+    }
+
+    private string GetButtonText()
+    {
+        return _categoriesExpanded ? "Less" : "More";
+    }
+
+    private string GetArrowIcon()
+    {
+        return _categoriesExpanded ? "bi-chevron-up" : "bi-chevron-down";
     }
 
     private async Task OnSelectedCategoryChanged()
