@@ -843,7 +843,7 @@
 
             // Randomize the order
             var random = new Random();
-            _randomEasyQuizzes = easyQuizzes.OrderBy(q => random.Next()).Take(12).ToArray(); // Take up to 12 for the slider (3 rows of 4)
+            _randomEasyQuizzes = easyQuizzes.OrderBy(q => random.Next()).Take(20).ToArray(); // Take up to 20 for the slider
         }
         catch (Exception ex)
         {
@@ -870,7 +870,7 @@
 
             // Randomize the order
             var random = new Random();
-            _randomHardQuizzes = hardQuizzes.OrderBy(q => random.Next()).Take(12).ToArray(); // Take up to 12 for the slider (3 rows of 4)
+            _randomHardQuizzes = hardQuizzes.OrderBy(q => random.Next()).Take(20).ToArray(); // Take up to 20 for the slider
         }
         catch (Exception ex)
         {
