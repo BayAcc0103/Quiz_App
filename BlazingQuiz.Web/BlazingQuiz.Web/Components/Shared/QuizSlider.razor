@@ -23,7 +23,7 @@
                         {
                             var quiz = QuizList[i * 4 + j];
                             <div class="quiz-card-container flex-shrink-0" style="flex: 1; min-width: 340px; max-width: 420px;">
-                                <div class="quiz-card position-relative h-100">
+                                <div class="quiz-card-3d position-relative h-100">
                                     <!-- Quiz level badge -->
                                     <div class="level-badge position-absolute top-0 start-0 m-3">
                                         <span class="badge badge-@(quiz.Level?.ToLower() == "easy" ? "success" : quiz.Level?.ToLower() == "medium" ? "warning" : "danger")">
@@ -51,13 +51,13 @@
                                     }
                                     else
                                     {
-                                        <div class="quiz-image quiz-image-placeholder bg-gradient d-flex align-items-center justify-content-center">
+                                        <div class="quiz-image quiz-image-placeholder d-flex align-items-center justify-content-center">
                                             <i class="bi bi-journal-text fs-1 text-white"></i>
                                         </div>
                                     }
 
                                     <!-- Quiz content -->
-                                    <div class="quiz-content">
+                                    <div class="quiz-content p-3">
                                         <h5 class="fw-bold mb-3 text-truncate" title="@quiz.Name">@quiz.Name</h5>
 
                                         <!-- Quiz statistics -->
@@ -78,18 +78,22 @@
                                     </div>
 
                                     <!-- Action buttons -->
-                                    <div class="quiz-actions">
-                                        <button type="button" class="btn btn-quiz-action btn-primary w-100 mb-2"
-                                                @onclick="() => ShowQuizTypeSelection(quiz)">
-                                            Start Quiz
-                                        </button>
-                                        <a href="student/createroom?quizId=@quiz.Id" class="btn btn-quiz-action btn-outline-primary w-100 mb-2">
-                                            Create Room
-                                        </a>
-                                        <button type="button" class="btn btn-quiz-action btn-outline-secondary w-100"
-                                                @onclick="() => ShowQuizDetails(quiz.Id)">
-                                            View Details
-                                        </button>
+                                    <div class="card-button-overlay">
+                                        <div class="quiz-actions-section d-flex gap-1">
+                                            <button type="button"
+                                                    class="btn btn-3d btn-3d-info btn-sm flex-fill"
+                                                    @onclick="() => ShowQuizTypeSelection(quiz)">
+                                                Start Quiz
+                                            </button>
+                                            <a href="student/createroom?quizId=@quiz.Id" class="btn btn-3d btn-3d-primary btn-sm flex-fill">
+                                                Create Room
+                                            </a>
+                                            <button type="button"
+                                                    class="btn btn-3d btn-3d-success btn-sm flex-fill"
+                                                    @onclick="() => ShowQuizDetails(quiz.Id)">
+                                                View Details
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
