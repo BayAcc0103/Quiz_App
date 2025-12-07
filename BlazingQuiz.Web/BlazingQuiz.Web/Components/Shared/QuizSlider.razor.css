@@ -118,7 +118,6 @@
 .badge-danger { background-color: #dc3545; }
 
 .quiz-stats {
-    margin-top: auto;
     padding-top: 1rem;
     border-top: 1px solid rgba(0,0,0,0.1);
 }
@@ -281,7 +280,7 @@
         background: #adb5bd;
     }
 
-    /* Responsive adjustments */
+/* Responsive adjustments */
     @media (max-width: 1200px) {
         .quiz-card-container {
             min-width: 240px;
@@ -379,35 +378,17 @@
             padding: 0 5px;
         }
 
+        /* Adjust each quiz card to full width on mobile */
         .quiz-card-container {
-            width: 100%;
-            min-width: 180px;
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
             padding: 5px;
         }
 
-        .quiz-content {
-            padding: 1rem;
-        }
-
-        .quiz-stats {
-            gap: 0.25rem;
-        }
-
-        .stat-item {
-            flex: 1; /* Allow all 3 items to flex equally */
-        }
-
-        .stat-value {
-            font-size: 0.9rem;
-        }
-
-        .stat-label {
-            font-size: 0.6rem;
-        }
-
-        .btn-3d {
-            padding: 0.45rem;
-            font-size: 0.75rem;
+        /* Adjust the flex container to stack items vertically */
+        .slide-quiz-container {
+            flex-direction: column !important;
         }
 
         .slider-nav-btn {
@@ -440,7 +421,7 @@
 
     @media (max-width: 400px) {
         .quiz-card-container {
-            min-width: 180px;
+            min-width: 100% !important;
         }
 
         .stat-item {

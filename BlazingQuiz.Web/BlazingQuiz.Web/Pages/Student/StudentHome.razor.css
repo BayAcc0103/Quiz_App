@@ -231,6 +231,47 @@
     white-space: nowrap;
 }
 
+/* Mobile-specific responsive styles for Student Home */
+@media (max-width: 576px) {
+    .create-room, .join-room{
+        height: 150px;
+        width: 150px;
+    }
+
+    .category-item {
+        height: 120px;
+        padding: 8px 4px;
+    }
+
+    .category-image {
+        width: 60px;
+        height: 60px;
+    }
+
+    .category-placeholder {
+        width: 50px;
+        height: 50px;
+    }
+
+    .category-name {
+        font-size: 0.9rem;
+        max-width: 80px;
+    }
+
+    .toggle-button {
+        height: 40px;
+        width: 40px;
+    }
+
+    .card-3d-raised.card-light {
+        border: 2px solid #000 !important;
+    }
+
+    .room-card-button-overlay {
+        margin: 10px;
+    }
+}
+
 /* Special style for the toggle button (more/less) */
 .toggle-button {
     cursor: pointer;

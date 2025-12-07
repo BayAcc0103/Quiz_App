@@ -6,8 +6,9 @@
 @inject IBookmarkApi BookmarkApi
 @inject QuizAuthStateProvider QuizAuthStateProvider
 @inject IAppState AppState
+@inject IJSRuntime JSRuntime
 
-<div class="quiz-slider-container position-relative" style="margin: 2rem 0;">
+<div class="quiz-slider-container position-relative" style="margin: 2rem 0;" @ref="_sliderContainer">
     <!-- Navigation arrows -->
     <button type="button" class="slider-nav-btn slider-nav-btn-prev" @onclick="PrevSlide" aria-label="Previous slide">
         <span class="material-symbols-outlined"> arrow_circle_left </span>
@@ -18,7 +19,7 @@
             @for (int i = 0; i < _slides.Count; i++)
             {
                 <div class="slide">
-                    <div class="d-flex flex-nowrap gap-3 justify-content-center">
+                    <div class="d-flex flex-nowrap gap-3 justify-content-center slide-quiz-container">
                         @for (int j = 0; j < 3 && (i * 3 + j) < QuizList.Length; j++)
                         {
                             var quiz = QuizList[i * 3 + j];
@@ -154,14 +155,19 @@
     private List<QuizListDto[]> _slides = new();
     private int _currentSlide = 0;
     private Dictionary<Guid, bool> _bookmarkedQuizes = new();
+    private ElementReference _sliderContainer;
+    private bool _isMobileView = false;
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        // Calculate slides - 4 quizzes per slide
+        // Calculate slides - 3 quizzes per slide on desktop, 1 for mobile
+        // For now, we will determine the screen size and set accordingly
         _slides.Clear();
-        for (int i = 0; i < QuizList.Length; i += 4)
+
+        // For now, default to 3 per slide - we'll adjust this later with JavaScript
+        for (int i = 0; i < QuizList.Length; i += 3)
         {
-            var slide = QuizList.Skip(i).Take(4).ToArray();
+            var slide = QuizList.Skip(i).Take(3).ToArray();
             _slides.Add(slide);
         }
 
@@ -169,13 +175,100 @@
         StateHasChanged();
     }
 
+
+    private async Task DetectScreenSize()
+    {
+        try
+        {
+            // Check if the screen width is less than or equal to 576px (mobile)
+            var windowWidth = await JSRuntime.InvokeAsync<int>("eval", "window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth");
+            _isMobileView = windowWidth <= 576;
+
+            // Rebuild slides based on screen size
+            await RebuildSlidesBasedOnScreenSize(windowWidth);
+        }
+        catch
+        {
+            // Default to desktop view if JS call fails
+            _isMobileView = false;
+        }
+    }
+
+    private async Task RebuildSlidesBasedOnScreenSize(int windowWidth)
+    {
+        _slides.Clear();
+
+        int quizzesPerSlide = windowWidth <= 576 ? 1 : 3;
+
+        for (int i = 0; i < QuizList.Length; i += quizzesPerSlide)
+        {
+            var slide = QuizList.Skip(i).Take(quizzesPerSlide).ToArray();
+            _slides.Add(slide);
+        }
+
+        // Adjust current slide if needed
+        if (_currentSlide >= _slides.Count && _slides.Count > 0)
+        {
+            _currentSlide = _slides.Count - 1;
+        }
+
+        StateHasChanged();
+    }
+
+    private DotNetObjectReference<QuizSlider>? _objRef;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            // Create a reference to this component for JavaScript interop
+            _objRef = DotNetObjectReference.Create(this);
+
+            // Detect screen size after render
+            await DetectScreenSize();
             await LoadBookmarkStatusAsync();
+
+            // Register resize event listener
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                if (!window.quizSliderResizeHandler) {
+                    window.quizSliderResizeHandler = (dotNetHelper) => {
+                        setTimeout(() => {
+                            const windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+                            dotNetHelper.invokeMethodAsync('RebuildSlidesBasedOnScreenSizeFromJS', windowWidth);
+                        }, 100);
+                    };
+
+                    window.addEventListener('resize', (e) => {
+                        window.quizSliderResizeHandler(dotNetHelper);
+                    });
+                }
+            ", _objRef);
+
             StateHasChanged();
         }
+    }
+
+    [JSInvokable]
+    public async Task RebuildSlidesBasedOnScreenSizeFromJS(int windowWidth)
+    {
+        await RebuildSlidesBasedOnScreenSize(windowWidth);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            // Remove event listener when component is disposed
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                if (window.quizSliderResizeHandler) {
+                    window.removeEventListener('resize', window.quizSliderResizeHandler);
+                    delete window.quizSliderResizeHandler;
+                }
+            ");
+
+            _objRef?.Dispose();
+        }
+        catch { /* Ignore errors during disposal */ }
     }
 
     private async Task LoadBookmarkStatusAsync()
