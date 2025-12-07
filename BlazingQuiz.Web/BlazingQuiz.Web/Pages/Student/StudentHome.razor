@@ -823,7 +823,7 @@
 
             // Randomize the order
             var random = new Random();
-            _randomEasyQuizzes = easyQuizzes.OrderBy(q => random.Next()).Take(9).ToArray(); // Take up to 9 for the slider (3 rows of 3)
+            _randomEasyQuizzes = easyQuizzes.OrderBy(q => random.Next()).Take(12).ToArray(); // Take up to 12 for the slider (3 rows of 4)
         }
         catch (Exception ex)
         {
@@ -850,7 +850,7 @@
 
             // Randomize the order
             var random = new Random();
-            _randomHardQuizzes = hardQuizzes.OrderBy(q => random.Next()).Take(9).ToArray(); // Take up to 9 for the slider (3 rows of 3)
+            _randomHardQuizzes = hardQuizzes.OrderBy(q => random.Next()).Take(12).ToArray(); // Take up to 12 for the slider (3 rows of 4)
         }
         catch (Exception ex)
         {
@@ -877,7 +877,7 @@
             var recentQuizzes = allQuizzes
                 .Where(q => q.CreatedAt.HasValue && q.CreatedAt.Value >= oneMonthAgo)
                 .OrderByDescending(q => q.CreatedAt) // Order by most recent first
-                .Take(9) // Take up to 9 quizzes for the slider
+                .Take(12) // Take up to 12 quizzes for the slider (3 rows of 4)
                 .ToArray();
 
             _recentQuizzes = recentQuizzes;

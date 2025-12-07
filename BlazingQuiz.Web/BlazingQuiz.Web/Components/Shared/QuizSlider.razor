@@ -18,11 +18,11 @@
             @for (int i = 0; i < _slides.Count; i++)
             {
                 <div class="slide">
-                    <div class="d-flex flex-nowrap gap-4 justify-content-center">
-                        @for (int j = 0; j < 3 && (i * 3 + j) < QuizList.Length; j++)
+                    <div class="d-flex flex-nowrap gap-3 justify-content-center">
+                        @for (int j = 0; j < 4 && (i * 4 + j) < QuizList.Length; j++)
                         {
-                            var quiz = QuizList[i * 3 + j];
-                            <div class="quiz-card-container flex-shrink-0" style="width: 30%; min-width: 300px; max-width: 350px;">
+                            var quiz = QuizList[i * 4 + j];
+                            <div class="quiz-card-container flex-shrink-0" style="flex: 1; min-width: 340px; max-width: 420px;">
                                 <div class="quiz-card position-relative h-100">
                                     <!-- Quiz level badge -->
                                     <div class="level-badge position-absolute top-0 start-0 m-3">
@@ -135,11 +135,11 @@
 
     protected override void OnParametersSet()
     {
-        // Calculate slides - 3 quizzes per slide
+        // Calculate slides - 4 quizzes per slide
         _slides.Clear();
-        for (int i = 0; i < QuizList.Length; i += 3)
+        for (int i = 0; i < QuizList.Length; i += 4)
         {
-            var slide = QuizList.Skip(i).Take(3).ToArray();
+            var slide = QuizList.Skip(i).Take(4).ToArray();
             _slides.Add(slide);
         }
 
