@@ -336,22 +336,24 @@
         }
 
         .quiz-stats {
-            flex-wrap: wrap;
+            gap: 0.25rem;
         }
 
         .stat-item {
-            flex: 0 0 50%;
-            margin-bottom: 0.5rem;
+            flex: 1; /* Allow all 3 items to flex equally */
         }
 
         .stat-value {
             font-size: 0.9rem;
         }
 
+        .stat-label {
+            font-size: 0.6rem;
+        }
+
         .btn-quiz-action {
             padding: 0.45rem;
-            font-size: 0.8rem;
-            margin-bottom: 0.3rem;
+            font-size: 0.75rem;
         }
 
         .slider-nav-btn {
@@ -392,7 +394,15 @@
         }
 
         .stat-item {
-            flex: 0 0 50%;
+            flex: 1; /* Keep all 3 items on one row but smaller */
+        }
+
+        .stat-value {
+            font-size: 0.8rem;
+        }
+
+        .stat-label {
+            font-size: 0.55rem;
         }
 
         .quiz-content {

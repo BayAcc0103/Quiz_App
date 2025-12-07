@@ -43,7 +43,8 @@ namespace BlazingQuiz.Api.Services
                     Level = q.Level, // Include the level
                     ImagePath = q.ImagePath,
                     AudioPath = q.AudioPath,
-                    CreatedByName = q.CreatedByUser != null ? q.CreatedByUser.Name : "Unknown"
+                    CreatedByName = q.CreatedByUser != null ? q.CreatedByUser.Name : "Unknown",
+                    CreatedByAvatarPath = q.CreatedByUser != null ? q.CreatedByUser.AvatarPath : null
                 })
                 .ToArrayAsync();
             return quizzes;
@@ -511,6 +512,7 @@ namespace BlazingQuiz.Api.Services
                         ImagePath = q.ImagePath,
                         AudioPath = q.AudioPath,
                         CreatedByName = q.CreatedByUser != null ? q.CreatedByUser.Name : "Unknown",
+                        CreatedByAvatarPath = q.CreatedByUser != null ? q.CreatedByUser.AvatarPath : null,
                         CreatedOn = DateTime.UtcNow // Using current time since User entity doesn't have a CreatedOn property
                     })
                     .FirstOrDefaultAsync();

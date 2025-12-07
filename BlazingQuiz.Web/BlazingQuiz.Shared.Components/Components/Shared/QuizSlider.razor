@@ -71,7 +71,25 @@
                                                 <small class="stat-label text-muted">Time</small>
                                             </div>
                                             <div class="stat-item d-flex flex-column align-items-center">
-                                                <span class="stat-value fw-bold">@quiz.CreatedByName</span>
+                                                <div class="d-flex align-items-center mb-1">
+                                                    @if (!string.IsNullOrEmpty(quiz.CreatedByAvatarPath))
+                                                    {
+                                                        <img src="@QuizImageService.GetImageUrl(quiz.CreatedByAvatarPath)"
+                                                             alt="@quiz.CreatedByName's avatar"
+                                                             class="rounded-circle me-2"
+                                                             style="width: 24px; height: 24px; object-fit: cover;"
+                                                             title="@quiz.CreatedByName" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="rounded-circle me-2 d-flex align-items-center justify-content-center bg-secondary text-white"
+                                                             style="width: 24px; height: 24px; font-size: 10px;"
+                                                             title="@quiz.CreatedByName">
+                                                            @quiz.CreatedByName?.FirstOrDefault().ToString().ToUpper()
+                                                        </div>
+                                                    }
+                                                    <span class="stat-value fw-bold small">@quiz.CreatedByName</span>
+                                                </div>
                                                 <small class="stat-label text-muted">Creator</small>
                                             </div>
                                         </div>

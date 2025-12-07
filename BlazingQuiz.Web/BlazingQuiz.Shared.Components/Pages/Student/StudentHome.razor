@@ -279,7 +279,23 @@
                     </tr>
                     <tr>
                         <td><strong>Created By:</strong></td>
-                        <td>@_quizDetails.CreatedByName</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(_quizDetails.CreatedByAvatarPath))
+                            {
+                                <img src="@QuizImageService.GetImageUrl(_quizDetails.CreatedByAvatarPath)"
+                                     alt="Avatar"
+                                     class="rounded-circle me-2"
+                                     style="width: 30px; height: 30px; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div class="rounded-circle me-2 d-inline-flex align-items-center justify-content-center bg-secondary text-white"
+                                     style="width: 30px; height: 30px; font-size: 12px;">
+                                    @_quizDetails.CreatedByName?.FirstOrDefault().ToString().ToUpper()
+                                </div>
+                            }
+                            @_quizDetails.CreatedByName
+                        </td>
                     </tr>
                     <tr>
                         <td><strong>Questions:</strong></td>

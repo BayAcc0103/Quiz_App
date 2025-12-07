@@ -14,6 +14,7 @@
         public string? ImagePath { get; set; }
         public string? AudioPath { get; set; }
         public string? CreatedByName { get; set; }
+        public string? CreatedByAvatarPath { get; set; }
         public DateTime CreatedOn { get; set; }
         
         public List<RatingDto> RecentRatings { get; set; } = new List<RatingDto>();
