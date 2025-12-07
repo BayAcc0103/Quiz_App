@@ -97,11 +97,6 @@
     background-color: #dc3545; 
 }
 
-.quiz-stats {
-    padding-top: 1rem;
-    border-top: 1px solid rgba(0,0,0,0.1);
-}
-
 .stat-item {
     text-align: center;
     flex: 1;
@@ -236,7 +231,6 @@
     box-shadow: none;
     background-color: transparent;
     border-radius: 50px !important;
-    padding: 0.75rem 1.5rem;
 }
 
 .form-control:focus {
@@ -253,9 +247,8 @@
     align-items: center;
     justify-content: center;
     display: flex;
-    font-size: 2rem;
+    font-size: 1rem;
 }
-
 /* Search results message styling */
 .search-results-message {
     border: 3px solid #000 !important;

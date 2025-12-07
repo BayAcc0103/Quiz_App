@@ -10,18 +10,33 @@
 @inject QuizImageService QuizImageService
 @inject QuizAuthStateProvider QuizAuthStateProvider
 
-<div class="container-fluid">
+<BackButton />
+<div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>
             Quizzes in @(_selectedCategory?.Name ?? "Category")
             @if (_selectedCategory != null)
             {
-                <span class="badge bg-primary ms-2">@_filteredQuizzes.Length</span>
+                <span class="badge bg-primary ms-2">@(_filteredQuizzes.Length > 0 ? _searchedQuizzes?.Length ?? _filteredQuizzes.Length : 0)</span>
             }
         </h2>
         <button class="btn btn-3d btn-3d-secondary btn-sm" @onclick="@(() => NavigationManager.NavigateTo("/student/home"))">
             <i class="bi bi-arrow-left me-1"></i> Back to Home
         </button>
+    </div>
+
+    <!-- Search input -->
+    <div class="mb-4">
+        <div class="input-group">
+            <input type="text"
+                   class="form-control form-control-lg"
+                   placeholder="Search quizzes by name..."
+                   @bind="SearchTerm"
+                   @bind:event="oninput" />
+            <span class="input-group-text material-symbols-outlined">
+                search
+            </span>
+        </div>
     </div>
 
     @if (_selectedCategory == null)
@@ -44,7 +59,7 @@
     else
     {
         <div class="row">
-            @foreach (var quiz in _filteredQuizzes)
+            @foreach (var quiz in (_searchedQuizzes?.Length > 0 ? _searchedQuizzes : _filteredQuizzes))
             {
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="quiz-card-3d position-relative h-100">
@@ -141,6 +156,16 @@
                 </div>
             }
         </div>
+
+        @if (_searchedQuizzes?.Length == 0 && !string.IsNullOrEmpty(SearchTerm))
+        {
+            <div class="text-center py-4">
+                <i class="bi bi-search fs-1 text-muted"></i>
+                <h5 class="mt-2">No quizzes found</h5>
+                <p class="text-muted">No quizzes match your search for "@SearchTerm"</p>
+                <button type="button" class="btn btn-outline-primary" @onclick="ClearSearch">Clear Search</button>
+            </div>
+        }
     }
 </div>
 
@@ -211,16 +236,24 @@
     }
 </BottomSheet>
 
-<style>
-    /* Page-specific styles are now in FilterByCategory.razor.css */
-</style>
-
 @code {
     [Parameter] public int CategoryId { get; set; }
     private CategoryDto? _selectedCategory;
     private QuizListDto[] _filteredQuizzes = [];
+    private QuizListDto[]? _searchedQuizzes;
     private QuizListDto? _selectedQuizForType;
     private Dictionary<Guid, bool> _bookmarkedQuizes = new();
+    private string _searchTerm = string.Empty;
+
+    private string SearchTerm
+    {
+        get => _searchTerm;
+        set
+        {
+            _searchTerm = value;
+            FilterQuizzes();  // Automatically filter when the search term changes
+        }
+    }
 
     // For quiz details modal
     private bool _showQuizDetails = false;
@@ -402,5 +435,27 @@
             AppState.HideLoader();
             _selectedQuizForType = null;
         }
+    }
+
+    private void FilterQuizzes()
+    {
+        if (string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            _searchedQuizzes = null; // Show all quizzes when search is empty
+        }
+        else
+        {
+            _searchedQuizzes = _filteredQuizzes
+                .Where(q => q.Name?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) == true)
+                .ToArray();
+        }
+        StateHasChanged();
+    }
+
+    private void ClearSearch()
+    {
+        SearchTerm = string.Empty;
+        _searchedQuizzes = null; // Show all quizzes again
+        StateHasChanged();
     }
 }
