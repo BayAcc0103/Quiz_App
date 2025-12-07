@@ -19,8 +19,8 @@
                 <span class="badge bg-primary ms-2">@_filteredQuizzes.Length</span>
             }
         </h2>
-        <button class="btn btn-outline-secondary" @onclick="@(() => NavigationManager.NavigateTo("/student/home"))">
-            <i class="bi bi-arrow-left"></i> Back to Home
+        <button class="btn btn-3d btn-3d-secondary btn-sm" @onclick="@(() => NavigationManager.NavigateTo("/student/home"))">
+            <i class="bi bi-arrow-left me-1"></i> Back to Home
         </button>
     </div>
 
@@ -47,52 +47,94 @@
             @foreach (var quiz in _filteredQuizzes)
             {
                 <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="quiz-card position-relative">
+                    <div class="quiz-card-3d position-relative h-100">
+                        <!-- Quiz level badge -->
+                        <div class="level-badge position-absolute top-0 start-0 m-3">
+                            <span class="badge badge-@(quiz.Level?.ToLower() == "easy" ? "success" : quiz.Level?.ToLower() == "medium" ? "warning" : "danger")">
+                                @quiz.Level
+                            </span>
+                        </div>
+
+                        <!-- Bookmark button -->
+                        <button type="button"
+                                class="btn btn-bookmark @(IsBookmarked(quiz.Id) ? "bookmarked" : "")"
+                                @onclick="() => ToggleBookmarkAsync(quiz)"
+                                title="@(IsBookmarked(quiz.Id) ? "Remove bookmark" : "Add to bookmarks")">
+
+                            <span class="material-symbols-outlined @(IsBookmarked(quiz.Id) ? "text-warning" : "text-muted")">
+                                @(IsBookmarked(quiz.Id) ? "bookmark" : "bookmark_add")
+                            </span>
+                        </button>
+
+                        <!-- Quiz image -->
                         @if (!string.IsNullOrEmpty(quiz.ImagePath))
                         {
-                            <img src="@QuizImageService.GetImageUrl(quiz.ImagePath)" alt="@quiz.Name" class="quiz-image" />
+                            <div class="quiz-image-container">
+                                <img src="@QuizImageService.GetImageUrl(quiz.ImagePath)" alt="@quiz.Name" class="quiz-image" />
+                            </div>
                         }
                         else
                         {
-                            <div class="quiz-image bg-light d-flex align-items-center justify-content-center">
-                                <i class="bi bi-journal-text fs-1 text-muted"></i>
+                            <div class="quiz-image quiz-image-placeholder d-flex align-items-center justify-content-center">
+                                <i class="bi bi-journal-text fs-1 text-white"></i>
                             </div>
                         }
 
-                        <button type="button" class="btn btn-sm btn-bookmark @(IsBookmarked(quiz.Id) ? "btn-warning" : "btn-outline-warning")"
-                                @onclick="() => ToggleBookmarkAsync(quiz)"
-                                title="@(IsBookmarked(quiz.Id) ? "Remove bookmark" : "Add to bookmarks")">
-                            @(IsBookmarked(quiz.Id) ? "★" : "☆")
-                        </button>
+                        <!-- Quiz content -->
+                        <div class="quiz-content p-3">
+                            <h5 class="fw-bold mb-3 text-truncate" title="@quiz.Name">@quiz.Name</h5>
 
-                        <div class="quiz-content">
-                            <h5 class="fw-bold mb-3">@quiz.Name</h5>
-
-                            <div class="quiz-stats">
-                                <div class="stat-item">
-                                    <div class="stat-value">@quiz.TotalQuestions</div>
-                                    <p class="stat-label mb-0">Questions</p>
+                            <!-- Quiz statistics -->
+                            <div class="quiz-stats d-flex justify-content-between mt-auto">
+                                <div class="stat-item d-flex flex-column align-items-center">
+                                    <span class="stat-value fw-bold">@quiz.TotalQuestions</span>
+                                    <small class="stat-label text-muted">Questions</small>
                                 </div>
-                                <div class="stat-item">
-                                    <div class="stat-value">@quiz.TimeInMinutes min</div>
-                                    <p class="stat-label mb-0">Time</p>
+                                <div class="stat-item d-flex flex-column align-items-center">
+                                    <span class="stat-value fw-bold">@quiz.TimeInMinutes min</span>
+                                    <small class="stat-label text-muted">Time</small>
                                 </div>
-                                <div class="stat-item">
-                                    <div class="stat-value">@quiz.Level</div>
-                                    <p class="stat-label mb-0">Level</p>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-value">@quiz.CreatedByName</div>
-                                    <p class="stat-label mb-0">Creator</p>
+                                <div class="stat-item d-flex flex-column align-items-center">
+                                    <div class="d-flex align-items-center mb-1">
+                                        @if (!string.IsNullOrEmpty(quiz.CreatedByAvatarPath))
+                                        {
+                                            <img src="@QuizImageService.GetImageUrl(quiz.CreatedByAvatarPath)"
+                                                 alt="@quiz.CreatedByName's avatar"
+                                                 class="rounded-circle me-2"
+                                                 style="width: 24px; height: 24px; object-fit: cover;"
+                                                 title="@quiz.CreatedByName" />
+                                        }
+                                        else
+                                        {
+                                            <div class="rounded-circle me-2 d-flex align-items-center justify-content-center bg-secondary text-white"
+                                                 style="width: 24px; height: 24px; font-size: 10px;"
+                                                 title="@quiz.CreatedByName">
+                                                @quiz.CreatedByName?.FirstOrDefault().ToString().ToUpper()
+                                            </div>
+                                        }
+                                        <span class="stat-value fw-bold small">@quiz.CreatedByName</span>
+                                    </div>
+                                    <small class="stat-label text-muted">Creator</small>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="quiz-meta">
-                            <div class="d-grid gap-2">
-                                <button type="button" class="btn btn-quiz-action btn-warning" @onclick="() => ShowQuizTypeSelection(quiz)">Start Quiz</button>
-                                <a href="student/createroom?quizId=@quiz.Id" type="button" class="btn btn-quiz-action btn-primary">Create Room</a>
-                                <button type="button" class="btn btn-quiz-action btn-info" @onclick="() => ShowQuizDetails(quiz.Id)">View Details</button>
+                        <!-- Action buttons -->
+                        <div class="card-button-overlay">
+                            <div class="quiz-actions-section d-flex gap-1">
+                                <button type="button"
+                                        class="btn btn-3d btn-3d-info btn-sm flex-fill"
+                                        @onclick="() => ShowQuizTypeSelection(quiz)">
+                                    Start Quiz
+                                </button>
+                                <a href="student/createroom?quizId=@quiz.Id" class="btn btn-3d btn-3d-primary btn-sm flex-fill">
+                                    Create Room
+                                </a>
+                                <button type="button"
+                                        class="btn btn-3d btn-3d-success btn-sm flex-fill"
+                                        @onclick="() => ShowQuizDetails(quiz.Id)">
+                                    View Details
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -170,107 +212,7 @@
 </BottomSheet>
 
 <style>
-    .quiz-card {
-        border-radius: 15px;
-        overflow: hidden;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.06);
-        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-        height: 100%;
-        background: white;
-        border: 1px solid #e9ecef;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .quiz-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 40px rgba(79, 172, 254, 0.15);
-        border-color: #4facfe;
-    }
-
-    .quiz-image {
-        height: 180px;
-        object-fit: cover;
-        width: 100%;
-        transition: transform 0.3s ease;
-    }
-
-    .quiz-card:hover .quiz-image {
-        transform: scale(1.03);
-    }
-
-    .quiz-content {
-        padding: 1.5rem;
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .quiz-meta {
-        background: #f8f9fa;
-        padding: 1rem;
-        border-top: 1px solid #e9ecef;
-        margin-top: auto;
-    }
-
-    .quiz-stats {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.5rem;
-        margin: 1rem 0;
-    }
-
-    .stat-item {
-        text-align: center;
-        padding: 0.5rem;
-        background: #f8f9fa;
-        border-radius: 8px;
-    }
-
-    .stat-value {
-        font-weight: 600;
-        font-size: 1rem;
-        color: #495057;
-    }
-
-    .stat-label {
-        font-size: 0.75rem;
-        color: #6c757d;
-        margin-bottom: 0;
-    }
-
-    .btn-quiz-action {
-        width: 100%;
-        margin-bottom: 0.25rem;
-        border-radius: 8px;
-        font-weight: 500;
-        padding: 0.5rem;
-    }
-
-    .btn-bookmark {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        z-index: 10;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        padding: 0;
-    }
-
-    .quiz-type-card {
-        border: 2px solid transparent;
-        transition: all 0.3s ease;
-        border-radius: 15px;
-    }
-
-        .quiz-type-card:hover {
-            border-color: #667eea;
-            transform: translateY(-3px);
-        }
+    /* Page-specific styles are now in FilterByCategory.razor.css */
 </style>
 
 @code {
