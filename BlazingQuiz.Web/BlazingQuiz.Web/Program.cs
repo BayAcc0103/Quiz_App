@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Refit;
 
-const string ApiBaseUrl = "https://localhost:7048";
+const string ApiBaseUrl = "https://b861mvjb-7048.asse.devtunnels.ms";
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -101,38 +101,38 @@ static void ConfigureRefit(IServiceCollection services)
     services.AddRefitClient<IPublicCategoryApi>()
         .ConfigureHttpClient(SetHttpClient);
 
-    // Register media services
+    // Register media services using the named HttpClients that have BaseAddress configured
     services.AddScoped(sp =>
     {
-        var httpClient = sp.GetRequiredService<HttpClient>();
+        var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(QuizImageService));
         var authStateProvider = sp.GetRequiredService<QuizAuthStateProvider>();
         return new QuizImageService(httpClient, authStateProvider);
     });
 
     services.AddScoped(sp =>
     {
-        var httpClient = sp.GetRequiredService<HttpClient>();
+        var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(QuestionImageService));
         var authStateProvider = sp.GetRequiredService<QuizAuthStateProvider>();
         return new QuestionImageService(httpClient, authStateProvider);
     });
 
     services.AddScoped(sp =>
     {
-        var httpClient = sp.GetRequiredService<HttpClient>();
+        var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(QuizAudioService));
         var authStateProvider = sp.GetRequiredService<QuizAuthStateProvider>();
         return new QuizAudioService(httpClient, authStateProvider);
     });
 
     services.AddScoped(sp =>
     {
-        var httpClient = sp.GetRequiredService<HttpClient>();
+        var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(QuestionAudioService));
         var authStateProvider = sp.GetRequiredService<QuizAuthStateProvider>();
         return new QuestionAudioService(httpClient, authStateProvider);
     });
 
     services.AddScoped(sp =>
     {
-        var httpClient = sp.GetRequiredService<HttpClient>();
+        var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(UserAvatarService));
         var authStateProvider = sp.GetRequiredService<QuizAuthStateProvider>();
         return new UserAvatarService(httpClient, authStateProvider);
     });
