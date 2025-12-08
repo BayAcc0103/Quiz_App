@@ -92,7 +92,7 @@
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    height: 300px; /* Set fixed height for consistent card sizing */
+    height: 200px; /* Set fixed height for consistent card sizing */
 }
 
 /* Room card hover effect - switch to animated door.gif */
@@ -113,14 +113,25 @@
     margin-top: auto; /* Push content to bottom */
 }
 
+/* Adjust title styling with less margin to accommodate less content */
 .room-card-3d .card-title {
     color: #333;
     text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5); /* Add subtle text shadow for better readability */
+    margin: 0.5rem 0 0.25rem 0; /* Reduce bottom margin */
+    font-size: 1.1rem; /* Slightly smaller font for cleaner look */
 }
 
+/* Style for room details */
 .room-card-3d .room-details p {
     color: #333;
     text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5); /* Add subtle text shadow for better readability */
+    margin-bottom: 0.5rem; /* Adjust spacing between details */
+    font-size: 0.9rem; /* Slightly smaller font for details */
+}
+
+/* Adjust action button container for less content */
+.room-card-3d .btn-room-action {
+    margin: 0 1px; /* Reduce margin between buttons */
 }
 
 /* Room placeholder for when there's no image */
