@@ -1,0 +1,277 @@
+@page "/admin/rooms/{RoomId:guid}"
+@using BlazingQuiz.Shared.DTOs
+@using BlazingQuiz.Web.Services
+@inject IRoomApi RoomApi
+@inject IStorageService LocalStorage
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+@attribute [Authorize(Roles = "Admin")]
+
+<PageTitle>Room Details - Admin</PageTitle>
+
+@if (room == null)
+{
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-12">
+                <div class="hanging-container mb-4">
+                    <div class="hanging-content">
+                        <h5 class="room-name-text">Room: @room.Name</h5>
+                    </div>
+                    <div class="rope left-rope"></div>
+                    <div class="rope right-rope"></div>
+                </div>
+                
+                <!-- Back to rooms button -->
+                <div class="d-flex justify-content-start d-md-none mb-3">
+                    <a href="/admin/rooms" class="btn btn-3d btn-3d-secondary btn-sm d-flex align-items-center justify-content-center">
+                        <span class="material-symbols-outlined me-1">arrow_back</span><span>Back to Rooms</span>
+                    </a>
+                </div>
+                <div class="d-none d-md-block position-relative">
+                    <a href="/admin/rooms" class="btn btn-3d btn-3d-secondary btn-sm position-absolute start-0 d-flex align-items-center justify-content-center" style="top: -100px; z-index: 10;">
+                        <span class="material-symbols-outlined me-1">arrow_back</span><span>Back to Rooms</span>
+                    </a>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-4 mb-3">
+                        <div class="card card-3d-raised card-light h-100">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Room Code</h5>
+                                <p class="card-text display-6 fw-bold text-primary room-code-text">@room.Code</p>
+                                <div class="d-flex justify-content-center">
+                                    <button type="button" class="btn btn-3d btn-sm btn-press-down d-flex align-items-center justify-content-center" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.875rem;" disabled>
+                                        <span class="material-symbols-outlined me-1" style="font-size: 1rem;">content_copy</span>Copy
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-4 mb-3">
+                        <div class="card card-3d-raised card-light h-100">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Room Status</h5>
+                                <span class="material-symbols-outlined display-1 @(room.IsActive ? "text-success" : "text-danger") mb-2 icon-person">
+                                    @(room.IsActive ? "check_circle" : "cancel")
+                                </span>
+                                <p class="card-text display-5 fw-bold @(room.IsActive ? "text-success" : "text-danger") mb-0 room-player-text">
+                                    @(room.IsActive ? "Active" : "Inactive")
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-4 mb-3">
+                        <div class="card card-3d-raised card-light h-100">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Host</h5>
+                                <div class="d-flex justify-content-center">
+                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                        <span class="text-white fs-4">@room.CreatedByName.Substring(0, 1).ToUpper()</span>
+                                    </div>
+                                </div>
+                                <div class="card-text"><strong>@room.CreatedByName</strong></div>
+                                <small class="text-muted d-none d-sm-block">Created on @room.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                <small class="text-muted d-block d-sm-none">@room.CreatedAt.ToString("MMM dd, yyyy")</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Left Card: Room Information -->
+                    <div class="col-md-4 mb-4">
+                        <div class="card card-3d-raised card-light h-100">
+                            <div class="card-body">
+                                <h5>Room Information</h5>
+                                <div class="room-info mb-4">
+                                    @if (!string.IsNullOrEmpty(room.Description))
+                                    {
+                                        <p class="text-muted mb-3"><strong>Description:</strong> @room.Description</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-3"><strong>Description:</strong> No description</p>
+                                    }
+                                </div>
+
+                                <!-- Room Details Section -->
+                                <div class="room-details-section mb-4 p-3 bg-light rounded">
+                                    <h5 class="mb-3">Room Details</h5>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <table class="table table-sm">
+                                                <tr>
+                                                    <td><strong>Quiz:</strong></td>
+                                                    <td>@(room.QuizName ?? "No quiz assigned")</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Max Participants:</strong></td>
+                                                    <td>@room.MaxParticipants</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Created At:</strong></td>
+                                                    <td>@room.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                                                </tr>
+                                                @if (room.StartedAt.HasValue)
+                                                {
+                                                    <tr>
+                                                        <td><strong>Started At:</strong></td>
+                                                        <td>@room.StartedAt.Value.ToString("MMM dd, yyyy HH:mm")</td>
+                                                    </tr>
+                                                }
+                                                @if (room.EndedAt.HasValue)
+                                                {
+                                                    <tr>
+                                                        <td><strong>Ended At:</strong></td>
+                                                        <td>@room.EndedAt.Value.ToString("MMM dd, yyyy HH:mm")</td>
+                                                    </tr>
+                                                }
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Read-only notice -->
+                                <div class="d-flex justify-content-center">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i> Read-only view for admin
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Card: Participants -->
+                    <div class="col-md-8 mb-4">
+                        <div class="card card-3d-raised card-light h-100">
+                            <div class="card-body">
+                                <h5 class="mb-3">Participants (@participants?.Length ?? 0)</h5>
+                                @if (participants == null || participants.Length == 0)
+                                {
+                                    <div class="col-12 text-center py-4">
+                                        <p class="text-muted">No participants in this room yet.</p>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="row">
+                                        @foreach (var participant in participants)
+                                        {
+                                            var isHost = room.CreatedBy == participant.UserId;
+                                            var isReady = participant.IsReady;
+                                            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-6 mb-4">
+                                                <div class="card h-100 @(isHost ? "border border-2 border-warning" : "") @(isReady && !isHost ? "border border-2 border-success" : "")" style="@(isHost ? "position: relative;" : "")">
+                                                    @if (isHost)
+                                                    {
+                                                        <div class="host-badge position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-warning d-flex align-items-center justify-content-center"
+                                                             style="width: 24px; height: 24px;"
+                                                             title="Room Host">
+                                                            <span class="material-symbols-outlined text-white" style="font-size: 0.75rem;">star</span>
+                                                        </div>
+                                                    }
+                                                    else if (isReady)
+                                                    {
+                                                        <div class="ready-badge position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-success d-flex align-items-center justify-content-center"
+                                                             style="width: 24px; height: 24px;"
+                                                             title="Ready">
+                                                            <span class="material-symbols-outlined text-white" style="font-size: 0.75rem;">check</span>
+                                                        </div>
+                                                    }
+                                                    <div class="card-body text-center">
+                                                        <div class="mb-2">
+                                                            @if (!string.IsNullOrEmpty(participant.AvatarPath))
+                                                            {
+                                                                <img src="@participant.AvatarPath" class="rounded-circle @(isHost ? "border border-2 border-warning" : isReady ? "border border-2 border-success" : "")" style="width: 60px; height: 60px; object-fit: cover;" alt="@participant.UserName" />
+                                                            }
+                                                            else
+                                                            {
+                                                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto @(isHost ? "border border-2 border-warning" : isReady ? "border border-2 border-success" : "")" style="width: 60px; height: 60px;">
+                                                                    <span class="text-white fs-4">@participant.UserName.Substring(0, 1).ToUpper()</span>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                        <h6 class="card-title mb-0">@participant.UserName @(isHost ? "(Host)" : "")</h6>
+                                                        <small class="@(isReady ? "text-success" : "text-muted")">@(isReady ? "Ready" : "Not Ready")</small>
+                                                        <div class="mt-2">
+                                                            @if (participant.HasSubmitted)
+                                                            {
+                                                                <span class="badge bg-info">
+                                                                    Submitted
+                                                                </span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge bg-secondary">
+                                                                    Pending
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                        @if (!isHost) // Don't show remove button for host
+                                                        {
+                                                            <div class="mt-2">
+                                                                <button type="button" class="btn btn-3d btn-sm" disabled title="Admin view only">
+                                                                    Remove
+                                                                </button>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid RoomId { get; set; }
+
+    private RoomDto? room;
+    private RoomParticipantDto[]? participants;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRoomDetails();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadRoomDetails();
+    }
+
+    private async Task LoadRoomDetails()
+    {
+        try
+        {
+            isLoading = true;
+            room = await RoomApi.GetRoomByIdAsync(RoomId);
+            participants = await RoomApi.GetRoomParticipantsAsync(RoomId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading room details: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

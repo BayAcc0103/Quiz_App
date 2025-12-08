@@ -4,103 +4,135 @@
 @inject IRoomApi RoomApi
 @inject IStorageService LocalStorage
 @inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
 @attribute [Authorize(Roles = "Admin")]
 
 <PageTitle>Manage Rooms - Admin</PageTitle>
 
-<div class="container-fluid">
-    <h3 class="mb-4">Manage Rooms</h3>
-
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0">Room Management</h5>
-            <button class="btn btn-sm btn-outline-primary" @onclick="RefreshRooms" disabled="@isDeleting">
-                <span class="bi bi-arrow-repeat"></span> Refresh
-            </button>
+<div class="container">
+    <!-- Hanging container with 2 ropes -->
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <!-- Hanging container with 2 ropes -->
+            <div class="hanging-container">
+                <div class="hanging-content">
+                    <h3>Manage Rooms</h3>
+                </div>
+                <!-- Ropes connecting hanging container to main card -->
+                <div class="rope left-rope"></div>
+                <div class="rope right-rope"></div>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>Room Code</th>
-                            <th>Name</th>
-                            <th>Description</th>
-                            <th>Created By</th>
-                            <th>Quiz</th>
-                            <th>Max Participants</th>
-                            <th>Created At</th>
-                            <th>Started At</th>
-                            <th>Ended At</th>
-                            <th>Active</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (rooms != null && rooms.Any())
-                        {
-                            @foreach (var room in rooms)
-                            {
-                                <tr>
-                                    <td>@room.Code</td>
-                                    <td>@room.Name</td>
-                                    <td>@(room.Description ?? "N/A")</td>
-                                    <td>@room.CreatedByName</td>
-                                    <td>@(room.QuizName ?? "N/A")</td>
-                                    <td>@room.MaxParticipants</td>
-                                    <td>@room.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                                    <td>@(room.StartedAt?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</td>
-                                    <td>@(room.EndedAt?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</td>
-                                    <td>
-                                        <span class="@(room.IsActive ? "text-success" : "text-danger")">
-                                            @(room.IsActive ? "Active" : "Inactive")
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => ViewDetails(room.Id)" disabled="@isDeleting">
-                                            View
+    </div>
+
+    <BackButton />
+    <!-- Search section: Similar to category management page -->
+    <div class="row mb-3 mt-4">
+        <div class="col-12">
+            <div class="position-relative">
+                <input type="text"
+                       class="form-control ps-4"
+                       placeholder="Search rooms by name or code..."
+                       @bind="_searchTerm"
+                       @bind:event="oninput" />
+                <span class="position-absolute start-0 top-50 translate-middle-y ms-2">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                @if (!string.IsNullOrEmpty(_searchTerm))
+                {
+                    <button class="position-absolute end-0 top-50 translate-middle-y me-2 btn btn-link p-0 text-decoration-none"
+                            type="button"
+                            style="border: none; background: none; color: #6c757d;"
+                            @onclick="() => { _searchTerm = string.Empty; }">
+                        <i class="fas fa-times"></i>
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+    <!-- Top section: Refresh button only (no create room for admin) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div></div> <!-- Empty div to maintain spacing -->
+                <button class="btn btn-3d btn-3d-primary" @onclick="RefreshRooms" disabled="@isDeleting">
+                    <span class="bi bi-arrow-repeat"></span> Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Bottom section: Room grid -->
+    <div class="row">
+        <div class="col-12">
+            <h3>Rooms</h3>
+            @{
+                var filteredRooms = FilterRooms();
+            }
+
+            @if(filteredRooms == null || !filteredRooms.Any())
+            {
+                <div class="text-center">
+                    <p class="text-danger h5">@(!string.IsNullOrEmpty(_searchTerm) ? "No rooms found" : "No rooms available")</p>
+                    @if (isLoading == false && string.IsNullOrEmpty(_searchTerm))
+                    {
+                        <p class="mb-0">Currently there are no rooms in the system.</p>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3">
+                    @foreach (var room in filteredRooms)
+                    {
+                        <div class="col">
+                            <div class="card h-100 room-card room-card-3d" title="@room.Name">
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title text-center">@room.Name</h5>
+                                    <div class="room-details mb-2">
+                                        <p class="mb-1"><strong>Code:</strong> @room.Code</p>
+                                        <p class="mb-1"><strong>Created By:</strong> @room.CreatedByName</p>
+                                        <p class="mb-1"><strong>Status:</strong>
+                                            <span class="@(room.IsActive ? "text-success" : "text-secondary")">
+                                                @(room.IsActive ? "Active" : "Inactive")
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div class="mt-auto d-flex justify-content-center">
+                                        <button type="button" class="btn-room-action" @onclick="() => ViewDetails(room.Id)" disabled="@isDeleting" title="View Details">
+                                            <i class="fas fa-eye"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteRoom(room.Id)" disabled="@isDeleting">
+                                        <button type="button" class="btn-room-action btn-room-action-danger" @onclick="() => DeleteRoom(room.Id)" disabled="@isDeleting" title="Delete Room">
                                             @if (isDeleting)
                                             {
-                                                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                                                <span>Deleting...</span>
+                                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                                             }
                                             else
                                             {
-                                                <span>Delete</span>
+                                                <i class="fas fa-trash"></i>
                                             }
                                         </button>
-                                    </td>
-                                </tr>
-                            }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="11" class="text-center">
-                                    <div class="alert alert-info">
-                                        <h5 class="mb-3">No rooms found</h5>
-                                        <p class="mb-1">Rooms created by teachers will appear here for admin management.</p>
-                                        @if (isLoading == false)
-                                        {
-                                            <p class="mb-0">Currently there are no rooms in the system.</p>
-                                        }
                                     </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-            
-            @if (isLoading)
-            {
-                <div class="d-flex justify-content-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
+
+                @if (rooms != null && rooms.Any() && isLoading)
+                {
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(_searchTerm) && filteredRooms.Any() == false)
+                {
+                    <div class="text-center mt-4">
+                        <p class="text-muted">No rooms found matching "@_searchTerm"</p>
+                    </div>
+                }
             }
         </div>
     </div>
@@ -110,6 +142,7 @@
     private List<RoomDto>? rooms;
     private bool isLoading = true;
     private bool isDeleting = false;
+    private string _searchTerm = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -121,7 +154,7 @@
         try
         {
             isLoading = true;
-            rooms = await RoomApi.GetRoomsForAdminAsync();
+            rooms = (await RoomApi.GetRoomsForAdminAsync())?.ToList() ?? new List<RoomDto>();
         }
         catch (Exception ex)
         {
@@ -134,11 +167,25 @@
         }
     }
 
+    private List<RoomDto>? FilterRooms()
+    {
+        if (rooms == null)
+            return null;
+
+        if (string.IsNullOrWhiteSpace(_searchTerm))
+            return rooms;
+
+        var searchTermLower = _searchTerm.ToLowerInvariant();
+        return rooms.Where(r =>
+            r.Name.ToLowerInvariant().Contains(searchTermLower) ||
+            r.Code.ToLowerInvariant().Contains(searchTermLower) ||
+            r.CreatedByName.ToLowerInvariant().Contains(searchTermLower)
+        ).ToList();
+    }
+
     private async Task ViewDetails(Guid roomId)
     {
-        // Navigate to room details page - you can implement this as needed
-        // For now, we'll just reload rooms to show the functionality
-        await LoadRooms();
+        Navigation.NavigateTo($"/admin/rooms/{roomId}");
     }
 
     private async Task DeleteRoom(Guid roomId)
@@ -152,7 +199,7 @@
         try
         {
             isDeleting = true;
-            
+
             var response = await RoomApi.DeleteRoomAsync(roomId);
             if (response.IsSuccessStatusCode)
             {

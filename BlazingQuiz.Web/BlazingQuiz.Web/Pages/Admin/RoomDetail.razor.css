@@ -1,0 +1,229 @@
+/* Hanging container styles - copied from teacher room page */
+.hanging-container {
+    position: relative;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hanging-content {
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    padding: 20px 30px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    z-index: 2;
+    color: white;
+    min-width: 300px;
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+    .hanging-content h5 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .hanging-content p {
+        margin: 0;
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+.rope {
+    position: absolute;
+    width: 8px;
+    height: 100vh; /* Full viewport height */
+    background: linear-gradient(to bottom, #8B4513, #A0522D, #8B4513);
+    top: -100vh; /* Position it so it extends both above and below the hanging container */
+    z-index: -1;
+    border: 2px solid #000;
+    box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.left-rope {
+    left: calc(50% - 70px);
+}
+
+.right-rope {
+    right: calc(50% - 70px);
+}
+
+.card {
+    transition: all 0.3s ease !important;
+}
+
+/* 3D raised card styling - copied from student room page */
+.card-3d-raised {
+    border: 3px solid #000 !important;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-height: 350px;
+}
+
+.card-3d-raised:hover {
+    transform: perspective(500px) translateY(4px);
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+        0px 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Additional styling for the top info cards */
+.card-3d-raised.h-100 {
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.card-3d-raised.h-100 .card-body {
+    padding: 15px;
+}
+
+.display-6 {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.display-5 {
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.icon-person {
+    font-size: 50px !important;
+}
+
+/* Button styling for read-only view (disabled buttons) */
+.btn-3d {
+    border: 3px solid #000 !important;
+    border-radius: 12px !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background: linear-gradient(to bottom, #6c757d, #5a6268);
+    color: white;
+    padding: 0.5rem 1rem;
+    cursor: not-allowed;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.6;
+}
+
+/* Back to rooms button styling (read-only) */
+.btn-3d-secondary {
+    background: linear-gradient(to bottom, #6c757d, #5a6268) !important;
+    cursor: pointer;
+    opacity: 1;
+}
+
+.btn-3d-secondary:hover {
+    background: linear-gradient(to bottom, #5a6268, #4e555a) !important;
+}
+
+/* Press down effect for buttons */
+.btn-press-down:active {
+    transform: translateY(4px) !important;
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+        0px 0px 0px rgba(0, 0, 0, 0.2) !important;
+    transition: all 0.1s ease !important;
+}
+
+.alert {
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Participant card styling */
+.participant-card {
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transition: transform 0.2s;
+}
+
+.participant-card:hover {
+    transform: translateY(-5px);
+    box-shadow: -6px 6px 0px 0px rgba(0, 0, 0, 0.8), 0px 4px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+.avatar-container {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Responsive text sizing for mobile screens */
+@media (max-width: 576px) {
+    .room-name-text {
+        font-size: 1.25rem !important;
+    }
+
+    .hanging-content {
+        min-width: 280px;
+        padding: 15px 20px;
+    }
+
+    .hanging-content h5 {
+        font-size: 1.25rem;
+        margin: 0;
+    }
+
+    /* Adjust rope positioning for mobile */
+    .rope {
+        height: 60vh;
+        top: -60vh;
+    }
+
+    .left-rope {
+        left: calc(50% - 50px);
+    }
+
+    .right-rope {
+        right: calc(50% - 50px);
+    }
+
+    /* Adjust participant card layout for mobile */
+    .col-md-4.col-lg-3.mb-3 {
+        padding: 0.5rem;
+    }
+}
+
+/* Additional responsive adjustments for different screen sizes */
+@media (max-width: 768px) {
+    .hanging-content {
+        min-width: 280px;
+        padding: 15px 20px;
+    }
+
+    .hanging-content h5 {
+        font-size: 1.3rem;
+    }
+
+    .rope {
+        height: 70vh;
+        top: -70vh;
+    }
+
+    .left-rope {
+        left: calc(50% - 55px);
+    }
+
+    .right-rope {
+        right: calc(50% - 55px);
+    }
+}
