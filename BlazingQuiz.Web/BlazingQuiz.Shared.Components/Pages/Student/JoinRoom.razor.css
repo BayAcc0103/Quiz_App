@@ -9,7 +9,7 @@
 
 .hanging-content {
     background: linear-gradient(135deg, #4a90e2, #357abd);
-    padding: 20px 30px;
+    padding: 20px 20px;
     border-radius: 20px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     text-align: center;
@@ -21,7 +21,6 @@
 }
     .hanging-content h3 {
         margin: 0 0 5px 0;
-        font-size: 1.5rem;
         font-weight: bold;
     }
 
@@ -104,6 +103,7 @@
     width: 75% !important;
     margin: 0 auto !important;
     display: block !important;
+    padding: 0 !important;
 }
 .form-text{
     margin-top: 1rem !important;
