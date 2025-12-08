@@ -59,12 +59,14 @@
                     @foreach (var room in rooms)
                     {
                         <div class="col">
-                            <div class="card h-100 room-card room-card-3d">
-                                <div class="card-img-top room-image" title="@room.Name"></div>
+                            <div class="card h-100 room-card room-card-3d" title="@room.Name">
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title text-center">@room.Name</h5>
                                     <div class="room-details mb-2">
                                         <p class="mb-1"><strong>Code:</strong> @room.Code</p>
+                                        <p class="mb-1"><strong>Participants:</strong> @GetParticipantCount(room.Id)/@room.MaxParticipants</p>
+                                        <p class="mb-1"><strong>Status:</strong> <span class="@(room.IsActive ? "text-success" : "text-danger")">@(room.IsActive ? "Active" : "Inactive")</span></p>
+                                        <p class="mb-1"><strong>Quiz:</strong> @(room.QuizName ?? "N/A")</p>
                                     </div>
                                     <div class="mt-auto d-flex justify-content-center">
                                         <button type="button" class="btn-room-action" @onclick="() => ViewDetails(room.Id)" disabled="@isProcessing" title="View Details">
