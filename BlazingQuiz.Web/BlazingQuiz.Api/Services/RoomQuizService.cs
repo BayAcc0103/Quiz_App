@@ -280,14 +280,9 @@ namespace BlazingQuiz.Api.Services
 
         public async Task<QuizApiResponse<QuizResultDto>> GetQuizResultAsync(int studentQuizForRoomId, int studentId)
         {
+            // First, get the StudentQuizForRoom with basic information
             var studentQuiz = await _context.StudentQuizzesForRoom
                 .Include(sq => sq.Quiz)
-                    .ThenInclude(q => q.Questions)
-                        .ThenInclude(q => q.Options)
-                .Include(sq => sq.Quiz)
-                    .ThenInclude(q => q.Questions)
-                        .ThenInclude(q => q.TextAnswers)
-                .Include(sq => sq.StudentQuizQuestionsForRoom)
                 .FirstOrDefaultAsync(sq => sq.Id == studentQuizForRoomId);
 
             if (studentQuiz == null)
@@ -300,35 +295,75 @@ namespace BlazingQuiz.Api.Services
                 return QuizApiResponse<QuizResultDto>.Failure("Invalid request.");
             }
 
+            // Get questions for the quiz
+            var questions = await _context.Questions
+                .Where(q => q.QuizId == studentQuiz.QuizId)
+                .ToListAsync();
+
+            // Get user's answers for this quiz
+            var userAnswers = await _context.StudentQuizQuestionsForRoom
+                .Where(sqq => sqq.StudentQuizForRoomId == studentQuizForRoomId)
+                .ToDictionaryAsync(sqq => sqq.QuestionId);
+
+            // Bulk load all options for these questions at once
+            var allOptions = await _context.Options
+                .Where(o => questions.Select(q => q.Id).Contains(o.QuestionId))
+                .ToListAsync();
+
+            // Get correct options for each question
+            var correctOptions = await _context.Options
+                .Where(o => questions.Select(q => q.Id).Contains(o.QuestionId) && o.IsCorrect)
+                .GroupBy(o => o.QuestionId)
+                .ToDictionaryAsync(g => g.Key, g => g.First());
+
+            // Bulk load all text answers for these questions at once
+            var allTextAnswers = await _context.TextAnswers
+                .Where(ta => questions.Select(q => q.Id).Contains(ta.QuestionId))
+                .GroupBy(ta => ta.QuestionId)
+                .ToDictionaryAsync(g => g.Key, g => g.Select(ta => new TextAnswerDto { Id = ta.Id, Text = ta.Text }).ToList());
+
+            // Build the result with only necessary data
             var quizResult = new QuizResultDto
             {
                 Id = studentQuiz.Id,
                 QuizName = studentQuiz.Quiz.Name,
-                TotalQuestions = studentQuiz.Quiz.Questions.Count,
+                TotalQuestions = questions.Count,
                 CorrectAnswers = studentQuiz.Total,
-                IncorrectAnswers = studentQuiz.Quiz.Questions.Count - studentQuiz.Total,
-                Questions = studentQuiz.Quiz.Questions.Select(q => new QuizResultQuestionDto
-                {
-                    Id = q.Id,
-                    Text = q.Text,
-                    IsTextAnswer = q.IsTextAnswer,
-                    Options = q.Options.Select(o => new QuizResultOptionDto
-                    {
-                        Id = o.Id,
-                        Text = o.Text
-                    }).ToList(),
-                    TextAnswers = q.IsTextAnswer ? q.TextAnswers.Select(ta => new TextAnswerDto
-                    {
-                        Id = ta.Id,
-                        Text = ta.Text
-                    }).ToList() : new List<TextAnswerDto>(),
-                    SelectedOptionId = studentQuiz.StudentQuizQuestionsForRoom
-                        .FirstOrDefault(sqq => sqq.QuestionId == q.Id)?.OptionId ?? 0,
-                    SelectedTextAnswer = studentQuiz.StudentQuizQuestionsForRoom
-                        .FirstOrDefault(sqq => sqq.QuestionId == q.Id)?.TextAnswer,
-                    CorrectOptionId = q.IsTextAnswer ? 0 : q.Options.FirstOrDefault(o => o.IsCorrect)?.Id ?? 0 // For text questions, there's no correct option ID
-                }).ToList()
+                IncorrectAnswers = questions.Count - studentQuiz.Total,
+                Questions = new List<QuizResultQuestionDto>()  // Initialize as empty list
             };
+
+            // Process each question using the bulk-loaded data
+            foreach (var question in questions)
+            {
+                userAnswers.TryGetValue(question.Id, out var userAnswer);
+
+                // Get options for this specific question
+                var questionOptions = allOptions
+                    .Where(o => o.QuestionId == question.Id)
+                    .Select(o => new QuizResultOptionDto { Id = o.Id, Text = o.Text })
+                    .ToList();
+
+                // Get text answers for this specific question
+                var textAnswers = allTextAnswers.TryGetValue(question.Id, out var textAns) ? textAns : new List<TextAnswerDto>();
+
+                // Get correct option ID for multiple choice questions
+                int correctOptionId = correctOptions.TryGetValue(question.Id, out var correctOpt) ? correctOpt.Id : 0;
+
+                var questionResult = new QuizResultQuestionDto
+                {
+                    Id = question.Id,
+                    Text = question.Text,
+                    IsTextAnswer = question.IsTextAnswer,
+                    Options = questionOptions,
+                    TextAnswers = question.IsTextAnswer ? textAnswers : new List<TextAnswerDto>(),
+                    SelectedOptionId = userAnswer?.OptionId ?? 0,
+                    SelectedTextAnswer = userAnswer?.TextAnswer,
+                    CorrectOptionId = correctOptionId
+                };
+
+                quizResult.Questions.Add(questionResult);
+            }
 
             return QuizApiResponse<QuizResultDto>.Success(quizResult);
         }

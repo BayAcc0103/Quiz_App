@@ -2,12 +2,10 @@
 @using BlazingQuiz.Shared
 @using BlazingQuiz.Shared.DTOs
 @using BlazingQuiz.Shared.Components.Components
-@using BlazingQuiz.Web.Apis
+@using BlazingQuiz.Shared.Components.Apis
 @inject IAppState AppState
 @inject IStudentQuizApi StudentQuizApi
 @inject NavigationManager NavigationManager
-
-<BackButton />
 
 <h3>Quiz Result</h3>
 
@@ -136,21 +134,21 @@ else
     }
 
     @@keyframes fadeInSlideUp {
-        from {
-            opacity: 0;
+        from { 
+            opacity: 0; 
             transform: translateY(20px);
         }
-        to {
-            opacity: 1;
+        to { 
+            opacity: 1; 
             transform: translateY(0);
         }
     }
-
+    
     /* Optimized styling for better performance */
     .card {
         contain: layout style paint;
     }
-
+    
     .card-body {
         contain: layout;
     }
@@ -171,7 +169,7 @@ else
             if (result.IsSuccess && result.Data != null)
             {
                 _quizResult = result.Data;
-
+                
                 // Add a small delay and then trigger animations for better perceived performance
                 await Task.Delay(10);
                 StateHasChanged(); // Trigger re-render to apply animations
