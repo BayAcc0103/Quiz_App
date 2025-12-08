@@ -11,370 +11,411 @@
 @inject QuizState QuizState
 @inject QuizImageService QuizImageService
 @inject QuizAuthStateProvider QuizAuthStateProvider
-@inject CategoryImageService categoryimageservice
+@inject CategoryImageService CategoryImageService
+@inject IJSRuntime JSRuntime
 
-<div class="pl-1 pr-1 mt-4">
-    <!-- Hero Section for Room Actions -->
-    <div class="row mb-5">
-        <div class="col-md-6 mb-4">
-            <div class="hero-card">
-                <div class="d-flex flex-column align-items-center text-center">
-                    <div class="mb-3">
-                        <i class="bi bi-plus-circle fs-1"></i>
-                    </div>
-                    <h4>Create Your Own Room</h4>
-                    <p>Start a new quiz session and invite your friends to join</p>
-                    <a href="/student/createroom" class="btn btn-3d btn-3d-primary mt-3">Create Room</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 mb-4">
-            <div class="hero-card">
-                <div class="d-flex flex-column align-items-center text-center">
-                    <div class="mb-3">
-                        <i class="bi bi-door-open fs-1"></i>
-                    </div>
-                    <h4>Join Existing Room</h4>
-                    <p>Enter a room code to participate in an active quiz session</p>
-                    <a href="/student/joinroom" class="btn btn-3d btn-3d-success mt-3">Join Room</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Category Section for Visible Categories -->
-    <div class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <a href="/student/categories" class="btn btn-outline-primary">View All</a>
-        </div>
-        @if (_visibleCategories.Length > 0)
-        {
-            @for (int row = 0; row < 2; row++)
-            {
-                <div class="row mb-3">
-                    @for (int col = 0; col < 6; col++)
+<div class="student-home-background">
+    <div class="container-fluid px-0">
+        <!-- Category Section for Visible Categories -->
+        <div class="mb-3 category-section px-2">
+            <div class="card card-3d-raised card-light">
+                <div class="card-body">
+                    @if (_visibleCategories.Length > 0)
                     {
-                        var index = row * 6 + col;
-                        if (index < _visibleCategories.Length)
-                        {
-                            var category = _visibleCategories[index];
-                            <div class="col-md-2 col-4 mb-3">
-                                <div class="category-item text-center" @onclick="() => OnCategoryClick(category)">
-                                    @if (!string.IsNullOrEmpty(category.ImagePath))
-                                    {
-                                        <img src="@categoryimageservice.GetImageUrl(category.ImagePath)" alt="@category.Name" class="category-image img-fluid rounded mb-2" />
-                                    }
-                                    else
-                                    {
-                                        <div class="category-placeholder rounded mb-2 d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-folder fs-3 text-muted"></i>
+                        <!-- First row of categories -->
+                        <div class="row">
+                            @{
+                                var firstRowCategories = Math.Min(9, _visibleCategories.Length); // Reserve one spot for the More button
+                                if (_visibleCategories.Length <= 9) // If 9 or fewer categories, use all spots
+                                {
+                                    firstRowCategories = _visibleCategories.Length;
+                                }
+
+                                @for (int i = 0; i < firstRowCategories; i++)
+                                {
+                                    var category = _visibleCategories[i];
+                                    <div class="col">
+                                        <div @onclick="() => OnCategoryClick(category)">
+                                            <div class="d-flex flex-column align-items-center justify-content-center text-center">
+                                                @if (!string.IsNullOrEmpty(category.ImagePath))
+                                                {
+                                                    <img src="@CategoryImageService.GetImageUrl(category.ImagePath)" alt="@category.Name" class="category-image img-fluid rounded mb-2" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="category-placeholder rounded mb-2 d-flex align-items-center justify-content-center">
+                                                        <i class="bi bi-folder fs-3 text-muted"></i>
+                                                    </div>
+                                                }
+                                                <div class="category-name">@category.Name</div>
+                                            </div>
                                         </div>
-                                    }
-                                    <div class="category-name">@category.Name</div>
-                                </div>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="col-md-2 col-4 mb-3">
-                                <div class="category-item-placeholder"></div>
-                            </div>
-                        }
+                                    </div>
+                                }
+
+                                <!-- Add More button if there are more categories -->
+                                @if (_visibleCategories.Length > firstRowCategories)
+                                {
+                                    <div class="col">
+                                        <div class="toggle-button text-center d-flex flex-column justify-content-center align-items-center" @onclick="ToggleCategoryContainer">
+                                            <svg class="google-arrow-icon" style="width: 24px; height: 24px; color: #495057;" viewBox="0 0 24 24">
+                                                @if (_categoriesExpanded)
+                                                {
+                                                    <path fill="currentColor" d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z" />
+                                                }
+                                                else
+                                                {
+                                                    <path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z" />
+                                                }
+                                            </svg>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+
+                        <!-- Additional categories container that starts hidden -->
+                        <div id="additional-categories"
+                             class="additional-categories-container"
+                             style="max-height: 0; overflow: hidden; opacity: 0;">
+                            @{
+                                for (int row = 1; row < Math.Ceiling((double)_visibleCategories.Length / 10); row++)
+                                {
+                                    var startIndex = row * 10;
+                                    var endIndex = Math.Min((row + 1) * 10, _visibleCategories.Length);
+
+                                    <div class="row g-2">
+                                        @for (int col = 0; col < 10; col++)
+                                        {
+                                            var index = startIndex + col;
+
+                                            if (index < _visibleCategories.Length)
+                                            {
+                                                var category = _visibleCategories[index];
+                                                <div class="col">
+                                                    <div @onclick="() => OnCategoryClick(category)">
+                                                        <div class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+                                                            @if (!string.IsNullOrEmpty(category.ImagePath))
+                                                            {
+                                                                <img src="@CategoryImageService.GetImageUrl(category.ImagePath)" alt="@category.Name" class="category-image img-fluid rounded mb-2" />
+                                                            }
+                                                            else
+                                                            {
+                                                                <div class="category-placeholder rounded mb-2 d-flex align-items-center justify-content-center">
+                                                                    <i class="bi bi-folder fs-3 text-muted"></i>
+                                                                </div>
+                                                            }
+                                                            <div class="category-name">@category.Name</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else if (row == 1 && col == 9) // Add "See All" button at the end of the second row (first additional row)
+                                            {
+                                                <div class="col">
+                                                    <a href="/student/categories" class="d-flex align-items-center justify-content-center text-center text-decoration-none" style="color: inherit;">
+                                                        <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                                                            <div class="see-all-icon mb-2">
+                                                                <i class="bi bi-arrow-right-circle fs-2"></i>
+                                                            </div>
+                                                            <div class="fw-bold">See All</div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
                     }
-                </div>
-            }
-        }
-        else
-        {
-            <div class="text-center py-4">
-                <p class="text-muted">No categories available at the moment.</p>
-            </div>
-        }
-    </div>
-
-    <!-- Random Easy Level Quizzes Section -->
-    <div class="mb-5">
-        <h3 class="mb-4">Easy</h3>
-        @if (_randomEasyQuizzes.Length > 0)
-        {
-            <QuizSlider QuizList="_randomEasyQuizzes"
-                        OnQuizTypeSelection="ShowQuizTypeSelection"
-                        OnQuizDetails="ShowQuizDetails"
-                        OnBookmarkToggle="OnBookmarkToggled" />
-        }
-        else
-        {
-            <div class="text-center py-4">
-                <p class="text-muted">No easy level quizzes available at the moment.</p>
-            </div>
-        }
-    </div>
-
-    <!-- Random Hard Level Quizzes Section -->
-    <div class="mb-5">
-        <h3 class="mb-4">Hard</h3>
-        @if (_randomHardQuizzes.Length > 0)
-        {
-            <QuizSlider QuizList="_randomHardQuizzes"
-                        OnQuizTypeSelection="ShowQuizTypeSelection"
-                        OnQuizDetails="ShowQuizDetails"
-                        OnBookmarkToggle="OnBookmarkToggled" />
-        }
-        else
-        {
-            <div class="text-center py-4">
-                <p class="text-muted">No hard level quizzes available at the moment.</p>
-            </div>
-        }
-    </div>
-
-    <!-- Recent Quizzes Section -->
-    <div class="mb-5">
-        <h3 class="mb-4">Recently Added</h3>
-        @if (_recentQuizzes.Length > 0)
-        {
-            <QuizSlider QuizList="_recentQuizzes"
-                        OnQuizTypeSelection="ShowQuizTypeSelection"
-                        OnQuizDetails="ShowQuizDetails"
-                        OnBookmarkToggle="OnBookmarkToggled" />
-        }
-        else
-        {
-            <div class="text-center py-4">
-                <p class="text-muted">No recently added quizzes available at the moment.</p>
-            </div>
-        }
-    </div>
-
-    <!-- Category Selection -->
-    <div class="category-select-container">
-        <div class="row align-items-center">
-            <div class="col-md-4">
-                <label class="form-label fw-bold mb-0 fs-5">Select Category</label>
-            </div>
-            <div class="col-md-8">
-                <select class="category-select" @bind="_selectedCategoryId" @bind:after="OnSelectedCategoryChanged">
-                    <option value="0">All Categories</option>
-                    @foreach (var category in _categories)
+                    else
                     {
-                        <option value="@category.Id">@category.Name</option>
+                        <div class="text-center py-4">
+                            <p class="text-muted">No categories available at the moment.</p>
+                        </div>
                     }
-                </select>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quiz Grid -->
-    <div class="row">
-        @if(!_isLoading && _quizes.Length == 0)
-        {
-            var message = _selectedCategoryId == 0 ? "Select a category to view quizzes." : "No quizzes available for this category.";
-            <div class="col-12">
-                <div class="empty-state">
-                    <div class="mb-3">
-                        <i class="bi bi-journal-x fs-1 text-muted"></i>
-                    </div>
-                    <h5>@message</h5>
-                    <p class="text-muted">Come back later or try a different category</p>
                 </div>
             </div>
-        }
-        else
-        {
-            @foreach (var q in _quizes)
-            {
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="quiz-card position-relative">
-                        @if (!string.IsNullOrEmpty(q.ImagePath))
-                        {
-                            <img src="@QuizImageService.GetImageUrl(q.ImagePath)" alt="@q.Name" class="quiz-image" />
-                        }
-                        else
-                        {
-                            <div class="quiz-image bg-light d-flex align-items-center justify-content-center">
-                                <i class="bi bi-journal-text fs-1 text-muted"></i>
-                            </div>
-                        }
-                        
-                        <button type="button" class="btn btn-sm btn-bookmark @(IsBookmarked(q.Id) ? "btn-warning" : "btn-outline-warning")"
-                                @onclick="() => ToggleBookmarkAsync(q)"
-                                title="@(IsBookmarked(q.Id) ? "Remove bookmark" : "Add to bookmarks")">
-                            @(IsBookmarked(q.Id) ? "★" : "☆")
-                        </button>
-                        
-                        <div class="quiz-content">
-                            @* <span class="category-badge">@q.CategoryName</span> *@
-                            <h5 class="fw-bold mb-3">@q.Name</h5>
-                            
-                            <div class="quiz-stats">
-                                <div class="stat-item">
-                                    <div class="stat-value">@q.TotalQuestions</div>
-                                    <p class="stat-label mb-0">Questions</p>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-value">@q.TimeInMinutes min</div>
-                                    <p class="stat-label mb-0">Time</p>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-value">@q.Level</div>
-                                    <p class="stat-label mb-0">Level</p>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-value">@q.CreatedByName</div>
-                                    <p class="stat-label mb-0">Creator</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="quiz-meta">
-                            <div class="d-grid gap-2">
-                                <button type="button" class="btn btn-quiz-action btn-warning" @onclick="() => ShowQuizTypeSelection(q)">Start Quiz</button>
-                                <a href="student/createroom?quizId=@q.Id" type="button" class="btn btn-quiz-action btn-primary">Create Room</a>
-                                <button type="button" class="btn btn-quiz-action btn-info" @onclick="() => ShowQuizDetails(q.Id)">View Details</button>
-                            </div>
+        </div>
+
+        <!-- Hero Section for Room Actions -->
+        <div class="row mb-5 px-5">
+            <div class="col-md-6">
+                <div class="card card-3d-raised card-light position-relative">
+                    <div class="card-body text-center mb-1 d-flex flex-column align-items-center justify-content-center" style="min-height: 300px;">
+                        <h4>Create Your Own Room</h4>
+                        <img src="asset/createroom.png" alt="createroom" class="create-room mb-3" />
+                    </div>
+                    <div class="room-card-button-overlay">
+                        <div class="room-card-actions-section">
+                            <a href="/student/createroom" class="btn btn-3d btn-3d-primary">Create Room</a>
                         </div>
                     </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card card-3d-raised card-light position-relative">
+                    <div class="card-body text-center mb-1 d-flex flex-column align-items-center justify-content-center" style="min-height: 300px;">
+                        <h4>Join Existing Room</h4>
+                        <img src="asset/joinroom.png" alt="joinroom" class="join-room mb-3" />
+                    </div>
+                    <div class="room-card-button-overlay">
+                        <div class="room-card-actions-section">
+                            <a href="/student/joinroom" class="btn btn-3d btn-3d-success">Join Room</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Random Easy Level Quizzes Section -->
+        <div class="mb-5">
+            <h2>Easy</h2>
+            @if (_randomEasyQuizzes.Length > 0)
+            {
+                <QuizSlider QuizList="_randomEasyQuizzes"
+                            OnQuizTypeSelection="ShowQuizTypeSelection"
+                            OnQuizDetails="ShowQuizDetails"
+                            OnBookmarkToggle="OnBookmarkToggled" />
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted">No easy level quizzes available at the moment.</p>
                 </div>
             }
-        }
-    </div>
-</div>
-
-@if(_selectedQuizForType != null)
-{
-    <Modal Title="Select Quiz Type" OnCancelClick="() => _selectedQuizForType = null" OnActionButtonClick="() => {}" ActionButtonText="Close">
-        <div class="quiz-type-selection">
-            <div class="d-grid gap-3">
-                <button class="btn btn-lg btn-outline-primary p-3 quiz-type-card" @onclick="() => StartQuizWithMode(QuestionType.MCQ)">
-                    <h5><i class="bi bi-list-check me-2"></i>Multiple Choice Questions</h5>
-                    <p class="mb-0">Answer questions with options, save and go to next, or submit the quiz when complete.</p>
-                </button>
-                <button class="btn btn-lg btn-outline-success p-3 quiz-type-card" @onclick="() => StartQuizWithMode(QuestionType.Flashcard)">
-                    <h5><i class="bi bi-card-text me-2"></i>Flashcards</h5>
-                    <p class="mb-0">Review questions and answers by flipping cards. Navigate through questions at your own pace.</p>
-                </button>
-            </div>
         </div>
-    </Modal>
-}
 
-<BottomSheet IsOpen="@_showQuizDetails" Title="Quiz Details" IsOpenChanged="OnBottomSheetVisibilityChanged" OnCancelClick="() => _showQuizDetails = false" ShowFooter="false">
-    @if (_quizDetails != null)
-    {
-        <div class="quiz-details-content" style="max-height: 60vh; overflow-y: auto;">
-            <div class="quiz-info">
-                <h5 class="fw-bold">@_quizDetails.Name</h5>
-                @if (!string.IsNullOrEmpty(_quizDetails.Description))
-                {
-                    <p><strong>Description:</strong> @_quizDetails.Description</p>
-                }
-                else
-                {
-                    <p><em>No description provided</em></p>
-                }
-                <table class="table table-sm">
-                    <tr>
-                        <td><strong>Category:</strong></td>
-                        <td>@_quizDetails.CategoryName</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Created By:</strong></td>
-                        <td>
-                            @if (!string.IsNullOrEmpty(_quizDetails.CreatedByAvatarPath))
-                            {
-                                <img src="@QuizImageService.GetImageUrl(_quizDetails.CreatedByAvatarPath)"
-                                     alt="Avatar"
-                                     class="rounded-circle me-2"
-                                     style="width: 30px; height: 30px; object-fit: cover;" />
-                            }
-                            else
-                            {
-                                <div class="rounded-circle me-2 d-inline-flex align-items-center justify-content-center bg-secondary text-white"
-                                     style="width: 30px; height: 30px; font-size: 12px;">
-                                    @_quizDetails.CreatedByName?.FirstOrDefault().ToString().ToUpper()
-                                </div>
-                            }
-                            @_quizDetails.CreatedByName
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><strong>Questions:</strong></td>
-                        <td>@_quizDetails.TotalQuestions</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Level:</strong></td>
-                        <td>@(_quizDetails.Level ?? "Not specified")</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Time:</strong></td>
-                        <td>@_quizDetails.TimeInMinutes minutes</td>
-                    </tr>
-                </table>
-            </div>
-
-            @if (_quizDetails.RecentRatings.Any() || _quizDetails.RecentComments.Any())
+        <!-- Random Hard Level Quizzes Section -->
+        <div class="mb-5">
+            <h2>Hard</h2>
+            @if (_randomHardQuizzes.Length > 0)
             {
-                <div class="recent-feedback mt-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6>Recent Feedback</h6>
-                        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => ShowAllFeedback(_quizDetails.Id)">View All Feedback</button>
-                    </div>
-                    @{
-                        // Create a dictionary to hold combined feedback
-                        var combinedFeedback = new Dictionary<int, dynamic>();
+                <QuizSlider QuizList="_randomHardQuizzes"
+                            OnQuizTypeSelection="ShowQuizTypeSelection"
+                            OnQuizDetails="ShowQuizDetails"
+                            OnBookmarkToggle="OnBookmarkToggled" />
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted">No hard level quizzes available at the moment.</p>
+                </div>
+            }
+        </div>
 
-                        // Add ratings to the dictionary
-                        foreach (var rating in _quizDetails.RecentRatings)
-                        {
-                            combinedFeedback[rating.StudentId] = new {
-                                StudentId = rating.StudentId,
-                                StudentName = rating.StudentName,
-                                Score = rating.Score,
-                                Comment = (string)null,
-                                CreatedOn = rating.CreatedOn
-                            };
-                        }
+        <!-- Recent Quizzes Section -->
+        <div class="mb-5">
+            <h3 class="mb-4">Recently Added</h3>
+            @if (_recentQuizzes.Length > 0)
+            {
+                <QuizSlider QuizList="_recentQuizzes"
+                            OnQuizTypeSelection="ShowQuizTypeSelection"
+                            OnQuizDetails="ShowQuizDetails"
+                            OnBookmarkToggle="OnBookmarkToggled" />
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted">No recently added quizzes available at the moment.</p>
+                </div>
+            }
+        </div>
 
-                        // Add comments to the dictionary, combining with existing ratings if possible
-                        foreach (var comment in _quizDetails.RecentComments)
-                        {
-                            if (combinedFeedback.ContainsKey(comment.StudentId))
+
+    </div>
+
+    @if (_selectedQuizForType != null)
+    {
+        <Modal Title="Select Quiz Type" OnCancelClick="() => _selectedQuizForType = null" OnActionButtonClick="() => {}" ActionButtonText="Close">
+            <div class="quiz-type-selection">
+                <div class="d-grid gap-3">
+                    <button class="btn btn-lg btn-outline-primary p-3 quiz-type-card" @onclick="() => StartQuizWithMode(QuestionType.MCQ)">
+                        <h5><i class="bi bi-list-check me-2"></i>Multiple Choice Questions</h5>
+                        <p class="mb-0">Answer questions with options, save and go to next, or submit the quiz when complete.</p>
+                    </button>
+                    <button class="btn btn-lg btn-outline-success p-3 quiz-type-card" @onclick="() => StartQuizWithMode(QuestionType.Flashcard)">
+                        <h5><i class="bi bi-card-text me-2"></i>Flashcards</h5>
+                        <p class="mb-0">Review questions and answers by flipping cards. Navigate through questions at your own pace.</p>
+                    </button>
+                </div>
+            </div>
+        </Modal>
+    }
+
+    <BottomSheet IsOpen="@_showQuizDetails" Title="Quiz Details" IsOpenChanged="OnBottomSheetVisibilityChanged" OnCancelClick="() => _showQuizDetails = false" ShowFooter="false">
+        @if (_quizDetails != null)
+        {
+            <div class="quiz-details-content" style="max-height: 60vh; overflow-y: auto;">
+                <div class="quiz-info">
+                    <h5 class="fw-bold">@_quizDetails.Name</h5>
+                    @if (!string.IsNullOrEmpty(_quizDetails.Description))
+                    {
+                        <p><strong>Description:</strong> @_quizDetails.Description</p>
+                    }
+                    else
+                    {
+                        <p><em>No description provided</em></p>
+                    }
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Category:</strong></td>
+                            <td>@_quizDetails.CategoryName</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Created By:</strong></td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(_quizDetails.CreatedByAvatarPath))
+                                {
+                                    <img src="@QuizImageService.GetImageUrl(_quizDetails.CreatedByAvatarPath)"
+                                         alt="Avatar"
+                                         class="rounded-circle me-2"
+                                         style="width: 30px; height: 30px; object-fit: cover;" />
+                                }
+                                else
+                                {
+                                    <div class="rounded-circle me-2 d-inline-flex align-items-center justify-content-center bg-secondary text-white"
+                                         style="width: 30px; height: 30px; font-size: 12px;">
+                                        @_quizDetails.CreatedByName?.FirstOrDefault().ToString().ToUpper()
+                                    </div>
+                                }
+                                @_quizDetails.CreatedByName
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Questions:</strong></td>
+                            <td>@_quizDetails.TotalQuestions</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Level:</strong></td>
+                            <td>@(_quizDetails.Level ?? "Not specified")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Time:</strong></td>
+                            <td>@_quizDetails.TimeInMinutes minutes</td>
+                        </tr>
+                    </table>
+                </div>
+
+                @if (_quizDetails.RecentRatings.Any() || _quizDetails.RecentComments.Any())
+                {
+                    <div class="recent-feedback mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6>Recent Feedback</h6>
+                            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => ShowAllFeedback(_quizDetails.Id)">View All Feedback</button>
+                        </div>
+                        @{
+                            // Create a dictionary to hold combined feedback
+                            var combinedFeedback = new Dictionary<int, dynamic>();
+
+                            // Add ratings to the dictionary
+                            foreach (var rating in _quizDetails.RecentRatings)
                             {
-                                // Update existing entry with comment
-                                var existing = combinedFeedback[comment.StudentId];
-                                combinedFeedback[comment.StudentId] = new {
-                                    StudentId = comment.StudentId,
-                                    StudentName = comment.StudentName,
-                                    Score = existing.Score,
-                                    Comment = comment.Content,
-                                    CreatedOn = comment.CreatedOn
+                                combinedFeedback[rating.StudentId] = new
+                                {
+                                    StudentId = rating.StudentId,
+                                    StudentName = rating.StudentName,
+                                    Score = rating.Score,
+                                    Comment = (string)null,
+                                    CreatedOn = rating.CreatedOn
                                 };
                             }
-                            else
-                            {
-                                // Add new entry with just comment
-                                combinedFeedback[comment.StudentId] = new {
-                                    StudentId = comment.StudentId,
-                                    StudentName = comment.StudentName,
-                                    Score = (string)null,
-                                    Comment = comment.Content,
-                                    CreatedOn = comment.CreatedOn
-                                };
-                            }
-                        }
 
-                        // Sort by date and take top 3
-                        var sortedFeedback = combinedFeedback.Values
+                            // Add comments to the dictionary, combining with existing ratings if possible
+                            foreach (var comment in _quizDetails.RecentComments)
+                            {
+                                if (combinedFeedback.ContainsKey(comment.StudentId))
+                                {
+                                    // Update existing entry with comment
+                                    var existing = combinedFeedback[comment.StudentId];
+                                    combinedFeedback[comment.StudentId] = new
+                                    {
+                                        StudentId = comment.StudentId,
+                                        StudentName = comment.StudentName,
+                                        Score = existing.Score,
+                                        Comment = comment.Content,
+                                        CreatedOn = comment.CreatedOn
+                                    };
+                                }
+                                else
+                                {
+                                    // Add new entry with just comment
+                                    combinedFeedback[comment.StudentId] = new
+                                    {
+                                        StudentId = comment.StudentId,
+                                        StudentName = comment.StudentName,
+                                        Score = (string)null,
+                                        Comment = comment.Content,
+                                        CreatedOn = comment.CreatedOn
+                                    };
+                                }
+                            }
+
+                            // Sort by date and take top 3
+                            var sortedFeedback = combinedFeedback.Values
                             .OrderByDescending(f => f.CreatedOn)
                             .Take(3)
                             .ToList();
-                    }
+                        }
 
+                        <div class="feedback-list">
+                            @foreach (var feedback in sortedFeedback)
+                            {
+                                <div class="feedback-item p-3 mb-2 border rounded">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <strong>@feedback.StudentName</strong>
+                                        @if (!string.IsNullOrEmpty(feedback.Score))
+                                        {
+                                            <span class="badge bg-primary">@GetRatingIcon(feedback.Score) @GetRatingDisplayText(feedback.Score)</span>
+                                        }
+                                    </div>
+                                    <small class="text-muted">@feedback.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
+
+                                    @if (!string.IsNullOrEmpty(feedback.Comment))
+                                    {
+                                        <div class="mt-2">
+                                            <p class="mb-0">@feedback.Comment</p>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="recent-feedback mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6>Recent Feedback</h6>
+                            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => ShowAllFeedback(_quizDetails.Id)">View All Feedback</button>
+                        </div>
+                        <p class="text-muted"><em>No feedback yet</em></p>
+                    </div>
+                }
+            </div>
+        }
+        else if (_loadingDetails)
+        {
+            <div class="text-center">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+    </BottomSheet>
+
+    <BottomSheet IsOpen="@_showAllFeedback" Title="All Feedback" IsOpenChanged="OnAllFeedbackBottomSheetVisibilityChanged" OnCancelClick="() => _showAllFeedback = false" ShowFooter="false">
+        @if (_allFeedback != null)
+        {
+            <div class="quiz-details-content" style="max-height: 60vh; overflow-y: auto;">
+                @if (_allFeedback.CombinedFeedback.Any())
+                {
                     <div class="feedback-list">
-                        @foreach (var feedback in sortedFeedback)
+                        @foreach (var feedback in _allFeedback.CombinedFeedback)
                         {
-                            <div class="feedback-item p-3 mb-2 border rounded">
-                                <div class="d-flex justify-content-between mb-1">
+                            <div class="feedback-item p-3 mb-3 border rounded">
+                                <div class="d-flex justify-content-between mb-2">
                                     <strong>@feedback.StudentName</strong>
                                     @if (!string.IsNullOrEmpty(feedback.Score))
                                     {
@@ -392,76 +433,57 @@
                             </div>
                         }
                     </div>
-                </div>
-            }
-            else
-            {
-                <div class="recent-feedback mt-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6>Recent Feedback</h6>
-                        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => ShowAllFeedback(_quizDetails.Id)">View All Feedback</button>
+                }
+                else
+                {
+                    <div class="text-center py-3">
+                        <p class="text-muted mb-0">No feedback yet for this quiz</p>
                     </div>
-                    <p class="text-muted"><em>No feedback yet</em></p>
-                </div>
-            }
-        </div>
-    }
-    else if (_loadingDetails)
-    {
-        <div class="text-center">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
+                }
             </div>
-        </div>
-    }
-</BottomSheet>
-
-<BottomSheet IsOpen="@_showAllFeedback" Title="All Feedback" IsOpenChanged="OnAllFeedbackBottomSheetVisibilityChanged" OnCancelClick="() => _showAllFeedback = false" ShowFooter="false">
-    @if (_allFeedback != null)
-    {
-        <div class="quiz-details-content" style="max-height: 60vh; overflow-y: auto;">
-            @if (_allFeedback.CombinedFeedback.Any())
-            {
-                <div class="feedback-list">
-                    @foreach (var feedback in _allFeedback.CombinedFeedback)
-                    {
-                        <div class="feedback-item p-3 mb-3 border rounded">
-                            <div class="d-flex justify-content-between mb-2">
-                                <strong>@feedback.StudentName</strong>
-                                @if (!string.IsNullOrEmpty(feedback.Score))
-                                {
-                                    <span class="badge bg-primary">@GetRatingIcon(feedback.Score) @GetRatingDisplayText(feedback.Score)</span>
-                                }
-                            </div>
-                            <small class="text-muted">@feedback.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
-
-                            @if (!string.IsNullOrEmpty(feedback.Comment))
-                            {
-                                <div class="mt-2">
-                                    <p class="mb-0">@feedback.Comment</p>
-                                </div>
-                            }
-                        </div>
-                    }
+        }
+        else if (_loadingAllFeedback)
+        {
+            <div class="text-center py-3">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
-            }
-            else
-            {
-                <div class="text-center py-3">
-                    <p class="text-muted mb-0">No feedback yet for this quiz</p>
-                </div>
-            }
-        </div>
-    }
-    else if (_loadingAllFeedback)
-    {
-        <div class="text-center py-3">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
             </div>
-        </div>
-    }
-</BottomSheet>
+        }
+    </BottomSheet>
+</div>
+
+<script>
+    window.expandCategories = async () => {
+        const container = document.getElementById('additional-categories');
+        if (container) {
+            // Remove the max-height restriction to calculate the full height
+            container.style.maxHeight = 'none';
+            container.style.opacity = '1';
+
+            // Get the actual scroll height
+            const height = container.scrollHeight + 'px';
+
+            // Set the container back to 0 to start the transition
+            container.style.maxHeight = '0';
+
+            // Trigger the browser to paint
+            await new Promise(resolve => setTimeout(resolve, 10));
+
+            // Start the transition
+            container.style.maxHeight = height;
+        }
+    };
+
+    window.collapseCategories = () => {
+        const container = document.getElementById('additional-categories');
+        if (container) {
+            container.style.maxHeight = '0';
+            container.style.opacity = '0';
+            container.style.overflow = 'hidden';
+        }
+    };
+</script>
 
 @code {
     private CategoryDto[] _categories = [];
@@ -487,6 +509,7 @@
 
     [Parameter] public int? categoryId { get; set; }
     private enum QuestionType { MCQ, Flashcard }
+    private bool _categoriesExpanded = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -523,6 +546,50 @@
             AppState.HideLoader();
             _isLoading = false;
         }
+    }
+
+    private async Task ExpandCategories()
+    {
+        _categoriesExpanded = true;
+        StateHasChanged(); // Trigger re-render to update the UI state
+
+        // Execute JavaScript to handle the animation
+        await JSRuntime.InvokeVoidAsync("expandCategories");
+    }
+
+    private async Task CollapseCategories()
+    {
+        _categoriesExpanded = false;
+        StateHasChanged(); // Trigger re-render to update the UI state
+
+        // Execute JavaScript to handle the animation
+        await JSRuntime.InvokeVoidAsync("collapseCategories");
+    }
+
+    private async Task ToggleCategoryContainer()
+    {
+        _categoriesExpanded = !_categoriesExpanded;
+        StateHasChanged(); // Trigger re-render to update the UI state
+
+        // Execute JavaScript to handle the animation
+        if (_categoriesExpanded)
+        {
+            await JSRuntime.InvokeVoidAsync("expandCategories");
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("collapseCategories");
+        }
+    }
+
+    private string GetButtonText()
+    {
+        return _categoriesExpanded ? "Less" : "More";
+    }
+
+    private string GetArrowIcon()
+    {
+        return _categoriesExpanded ? "bi-chevron-up" : "bi-chevron-down";
     }
 
     private async Task OnSelectedCategoryChanged()
@@ -618,12 +685,12 @@
         {
             // Add bookmark
             var bookmarkDto = new QuizBookmarkDto
-            {
-                UserId = QuizAuthStateProvider.User.Id,
-                QuizId = quiz.Id,
-                QuizName = quiz.Name,
-                CategoryName = quiz.CategoryName
-            };
+                {
+                    UserId = QuizAuthStateProvider.User.Id,
+                    QuizId = quiz.Id,
+                    QuizName = quiz.Name,
+                    CategoryName = quiz.CategoryName
+                };
 
             var result = await BookmarkApi.AddBookmarkAsync(bookmarkDto);
             if (result.IsSuccess)
@@ -779,7 +846,7 @@
 
             // Randomize the order
             var random = new Random();
-            _randomEasyQuizzes = easyQuizzes.OrderBy(q => random.Next()).Take(9).ToArray(); // Take up to 9 for the slider (3 rows of 3)
+            _randomEasyQuizzes = easyQuizzes.OrderBy(q => random.Next()).Take(20).ToArray(); // Take up to 20 for the slider
         }
         catch (Exception ex)
         {
@@ -806,7 +873,7 @@
 
             // Randomize the order
             var random = new Random();
-            _randomHardQuizzes = hardQuizzes.OrderBy(q => random.Next()).Take(9).ToArray(); // Take up to 9 for the slider (3 rows of 3)
+            _randomHardQuizzes = hardQuizzes.OrderBy(q => random.Next()).Take(20).ToArray(); // Take up to 20 for the slider
         }
         catch (Exception ex)
         {
@@ -833,7 +900,7 @@
             var recentQuizzes = allQuizzes
                 .Where(q => q.CreatedAt.HasValue && q.CreatedAt.Value >= oneMonthAgo)
                 .OrderByDescending(q => q.CreatedAt) // Order by most recent first
-                .Take(9) // Take up to 9 quizzes for the slider
+                .Take(12) // Take up to 12 quizzes for the slider (3 rows of 4)
                 .ToArray();
 
             _recentQuizzes = recentQuizzes;

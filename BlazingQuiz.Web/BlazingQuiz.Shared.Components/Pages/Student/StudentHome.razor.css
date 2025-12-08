@@ -1,42 +1,7 @@
-﻿.hero-card {
-    background: white;
-    color: #333;
-    border-radius: 15px;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 1px solid #e9ecef;
-    position: relative;
-    overflow: hidden;
+﻿.create-room, .join-room{
+    height: 200px;
+    width: 200px;
 }
-
-    .hero-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
-    }
-
-    .hero-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px rgba(79, 172, 254, 0.15);
-    }
-
-    .hero-card h4 {
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: #2c3e50;
-    }
-
-    .hero-card p {
-        color: #7f8c8d;
-        margin-bottom: 0;
-    }
 
 .quiz-card {
     border-radius: 15px;
@@ -216,10 +181,10 @@
 
 .category-item {
     cursor: pointer;
-    padding: 10px;
+    padding: 12px 6px;
     border-radius: 8px;
     transition: all 0.2s ease;
-    height: 140px;
+    height: 150px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -233,12 +198,11 @@
     }
 
 .category-image {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
     object-fit: cover;
     border-radius: 8px;
     margin-bottom: 8px;
-    border: 1px solid #ddd;
 }
 
 .category-placeholder {
@@ -250,8 +214,14 @@
     margin-bottom: 8px;
 }
 
+.col{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .category-name {
-    font-size: 0.9rem;
+    font-size: 1rem;
     margin-top: 5px;
     text-align: center;
     word-break: break-word;
@@ -261,7 +231,262 @@
     white-space: nowrap;
 }
 
+/* Mobile-specific responsive styles for Student Home */
+@media (max-width: 576px) {
+    .create-room, .join-room{
+        height: 150px;
+        width: 150px;
+    }
+
+    .category-item {
+        height: 120px;
+        padding: 8px 4px;
+    }
+
+    .category-image {
+        width: 60px;
+        height: 60px;
+    }
+
+    .category-placeholder {
+        width: 50px;
+        height: 50px;
+    }
+
+    .category-name {
+        font-size: 0.9rem;
+        max-width: 80px;
+    }
+
+    .toggle-button {
+        height: 40px;
+        width: 40px;
+    }
+
+    .card-3d-raised.card-light {
+        border: 2px solid #000 !important;
+    }
+
+    .room-card-button-overlay {
+        margin: 10px;
+    }
+}
+
+/* Special style for the toggle button (more/less) */
+.toggle-button {
+    cursor: pointer;
+    padding: 8px 4px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    height: 50px;
+    width:50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #f8f9fa;
+}
+
+    .toggle-button:hover {
+        background-color: #e9ecef;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+/* Style for Google-style arrow icons */
+.google-arrow-icon {
+    transition: transform 0.2s ease;
+}
+
 .category-item-placeholder {
-    height: 140px;
+    height: 150px;
     opacity: 0;
+}
+
+/* Full width category section */
+.category-section {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+/* Adjust the category section within the card */
+.card .category-item {
+    padding: 12px 6px;
+}
+
+.student-home-background {
+    position: relative;
+    overflow: hidden;
+    margin: 0;
+}
+
+.student-home-background::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    z-index: -1;
+}
+
+html:not(.dark-theme) .student-home-background::before {
+    background-image: url('/asset/background/light/bg-light5.jpg');
+}
+
+html.dark-theme .student-home-background::before {
+    background-image: url('/asset/background/dark/bg-dark5.jpg');
+}
+
+/* Animation for additional categories container */
+.additional-categories-container {
+    transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    overflow: hidden;
+}
+
+/* Custom 3D raised card styles for categories and hero cards to match join room style */
+.card-3d-raised.card-light {
+    position: relative;
+    border: 3px solid #000 !important; /* Darker border as in Join Room */
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75), /* Similar to Join Room with left and bottom emphasis */
+        0px 2px 4px rgba(0, 0, 0, 0.3);
+    transform: translateY(0);
+    height: 100%;
+}
+
+/* Hover effect for 3D cards - sinking effect */
+.card-3d-raised.card-light:hover {
+    transform: translateY(4px); /* Move down to create sinking effect */
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5), /* Similar sinking effect as Join Room */
+        0px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Card button overlay for room cards */
+.room-card-button-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 12px; /* slightly smaller than card border radius */
+    padding: 10px;
+    margin: 15px;
+}
+
+.card-3d-raised.card-light:hover .room-card-button-overlay {
+    opacity: 1;
+}
+
+.room-card-actions-section {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    padding: 10px;
+    width: 100%;
+}
+
+.room-card-actions-section .btn {
+    flex: 1;
+    min-width: 100px;
+    transition: all 0.3s ease;
+    transform: translateY(20px); /* Start below final position */
+    opacity: 0;
+}
+
+.card-3d-raised.card-light:hover .room-card-actions-section .btn {
+    opacity: 1;
+    transform: translateY(0); /* Slide up to final position */
+}
+
+.card-3d-raised.card-light:hover .room-card-actions-section .btn:nth-child(1) {
+    transition-delay: 0.1s;
+}
+
+.card-3d-raised.card-light:hover .room-card-actions-section .btn:nth-child(2) {
+    transition-delay: 0.2s;
+}
+
+.card-3d-raised.card-light:hover .room-card-actions-section .btn:nth-child(3) {
+    transition-delay: 0.3s;
+}
+
+/* Press-down effect for cards */
+.card-3d-raised.card-light:active {
+    transform: translateY(6px); /* Press down further for active state */
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5), /* Similar pressed effect as Join Room */
+        0px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Specific styles for the main category container */
+.category-section .card-3d-raised.card-light {
+    border: 3px solid #000 !important; /* Darker border as in Join Room */
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75), /* Similar to Join Room with left and bottom emphasis */
+        0px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Hover effect for category section container */
+.category-section .card-3d-raised.card-light:hover {
+    transform: translateY(4px); /* Sinking effect on hover for main container */
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5), /* Similar sinking effect as Join Room */
+        0px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Active/press effect for category section container */
+.category-section .card-3d-raised.card-light:active {
+    transform: translateY(6px); /* Press down further when clicked */
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5), /* Similar pressed effect as Join Room */
+        0px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Specific styling for the "See All" category link card */
+.category-section .card-3d-raised.card-light a {
+    color: inherit !important;
+    text-decoration: none !important;
+}
+
+.category-section .card-3d-raised.card-light a:hover {
+    text-decoration: none !important;
+    color: inherit !important;
+}
+
+/* Ensure the "See All" button also has the proper sinking effect when it's a link */
+a.card-3d-raised.card-light {
+    transition: all 0.3s ease;
+    color: inherit !important;
+    text-decoration: none !important;
+}
+
+a.card-3d-raised.card-light:hover {
+    transform: translateY(4px) !important; /* Sinking effect for link cards */
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+        0px 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+a.card-3d-raised.card-light:active {
+    transform: translateY(6px) !important; /* Press down further when clicked */
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+        0px 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
