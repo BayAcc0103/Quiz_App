@@ -541,3 +541,173 @@ a.card-3d-raised.card-light:active {
         0px 0px 0px 0px rgba(0, 0, 0, 0.5),
         0px 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
+
+/* Very small mobile devices - display 2 cards per row */
+@media (max-width: 425px) {
+    /* Reduce padding on the row container for very small mobile */
+    .row.mb-5.px-3 {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+        /* Change column behavior to show 2 cards per row on very small mobile */
+        .row.mb-5.px-3 .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding-left: 0.15rem;
+            padding-right: 0.15rem;
+            padding-right: 0.15rem;
+        }
+
+        /* Adjust card sizing on very small mobile - make square */
+        .row.mb-5.px-3 .card {
+            width: 100%;
+            aspect-ratio: 1 / 1; /* Makes the card square */
+            max-width: 150px; /* Smaller size to fit 2 per row */
+            margin: 0 auto 1rem auto; /* Center the card with bottom margin */
+        }
+
+        /* Position content at bottom of card on very small mobile */
+        .row.mb-5.px-3 .card-body {
+            min-height: 100%;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column-reverse; /* Put content at bottom */
+            justify-content: flex-end; /* Align to bottom */
+            align-items: center;
+            text-align: center; /* Center text content */
+        }
+
+    /* Reduce image size and position at bottom on very small mobile */
+    .create-room, .join-room {
+        height: 120px !important;
+        width: 120px !important;
+        margin: 0.25rem auto 0 auto !important; /* Move image up with top margin */
+    }
+
+    /* Position and make text smaller on very small mobile */
+    .row.mb-5.px-3 h4 {
+        font-size: 0.8rem !important;
+        margin: 0 0 0.25rem 0 !important; /* Put heading at bottom */
+        text-align: center;
+    }
+
+    .row.mb-5.px-3 .btn {
+        font-size: 0.65rem !important;
+        margin: 0.25rem auto 0.25rem auto; /* Position button */
+    }
+}
+
+/* Small mobile devices (above very small) - display 2 cards in 1 row */
+@media (min-width: 426px) and (max-width: 575.98px) {
+    /* Reduce padding on the row container for small mobile */
+    .row.mb-5.px-3 {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+        /* Change column behavior to show 2 cards in 1 row on small mobile */
+        .row.mb-5.px-3 .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding-left: 0.25rem;
+            padding-right: 0.25rem;
+        }
+
+        /* Adjust card sizing on small mobile - make square */
+        .row.mb-5.px-3 .card {
+            width: 100%;
+            aspect-ratio: 1 / 1; /* Makes the card square */
+            max-width: 200px; /* Prevent from getting too large and maintain 2 per row */
+            margin: 0 auto 1rem auto; /* Center the card with bottom margin */
+        }
+
+        /* Position content at bottom of card on small mobile */
+        .row.mb-5.px-3 .card-body {
+            min-height: 100%;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column-reverse; /* Put content at bottom */
+            justify-content: flex-end; /* Align to bottom */
+            align-items: center;
+            text-align: center; /* Center text content */
+        }
+
+    /* Reduce image size and position at bottom on small mobile */
+    .create-room, .join-room {
+        height: 55px !important;
+        width: 55px !important;
+        margin: 0.25rem auto 0 auto !important; /* Move image up with top margin */
+    }
+
+    /* Position and make text smaller on small mobile */
+    .row.mb-5.px-3 h4 {
+        font-size: 0.8rem !important;
+        margin: 0 0 0.25rem 0 !important; /* Put heading at bottom */
+        text-align: center;
+    }
+
+    .row.mb-5.px-3 .btn {
+        font-size: 0.7rem !important;
+        padding: 0.3rem 0.6rem !important;
+        margin: 0.25rem auto 0.25rem auto; /* Position button */
+    }
+}
+
+/* Styles for devices that are between mobile and tablet sizes - still showing 2 cards per row */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    /* Reduce padding somewhat */
+    .row.mb-5.px-3 {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+        /* Keep 2 cards per row for these screen sizes too */
+        .row.mb-5.px-3 .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding-left: 0.25rem;
+            padding-right: 0.25rem;
+        }
+
+        /* Make cards square for small tablets */
+        .row.mb-5.px-3 .card {
+            width: 100%;
+            aspect-ratio: 1 / 1; /* Makes the card square */
+            max-width: 220px; /* Prevent from getting too large and maintain 2 per row */
+            margin: 0 auto 1rem auto; /* Center the card with bottom margin */
+        }
+
+        /* Position content at bottom of card for small tablets */
+        .row.mb-5.px-3 .card-body {
+            min-height: 100%;
+            display: flex;
+            flex-direction: column-reverse; /* Put content at bottom */
+            justify-content: flex-end; /* Align to bottom */
+            align-items: center;
+            text-align: center; /* Center text content */
+        }
+
+    /* Reduce image size and position at bottom for small tablets */
+    .create-room, .join-room {
+        height: 65px;
+        width: 65px;
+        margin: 0.25rem auto 0 auto; /* Move image up with top margin */
+    }
+
+    .row.mb-5.px-3 h4 {
+        font-size: 0.9rem;
+        margin: 0 0 0.25rem 0; /* Put heading at bottom */
+        text-align: center;
+    }
+
+    .row.mb-5.px-3 .btn {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+        margin: 0.25rem auto 0.25rem auto; /* Position button */
+    }
+}
