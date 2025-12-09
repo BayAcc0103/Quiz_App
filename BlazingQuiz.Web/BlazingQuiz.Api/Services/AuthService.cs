@@ -68,7 +68,7 @@ namespace BlazingQuiz.Api.Services
                 Email = dto.Email,
                 Phone = dto.Phone,
                 Role = dto.Role.ToString(),
-                IsApproved = false
+                IsApproved = dto.Role.ToString().ToLower() == "student"
             };
             user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
             _context.Users.Add(user);
