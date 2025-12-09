@@ -197,10 +197,61 @@
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 
+/* Specific style for the "See All" button to match category items */
+a.category-item {
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+    height: 150px;
+}
+
+a.category-item:hover {
+    text-decoration: none;
+    color: inherit;
+    border-color: #4facfe;
+}
+
+/* Specific style for "See All" button with card-3d-raised card-light classes */
+a.category-item.card-3d-raised.card-light {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 12px 6px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Style for buttons using the card-3d-raised design */
+.btn.card-3d-raised.card-light {
+    border: 3px solid #000 !important;
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3);
+    transform: translateY(0);
+}
+
+.btn.card-3d-raised.card-light:hover {
+    transform: translateY(4px);
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+        0px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.btn.card-3d-raised.card-light:active {
+    transform: translateY(6px);
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+        0px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
 .category-image {
     width: 80px;
     height: 80px;
-    object-fit: cover;
     border-radius: 8px;
     margin-bottom: 8px;
 }
@@ -347,7 +398,7 @@ html.dark-theme .student-home-background::before {
 /* Animation for additional categories container */
 .additional-categories-container {
     transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
-    overflow: hidden;
+
 }
 
 /* Custom 3D raised card styles for categories and hero cards to match join room style */
