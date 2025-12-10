@@ -20,9 +20,9 @@
             {
                 <div class="slide">
                     <div class="d-flex flex-nowrap gap-3 justify-content-center slide-quiz-container">
-                        @for (int j = 0; j < 3 && (i * 3 + j) < QuizList.Length; j++)
+                        @for (int j = 0; j < 4 && (i * 4 + j) < QuizList.Length; j++)
                         {
-                            var quiz = QuizList[i * 3 + j];
+                            var quiz = QuizList[i * 4 + j];
                             <div class="quiz-card-container flex-shrink-0" style="flex: 1; min-width: 340px; max-width: 420px;">
                                 <div class="quiz-card-3d position-relative h-100">
                                     <!-- Quiz level badge -->

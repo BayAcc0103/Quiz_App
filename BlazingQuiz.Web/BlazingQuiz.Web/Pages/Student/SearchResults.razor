@@ -14,8 +14,6 @@
     <div class="container-fluid px-0">
         <!-- Search Section -->
         <div class="mb-3 px-2">
-            <div class="card card-3d-raised card-light">
-                <div class="card-body">
                     <div class="input-group">
                         <input type="text"
                                class="form-control form-control-lg"
@@ -23,22 +21,20 @@
                                @bind="_searchTerm"
                                @bind:event="oninput"
                                @onkeydown="HandleKeyDown" />
-                        <button class="btn btn-outline-secondary"
+                    <button class="btn btn-outline-secondary search-btn "
                                 type="button"
                                 @onclick="HandleSearchIconClick">
                             <i class="fas fa-search text-muted"></i>
                         </button>
                         @if (!string.IsNullOrEmpty(_searchTerm))
                         {
-                            <button class="btn btn-outline-secondary"
+                    <button class="btn btn-outline-secondary search-btn"
                                     type="button"
                                     @onclick="ClearSearch">
                                 Clear
                             </button>
                         }
                     </div>
-                </div>
-            </div>
         </div>
 
         <!-- Search Results Section -->
