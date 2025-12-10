@@ -216,7 +216,7 @@
         </div>
 
         <!-- Hero Section for Room Actions -->
-        <div class="row mb-5 px-3">
+        <div class="row mb-3 px-3">
             <div class="col-md-6">
                 <div class="card card-3d-raised card-light position-relative">
                     <div class="card-body text-center mb-1 d-flex flex-column align-items-center justify-content-center">
@@ -245,8 +245,25 @@
             </div>
         </div>
 
+        <!-- Recent Quizzes Section -->
+        <div class="mb-2 d-none d-md-block">
+            <h3 class="mb-2">Recently Added</h3>
+            @if (_recentQuizzes.Length > 0)
+            {
+                <QuizSlider QuizList="_recentQuizzes"
+                            OnQuizTypeSelection="ShowQuizTypeSelection"
+                            OnQuizDetails="ShowQuizDetails"
+                            OnBookmarkToggle="OnBookmarkToggled" />
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted">No recently added quizzes available at the moment.</p>
+                </div>
+            }
+        </div>
         <!-- Random Easy Level Quizzes Section -->
-        <div class="mb-5">
+        <div class="mb-2 d-none d-md-block">
             <h2>Easy</h2>
             @if (_randomEasyQuizzes.Length > 0)
             {
@@ -264,7 +281,7 @@
         </div>
 
         <!-- Random Hard Level Quizzes Section -->
-        <div class="mb-5">
+        <div class="mb-2 d-none d-md-block">
             <h2>Hard</h2>
             @if (_randomHardQuizzes.Length > 0)
             {
@@ -281,25 +298,39 @@
             }
         </div>
 
-        <!-- Recent Quizzes Section -->
-        <div class="mb-5">
-            <h3 class="mb-4">Recently Added</h3>
-            @if (_recentQuizzes.Length > 0)
+        <div class="mb-2 d-block d-md-none">
+            <h2>Easy</h2>
+            @if (_randomEasyQuizzes.Length > 0)
             {
-                <QuizSlider QuizList="_recentQuizzes"
-                            OnQuizTypeSelection="ShowQuizTypeSelection"
-                            OnQuizDetails="ShowQuizDetails"
-                            OnBookmarkToggle="OnBookmarkToggled" />
+                <MobileQuizSlider AllQuizzes="_randomEasyQuizzes"
+                                  OnQuizTypeSelection="ShowQuizTypeSelection"
+                                  OnQuizDetails="ShowQuizDetails"
+                                  OnBookmarkToggle="OnBookmarkToggled" />
             }
             else
             {
                 <div class="text-center py-4">
-                    <p class="text-muted">No recently added quizzes available at the moment.</p>
+                    <p class="text-muted">No easy level quizzes available at the moment.</p>
                 </div>
             }
         </div>
 
-
+        <div class="mb-2 d-block d-md-none">
+            <h2>Hard</h2>
+            @if (_randomHardQuizzes.Length > 0)
+            {
+                <MobileQuizSlider AllQuizzes="_randomHardQuizzes"
+                                  OnQuizTypeSelection="ShowQuizTypeSelection"
+                                  OnQuizDetails="ShowQuizDetails"
+                                  OnBookmarkToggle="OnBookmarkToggled" />
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted">No easy level quizzes available at the moment.</p>
+                </div>
+            }
+        </div>
     </div>
 
     @if (_selectedQuizForType != null)
