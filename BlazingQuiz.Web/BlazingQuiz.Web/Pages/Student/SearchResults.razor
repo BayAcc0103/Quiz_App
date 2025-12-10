@@ -23,9 +23,11 @@
                                @bind="_searchTerm"
                                @bind:event="oninput"
                                @onkeydown="HandleKeyDown" />
-                        <span class="input-group-text">
+                        <button class="btn btn-outline-secondary"
+                                type="button"
+                                @onclick="HandleSearchIconClick">
                             <i class="fas fa-search text-muted"></i>
-                        </span>
+                        </button>
                         @if (!string.IsNullOrEmpty(_searchTerm))
                         {
                             <button class="btn btn-outline-secondary"
@@ -74,6 +76,8 @@
             else if (_filteredQuizzes?.Length > 0)
             {
                     var easyQuizzes = _filteredQuizzes.Where(q => q.Level?.ToLower() == "easy").ToArray();
+                    var hardQuizzes = _filteredQuizzes.Where(q => q.Level?.ToLower() == "hard").ToArray();
+                    var otherQuizzes = _filteredQuizzes.Where(q => q.Level?.ToLower() != "easy" && q.Level?.ToLower() != "hard").ToArray();
 
                 @if (easyQuizzes.Length > 0)
                 {
@@ -87,7 +91,6 @@
                 }
 
                 <!-- Display Hard Level Quizzes -->
-                    var hardQuizzes = _filteredQuizzes.Where(q => q.Level?.ToLower() == "hard").ToArray();
                 @if (hardQuizzes.Length > 0)
                 {
                     <div class="mb-4">
@@ -100,8 +103,6 @@
                 }
 
                 <!-- Display Other Level Quizzes -->
-                    var otherQuizzes = _filteredQuizzes.Where(q => q.Level?.ToLower() != "easy" && q.Level?.ToLower() != "hard").ToArray();
-
                 @if (otherQuizzes.Length > 0)
                 {
                     <div class="mb-4">
@@ -657,5 +658,14 @@
             "very good" => "Very Good",
             _ => rating ?? "" // Default to original value for unknown ratings
         };
+    }
+
+    private void HandleSearchIconClick()
+    {
+        // Navigate to search results page with the current search term
+        if (!string.IsNullOrEmpty(_searchTerm))
+        {
+            NavigationManager.NavigateTo($"/student/search?searchTerm={Uri.EscapeDataString(_searchTerm)}");
+        }
     }
 }

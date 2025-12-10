@@ -150,9 +150,11 @@
                            @bind="SearchTerm"
                            @bind:event="oninput"
                            @onkeydown="HandleSearchKeyDown" />
-                    <span class="input-group-text">
+                    <button class="btn btn-outline-secondary"
+                            type="button"
+                            @onclick="HandleSearchIconClick">
                         <i class="fas fa-search text-muted"></i>
-                    </span>
+                    </button>
                 </div>
                 @if (!string.IsNullOrEmpty(_searchTerm))
                 {
@@ -1026,6 +1028,15 @@
         if (e.Key == "Enter")
         {
             // Navigate to the search results page with the search term
+            NavigationManager.NavigateTo($"/student/search?searchTerm={Uri.EscapeDataString(_searchTerm)}");
+        }
+    }
+
+    private void HandleSearchIconClick()
+    {
+        // Navigate to the search results page with the search term when search icon is clicked
+        if (!string.IsNullOrEmpty(_searchTerm))
+        {
             NavigationManager.NavigateTo($"/student/search?searchTerm={Uri.EscapeDataString(_searchTerm)}");
         }
     }
