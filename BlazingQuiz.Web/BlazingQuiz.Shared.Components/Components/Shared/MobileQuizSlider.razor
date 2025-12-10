@@ -1,0 +1,356 @@
+@using BlazingQuiz.Shared.DTOs
+@using Microsoft.JSInterop
+@inject QuizImageService QuizImageService
+@inject NavigationManager NavigationManager
+@inject IStudentQuizApi StudentQuizApi
+@inject QuizState QuizState
+@inject IBookmarkApi BookmarkApi
+@inject QuizAuthStateProvider QuizAuthStateProvider
+@inject IAppState AppState
+@inject IJSRuntime JSRuntime
+
+<div class="mobile-quiz-slider-container" style="margin: 2rem 0;" @ref="_sliderContainer">
+    <!-- Only show on mobile devices -->
+    <div class="d-block d-md-none">
+        <div class="mobile-quiz-slider position-relative" @onpointerdown="@OnPointerDown" @onpointerup="@OnPointerUp" @onpointercancel="@OnPointerCancel" @onpointermove="@OnPointerMove">
+            <div class="slides-container" style="transform: translateX(@(_translateX)vw); transition: transform @_transitionDuration;" @ref="_slidesContainer">
+                @for (int i = 0; i < _randomQuizzes.Length; i++)
+                {
+                    var quiz = _randomQuizzes[i];
+                    <div class="slide-item">
+                        <div class="quiz-card-container">
+                            <div class="quiz-card-3d position-relative h-100">
+                                <!-- Quiz level badge -->
+                                <div class="level-badge position-absolute top-0 start-0 m-3">
+                                    <span class="badge badge-@(quiz.Level?.ToLower() == "easy" ? "success" : quiz.Level?.ToLower() == "medium" ? "warning" : "danger")">
+                                        @quiz.Level
+                                    </span>
+                                </div>
+
+                                <!-- Bookmark button -->
+                                <button type="button"
+                                        class="btn btn-bookmark @(IsBookmarked(quiz.Id) ? "bookmarked" : "")"
+                                        @onclick="() => ToggleBookmarkAsync(quiz)"
+                                        title="@(IsBookmarked(quiz.Id) ? "Remove bookmark" : "Add to bookmarks")">
+
+                                    <span class="material-symbols-outlined @(IsBookmarked(quiz.Id) ? "text-warning" : "text-muted")">
+                                        @(IsBookmarked(quiz.Id) ? "bookmark" : "bookmark_add")
+                                    </span>
+                                </button>
+
+                                <!-- Quiz image -->
+                                @if (!string.IsNullOrEmpty(quiz.ImagePath))
+                                {
+                                    <div class="quiz-image-container">
+                                        <img src="@QuizImageService.GetImageUrl(quiz.ImagePath)" alt="@quiz.Name" class="quiz-image" />
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="quiz-image quiz-image-placeholder d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-journal-text fs-1 text-white"></i>
+                                    </div>
+                                }
+
+                                <!-- Quiz content -->
+                                <div class="quiz-content p-3">
+                                    <h5 class="fw-bold mb-3 text-truncate" title="@quiz.Name">@quiz.Name</h5>
+
+                                    <!-- Quiz statistics -->
+                                    <div class="quiz-stats d-flex justify-content-between mt-auto">
+                                        <div class="stat-item d-flex flex-column align-items-center">
+                                            <span class="stat-value fw-bold">@quiz.TotalQuestions</span>
+                                            <small class="stat-label text-muted">Questions</small>
+                                        </div>
+                                        <div class="stat-item d-flex flex-column align-items-center">
+                                            <span class="stat-value fw-bold">@quiz.TimeInMinutes min</span>
+                                            <small class="stat-label text-muted">Time</small>
+                                        </div>
+                                        <div class="stat-item d-flex flex-column align-items-center">
+                                            <div class="d-flex align-items-center mb-1">
+                                                @if (!string.IsNullOrEmpty(quiz.CreatedByAvatarPath))
+                                                {
+                                                    <img src="@QuizImageService.GetImageUrl(quiz.CreatedByAvatarPath)"
+                                                         alt="@quiz.CreatedByName's avatar"
+                                                         class="rounded-circle me-2"
+                                                         style="width: 24px; height: 24px; object-fit: cover;"
+                                                         title="@quiz.CreatedByName" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="rounded-circle me-2 d-flex align-items-center justify-content-center bg-secondary text-white"
+                                                         style="width: 24px; height: 24px; font-size: 10px;"
+                                                         title="@quiz.CreatedByName">
+                                                        @quiz.CreatedByName?.FirstOrDefault().ToString().ToUpper()
+                                                    </div>
+                                                }
+                                                <span class="stat-value fw-bold small">@quiz.CreatedByName</span>
+                                            </div>
+                                            <small class="stat-label text-muted">Creator</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Action buttons -->
+                                <div class="card-button-overlay">
+                                    <div class="quiz-actions-section d-flex gap-1">
+                                        <button type="button"
+                                                class="btn btn-3d btn-3d-info btn-sm flex-fill"
+                                                @onclick="() => ShowQuizTypeSelection(quiz)">
+                                            Start Quiz
+                                        </button>
+                                        <a href="student/createroom?quizId=@quiz.Id" class="btn btn-3d btn-3d-primary btn-sm flex-fill">
+                                            Create Room
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-3d btn-3d-success btn-sm flex-fill"
+                                                @onclick="() => ShowQuizDetails(quiz.Id)">
+                                            View Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Navigation controls -->
+            <div class="mobile-slider-nav d-flex justify-content-between align-items-center mt-3 px-2">
+                <button type="button" class="btn btn-outline-primary rounded-circle nav-btn" @onclick="PrevSlide" disabled="@(CanGoPrev ? null : "disabled")">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <div class="slide-progress">
+                    <span class="text-muted">@(_currentSlide + 1) / @_totalSlides</span>
+                </div>
+                <button type="button" class="btn btn-outline-primary rounded-circle nav-btn" @onclick="NextSlide" disabled="@(CanGoNext ? null : "disabled")">
+                    <span class="material-symbols-outlined">arrow_forward</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Show a placeholder on desktop to indicate this is mobile-only content -->
+    <div class="d-none d-md-block text-center text-muted py-4">
+        <p>This quiz slider is only visible on mobile devices</p>
+    </div>
+</div>
+
+@code {
+    [Parameter] public QuizListDto[] AllQuizzes { get; set; } = [];
+    [Parameter] public EventCallback<QuizListDto> OnQuizTypeSelection { get; set; }
+    [Parameter] public EventCallback<Guid> OnQuizDetails { get; set; }
+    [Parameter] public EventCallback<QuizListDto> OnBookmarkToggle { get; set; }
+
+    private QuizListDto[] _randomQuizzes = new QuizListDto[0];
+    private int _currentSlide = 0;
+    private int _totalSlides = 0;
+    private Dictionary<Guid, bool> _bookmarkedQuizes = new();
+    private ElementReference _sliderContainer;
+    private ElementReference _slidesContainer;
+
+    // Swipe-related properties
+    private double _startX = 0;
+    private double _currentX = 0;
+    private double _translateX = 0;
+    private string _transitionDuration = "0.3s";
+    private bool _isDragging = false;
+
+    private bool CanGoPrev => _currentSlide > 0;
+    private bool CanGoNext => _currentSlide < _totalSlides - 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GenerateRandomQuizzes();
+        _translateX = -(_currentSlide * 100);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await GenerateRandomQuizzes();
+        _translateX = -(_currentSlide * 100);
+        StateHasChanged();
+    }
+
+    private async Task GenerateRandomQuizzes()
+    {
+        if (AllQuizzes.Length == 0)
+        {
+            _randomQuizzes = new QuizListDto[0];
+            _totalSlides = 0;
+            return;
+        }
+
+        // Get 20 random quizzes or all if less than 20
+        var random = new Random();
+        var shuffledQuizzes = AllQuizzes.OrderBy(x => random.Next()).Take(20).ToArray();
+        
+        _randomQuizzes = shuffledQuizzes;
+        _totalSlides = shuffledQuizzes.Length;
+        _currentSlide = 0; // Reset to first slide
+        
+        // Load bookmark status for the random quizzes
+        await LoadBookmarkStatusAsync();
+    }
+
+    private async Task LoadBookmarkStatusAsync()
+    {
+        if (!QuizAuthStateProvider.IsLoggedIn)
+        {
+            return;
+        }
+
+        _bookmarkedQuizes.Clear();
+        foreach (var quiz in _randomQuizzes)
+        {
+            var result = await BookmarkApi.IsBookmarkedAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = result.Data;
+            }
+        }
+    }
+
+    private async Task ToggleBookmarkAsync(QuizListDto quiz)
+    {
+        if (!QuizAuthStateProvider.IsLoggedIn)
+        {
+            NavigationManager.NavigateTo("auth/login");
+            return;
+        }
+
+        var isBookmarked = _bookmarkedQuizes.ContainsKey(quiz.Id) && _bookmarkedQuizes[quiz.Id];
+
+        if (isBookmarked)
+        {
+            // Remove bookmark
+            var result = await BookmarkApi.RemoveBookmarkAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = false;
+            }
+        }
+        else
+        {
+            // Add bookmark
+            var bookmarkDto = new QuizBookmarkDto
+            {
+                UserId = QuizAuthStateProvider.User.Id,
+                QuizId = quiz.Id,
+                QuizName = quiz.Name,
+                CategoryName = quiz.CategoryName
+            };
+
+            var result = await BookmarkApi.AddBookmarkAsync(bookmarkDto);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = true;
+            }
+        }
+
+        await OnBookmarkToggle.InvokeAsync(quiz);
+        StateHasChanged();
+    }
+
+    private bool IsBookmarked(Guid quizId)
+    {
+        return _bookmarkedQuizes.ContainsKey(quizId) && _bookmarkedQuizes[quizId];
+    }
+
+    private async Task ShowQuizTypeSelection(QuizListDto quiz)
+    {
+        await OnQuizTypeSelection.InvokeAsync(quiz);
+    }
+
+    private async Task ShowQuizDetails(Guid quizId)
+    {
+        await OnQuizDetails.InvokeAsync(quizId);
+    }
+
+    private void NextSlide()
+    {
+        if (_currentSlide < _totalSlides - 1)
+        {
+            _currentSlide++;
+            _translateX = -(_currentSlide * 100);
+        }
+        StateHasChanged();
+    }
+
+    private void PrevSlide()
+    {
+        if (_currentSlide > 0)
+        {
+            _currentSlide--;
+            _translateX = -(_currentSlide * 100);
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnPointerDown(PointerEventArgs e)
+    {
+        if (_totalSlides <= 0) return;
+
+        _startX = e.ClientX;
+        _currentX = e.ClientX;
+        _isDragging = true;
+        _transitionDuration = "0s"; // Disable transition during drag
+        StateHasChanged();
+    }
+
+    private async Task OnPointerMove(PointerEventArgs e)
+    {
+        if (!_isDragging) return;
+
+        _currentX = e.ClientX;
+        var diff = _currentX - _startX;
+
+        // Calculate slide width based on screen width as a fallback
+        var windowWidth = await JSRuntime.InvokeAsync<double>("eval", "window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth");
+        var slideWidth = windowWidth; // Each slide takes full width on mobile
+
+        _translateX = -(_currentSlide * 100) + (diff / slideWidth * 100);
+
+        StateHasChanged();
+    }
+
+    private async Task OnPointerUp(PointerEventArgs e)
+    {
+        if (!_isDragging || _totalSlides <= 0) return;
+
+        _isDragging = false;
+        _transitionDuration = "0.3s"; // Re-enable transition
+
+        var diff = _currentX - _startX;
+
+        // Calculate slide width based on screen width as a fallback
+        var windowWidth = await JSRuntime.InvokeAsync<double>("eval", "window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth");
+        var slideWidth = windowWidth; // Each slide takes full width on mobile
+        var threshold = slideWidth * 0.3; // 30% of slide width as threshold
+
+        if (Math.Abs(diff) > threshold)
+        {
+            if (diff > 0 && _currentSlide > 0)
+            {
+                // Swipe right - go to previous slide
+                _currentSlide = Math.Max(0, _currentSlide - 1);
+            }
+            else if (diff < 0 && _currentSlide < _totalSlides - 1)
+            {
+                // Swipe left - go to next slide
+                _currentSlide = Math.Min(_totalSlides - 1, _currentSlide + 1);
+            }
+        }
+
+        _translateX = -(_currentSlide * 100);
+        StateHasChanged();
+    }
+
+    private async Task OnPointerCancel(PointerEventArgs e)
+    {
+        _isDragging = false;
+        _transitionDuration = "0.3s";
+        _translateX = -(_currentSlide * 100);
+        StateHasChanged();
+    }
+}
