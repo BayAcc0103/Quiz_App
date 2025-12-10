@@ -139,6 +139,45 @@
         </div>
     </div>
 
+    <!-- Search Section -->
+    <div class="mb-3 px-2">
+        <div class="card card-3d-raised card-light">
+            <div class="card-body">
+                <div class="input-group">
+                    <input type="text"
+                           class="form-control form-control-lg"
+                           placeholder="Search quizzes by name..."
+                           @bind="SearchTerm"
+                           @bind:event="oninput"
+                           @onkeydown="HandleSearchKeyDown" />
+                    <span class="input-group-text">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                </div>
+                @if (!string.IsNullOrEmpty(_searchTerm))
+                {
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <small class="text-muted">
+                            @if (_filteredQuizzes?.Length > 0)
+                            {
+                                <text>@_filteredQuizzes.Length quiz@(string.IsNullOrEmpty(_searchTerm) ? "" : _filteredQuizzes.Length != 1 ? "es" : "") found</text>
+                            }
+                            else
+                            {
+                                <text>No quizzes found matching "@_searchTerm"</text>
+                            }
+                        </small>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                @onclick="ClearSearch">
+                            Clear
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
     <!-- Hero Section for Room Actions -->
     <div class="row mb-3 px-3">
         <div class="col-md-6">
@@ -524,6 +563,19 @@
     private bool _isLoading;
     private QuizListDto? _selectedQuizForType;
     private Dictionary<Guid, bool> _bookmarkedQuizes = new();
+
+    // Search fields
+    private string _searchTerm = string.Empty;
+    private string SearchTerm
+    {
+        get => _searchTerm;
+        set
+        {
+            _searchTerm = value;
+            UpdateSearchResults();
+        }
+    }
+    private QuizListDto[]? _filteredQuizzes;
 
     // For quiz details modal
     private bool _showQuizDetails = false;
@@ -942,6 +994,39 @@
         {
             AppState.HideLoader();
             StateHasChanged();
+        }
+    }
+
+    private void UpdateSearchResults()
+    {
+        if (string.IsNullOrWhiteSpace(_searchTerm))
+        {
+            _filteredQuizzes = null; // Show all quizzes when search is empty
+        }
+        else
+        {
+            // Filter all loaded quizzes based on the search term
+            var searchTermLower = _searchTerm.ToLowerInvariant();
+            _filteredQuizzes = _quizes
+                .Where(q => q.Name?.ToLowerInvariant().Contains(searchTermLower) == true)
+                .ToArray();
+        }
+        StateHasChanged();
+    }
+
+    private void ClearSearch()
+    {
+        _searchTerm = string.Empty;
+        _filteredQuizzes = null;
+        StateHasChanged();
+    }
+
+    private void HandleSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            // Navigate to the search results page with the search term
+            NavigationManager.NavigateTo($"/student/search?searchTerm={Uri.EscapeDataString(_searchTerm)}");
         }
     }
 }
