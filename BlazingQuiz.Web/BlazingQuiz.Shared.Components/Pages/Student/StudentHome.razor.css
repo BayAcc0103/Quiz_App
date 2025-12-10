@@ -546,7 +546,8 @@ a.card-3d-raised.card-light:active {
 @media (max-width: 425px) {
     /* Reduce padding on the row container for very small mobile */
     .row.mb-5.px-3 {
-        padding-left: 0.5rem !important;
+        padding-left: 0.5
+        rem !important;
         padding-right: 0.5rem !important;
         margin-left: 0;
         margin-right: 0;

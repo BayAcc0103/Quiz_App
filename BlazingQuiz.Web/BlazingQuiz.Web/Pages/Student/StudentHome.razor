@@ -187,6 +187,41 @@
         }
     </div>
 
+        <div class="mb-5 d-block d-md-none">
+            <h2>Easy</h2>
+            @if (_randomEasyQuizzes.Length > 0)
+            {
+                <MobileQuizSlider AllQuizzes="_randomEasyQuizzes"
+                                  OnQuizTypeSelection="ShowQuizTypeSelection"
+                                  OnQuizDetails="ShowQuizDetails"
+                                  OnBookmarkToggle="OnBookmarkToggled" />
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted">No easy level quizzes available at the moment.</p>
+                </div>
+            }
+        </div>
+
+    <!-- Original QuizSlider for Desktop - Only visible on desktop -->
+    <div class="mb-5 d-none d-md-block">
+        <h2>All Quizzes</h2>
+        @if (_quizes.Length > 0)
+        {
+            <QuizSlider QuizList="_quizes"
+                        OnQuizTypeSelection="ShowQuizTypeSelection"
+                        OnQuizDetails="ShowQuizDetails"
+                        OnBookmarkToggle="OnBookmarkToggled" />
+        }
+        else
+        {
+            <div class="text-center py-4">
+                <p class="text-muted">No quizzes available at the moment.</p>
+            </div>
+        }
+    </div>
+
     <!-- Random Easy Level Quizzes Section -->
     <div class="mb-5">
         <h2>Easy</h2>
