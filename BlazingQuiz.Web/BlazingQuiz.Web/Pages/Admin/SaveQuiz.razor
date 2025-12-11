@@ -270,7 +270,7 @@
                                                         </label>
                                                     </div>
                                                     <input type="text" class="form-control no-border-radius" aria-label="Text input with checkbox" @bind="o.Text"/>
-                                                    <button type="button" class="btn btn-3d btn-3d-danger option-delete-btn @(ReferenceEquals(_selectedOption, o) ? "selected-delete-btn" : "")" @onclick="() => question.Options.Remove(o)">X</button>
+                                                    <button type="button" class="btn btn-3d btn-3d-danger option-delete-btn @(ReferenceEquals(_selectedOption, o) ? "selected-delete-btn" : "")" @onclick="() => DeleteOptionAsync(question, o)">X</button>
                                                 </div>
                                             </li>
                                         }
@@ -335,6 +335,14 @@
 <button type="button" class="save-quiz-btn" title="Save Quiz" @onclick="HandleSaveQuizClick">
     Save Quiz
 </button>
+
+<!-- Delete Quiz Button positioned at the bottom -->
+@* @if (IsEditCase)
+{
+    <button type="button" class="delete-quiz-btn" title="Delete Quiz" @onclick="HandleDeleteQuizClick">
+        Delete Quiz
+    </button>
+} *@
 
 @code {
     [Parameter]
@@ -633,11 +641,50 @@
     private async Task<bool> ShowConfirmAsync(string message) =>
         await JsRuntime.InvokeAsync<bool>("confirm", message);
 
-    private async Task DeleteQuestionAsync(QuestionDto question)
+    private async Task DeleteOptionAsync(QuestionDto question, OptionDto option)
     {
-        bool confirmed = await ShowConfirmAsync("Are you sure you want to delete this question?");
+        bool confirmed = await ShowConfirmAsync("Are you sure you want to delete this option?");
         if (confirmed)
         {
+            // If the option exists in the database (has an ID), delete it from the database
+            if (option.Id != 0)
+            {
+                AppState.ShowLoader("Deleting option from database...");
+                var response = await QuizApi.DeleteOptionAsync(option.Id);
+                AppState.HideLoader();
+
+                if (!response.IsSuccess)
+                {
+                    await ShowAlertAsync($"Failed to delete option from database: {response.ErrorMessage}");
+                    return;
+                }
+            }
+
+            // Remove from the local collection
+            question.Options.Remove(option);
+        }
+    }
+
+    private async Task DeleteQuestionAsync(QuestionDto question)
+    {
+        bool confirmed = await ShowConfirmAsync("Are you sure you want to delete this question? This will also delete all options for this question.");
+        if (confirmed)
+        {
+            // If the question exists in the database (has an ID), delete it from the database
+            // This will also delete all associated options due to foreign key constraints in the backend
+            if (question.Id != 0)
+            {
+                AppState.ShowLoader("Deleting question and its options from database...");
+                var response = await QuizApi.DeleteQuestionAsync(question.Id);
+                AppState.HideLoader();
+
+                if (!response.IsSuccess)
+                {
+                    await ShowAlertAsync($"Failed to delete question from database: {response.ErrorMessage}");
+                    return;
+                }
+            }
+
             _quiz.Questions.Remove(question);
             // Update TotalQuestions to reflect the actual count
             _quiz.TotalQuestions = _quiz.Questions.Count;
@@ -820,5 +867,24 @@
     {
         if (CurrentCardIndex < TotalCards - 1)
             CurrentCardIndex++;
+    }
+
+    private async Task HandleDeleteQuizClick()
+    {
+        bool confirmed = await ShowConfirmAsync("Are you sure you want to delete this entire quiz? This action cannot be undone.");
+        if (confirmed)
+        {
+            AppState.ShowLoader("Deleting quiz from database...");
+            var response = await QuizApi.DeleteQuizAsync(_quiz.Id);
+            AppState.HideLoader();
+
+            if (!response.IsSuccess)
+            {
+                await ShowAlertAsync($"Failed to delete quiz from database: {response.ErrorMessage}");
+                return;
+            }
+
+            NavigationManager.NavigateTo("/admin/manage-quizes");
+        }
     }
 }

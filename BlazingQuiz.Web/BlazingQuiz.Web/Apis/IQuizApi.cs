@@ -27,5 +27,14 @@ namespace BlazingQuiz.Web.Apis
         
         [Delete("/api/quizes/comments/{commentId}")]
         Task<QuizApiResponse> DeleteCommentAsync(int commentId);
+
+        [Delete("/api/quizes/options/{optionId}")]
+        Task<QuizApiResponse> DeleteOptionAsync(int optionId);
+
+        [Delete("/api/quizes/questions/{questionId}")]
+        Task<QuizApiResponse> DeleteQuestionAsync(int questionId);
+
+        [Delete("/api/quizes/{quizId}")]
+        Task<QuizApiResponse> DeleteQuizAsync(Guid quizId);
     }
 }

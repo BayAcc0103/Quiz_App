@@ -395,5 +395,98 @@ namespace BlazingQuiz.Api.Services
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<bool> DeleteOptionAsync(int optionId, int userId, bool isAdmin)
+        {
+            var option = await _context.Options
+                .Include(o => o.Question)
+                .ThenInclude(q => q.Quiz)
+                .FirstOrDefaultAsync(o => o.Id == optionId);
+
+            if (option == null)
+            {
+                return false;
+            }
+
+            // If the user is not an admin, ensure they can only delete options for quizzes they created
+            if (!isAdmin)
+            {
+                if (option.Question.Quiz.CreatedBy != userId)
+                {
+                    return false; // Teacher didn't create this quiz, so can't delete its option
+                }
+            }
+
+            _context.Options.Remove(option);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteQuestionAsync(int questionId, int userId, bool isAdmin)
+        {
+            var question = await _context.Questions
+                .Include(q => q.Quiz)
+                .FirstOrDefaultAsync(q => q.Id == questionId);
+
+            if (question == null)
+            {
+                return false;
+            }
+
+            // If the user is not an admin, ensure they can only delete questions for quizzes they created
+            if (!isAdmin)
+            {
+                if (question.Quiz.CreatedBy != userId)
+                {
+                    return false; // Teacher didn't create this quiz, so can't delete its question
+                }
+            }
+
+            // Delete associated options and text answers first due to foreign key constraints
+            _context.Options.RemoveRange(question.Options);
+            _context.TextAnswers.RemoveRange(question.TextAnswers);
+
+            _context.Questions.Remove(question);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteQuizAsync(Guid quizId, int userId, bool isAdmin)
+        {
+            var quiz = await _context.Quizzes
+                .Include(q => q.Questions)
+                    .ThenInclude(qq => qq.Options)
+                .Include(q => q.Questions)
+                    .ThenInclude(qq => qq.TextAnswers)
+                .Include(q => q.QuizCategories)
+                .FirstOrDefaultAsync(q => q.Id == quizId);
+
+            if (quiz == null)
+            {
+                return false;
+            }
+
+            // If the user is not an admin, ensure they can only delete quizzes they created
+            if (!isAdmin)
+            {
+                if (quiz.CreatedBy != userId)
+                {
+                    return false; // Teacher didn't create this quiz, so can't delete it
+                }
+            }
+
+            // Delete all related data due to foreign key constraints
+            foreach (var question in quiz.Questions)
+            {
+                _context.Options.RemoveRange(question.Options);
+                _context.TextAnswers.RemoveRange(question.TextAnswers);
+            }
+            _context.Questions.RemoveRange(quiz.Questions);
+            _context.QuizCategories.RemoveRange(quiz.QuizCategories);
+
+            _context.Quizzes.Remove(quiz);
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

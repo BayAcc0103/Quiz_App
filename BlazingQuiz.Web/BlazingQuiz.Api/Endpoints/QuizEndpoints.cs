@@ -166,7 +166,82 @@ namespace BlazingQuiz.Api.Endpoints
                 {
                     return Results.Ok(QuizApiResponse.Failure("Comment not found or you don't have permission to delete it."));
                 }
-                
+
+                return Results.Ok(QuizApiResponse.Success());
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+
+            quizGroup.MapDelete("options/{optionId:int}", async (int optionId, QuizService service, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Invalid user ID"));
+                }
+
+                // Check user role to determine if they have permission to delete option
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Admin) && userRole != nameof(UserRole.Teacher))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("You don't have permission to delete this option."));
+                }
+
+                var result = await service.DeleteOptionAsync(optionId, userId, userRole == nameof(UserRole.Admin));
+                if (!result)
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Option not found or you don't have permission to delete it."));
+                }
+
+                return Results.Ok(QuizApiResponse.Success());
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+
+            quizGroup.MapDelete("questions/{questionId:int}", async (int questionId, QuizService service, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Invalid user ID"));
+                }
+
+                // Check user role to determine if they have permission to delete question
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Admin) && userRole != nameof(UserRole.Teacher))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("You don't have permission to delete this question."));
+                }
+
+                var result = await service.DeleteQuestionAsync(questionId, userId, userRole == nameof(UserRole.Admin));
+                if (!result)
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Question not found or you don't have permission to delete it."));
+                }
+
+                return Results.Ok(QuizApiResponse.Success());
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+
+            quizGroup.MapDelete("{quizId:guid}", async (Guid quizId, QuizService service, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Invalid user ID"));
+                }
+
+                // Check user role to determine if they have permission to delete quiz
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Admin) && userRole != nameof(UserRole.Teacher))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("You don't have permission to delete this quiz."));
+                }
+
+                var result = await service.DeleteQuizAsync(quizId, userId, userRole == nameof(UserRole.Admin));
+                if (!result)
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Quiz not found or you don't have permission to delete it."));
+                }
+
                 return Results.Ok(QuizApiResponse.Success());
             }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
 

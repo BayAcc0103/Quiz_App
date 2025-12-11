@@ -387,6 +387,34 @@ select.form-control:focus {
     background: linear-gradient(135deg, #0056b3, #004085);
 }
 
+/* Delete Quiz Button - positioned at the bottom similar to Save Quiz button but to the left */
+.delete-quiz-btn {
+    position: fixed;
+    left: 30px;
+    bottom: 30px;
+    z-index: 1000;
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    width: 120px;
+    height: 50px;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.delete-quiz-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, #c82333, #bd2130);
+}
+
 /* Button styling matching Manage Categories */
 .btn-3d {
     position: relative;
