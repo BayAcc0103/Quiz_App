@@ -144,7 +144,6 @@
                 return;
             }
             //Set the token in the local storage
-            //Implement Auth State Provider
             var loggedInUser = authResponse.User;
             await QuizAuthStateProvider.SetLoginAsync(loggedInUser);
             RedirectToHome();

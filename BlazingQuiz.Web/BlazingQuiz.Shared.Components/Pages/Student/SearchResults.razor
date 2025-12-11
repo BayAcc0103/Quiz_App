@@ -1,0 +1,667 @@
+@page "/student/search"
+@using BlazingQuiz.Shared
+@using BlazingQuiz.Web.Components.Shared
+@inject IAppState AppState
+@inject IStudentQuizApi StudentQuizApi
+@inject NavigationManager NavigationManager
+@inject QuizState QuizState
+@inject QuizImageService QuizImageService
+@inject QuizAuthStateProvider QuizAuthStateProvider
+@inject CategoryImageService CategoryImageService
+@inject IBookmarkApi BookmarkApi
+
+<div class="student-home-background">
+    <div class="container-fluid px-0">
+        <!-- Search Section -->
+        <div class="mb-3 px-2">
+                    <div class="input-group">
+                        <input type="text"
+                               class="form-control form-control-lg"
+                               placeholder="Search quizzes by name..."
+                               @bind="_searchTerm"
+                               @bind:event="oninput"
+                               @onkeydown="HandleKeyDown" />
+                    <button class="btn btn-outline-secondary search-btn "
+                                type="button"
+                                @onclick="HandleSearchIconClick">
+                            <i class="fas fa-search text-muted"></i>
+                        </button>
+                        @if (!string.IsNullOrEmpty(_searchTerm))
+                        {
+                    <button class="btn btn-outline-secondary search-btn"
+                                    type="button"
+                                    @onclick="ClearSearch">
+                                Clear
+                            </button>
+                        }
+                    </div>
+        </div>
+
+        <!-- Search Results Section -->
+        <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="mb-0">
+                    @if (!string.IsNullOrEmpty(_searchTerm))
+                    {
+                        <text>Search Results for "@_searchTerm"</text>
+                    }
+                    else
+                    {
+                        <text>Search Results</text>
+                    }
+                </h3>
+                <small class="text-muted">
+                    @if (_filteredQuizzes?.Length > 0)
+                    {
+                        <text>@_filteredQuizzes.Length @(string.IsNullOrEmpty(_searchTerm) ? "" : _filteredQuizzes.Length != 1 ? "quizzes" : "quiz") found</text>
+                    }
+                    else if (!string.IsNullOrEmpty(_searchTerm))
+                    {
+                        <text>No quizzes found</text>
+                    }
+                </small>
+            </div>
+
+            @if (string.IsNullOrEmpty(_searchTerm))
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-search fs-1 text-muted mb-3"></i>
+                    <p class="text-muted">Please enter a search term above</p>
+                </div>
+            }
+            else if (_filteredQuizzes?.Length > 0)
+            {
+                    var easyQuizzes = _filteredQuizzes.Where(q => q.Level?.ToLower() == "easy").ToArray();
+                    var hardQuizzes = _filteredQuizzes.Where(q => q.Level?.ToLower() == "hard").ToArray();
+                    var otherQuizzes = _filteredQuizzes.Where(q => q.Level?.ToLower() != "easy" && q.Level?.ToLower() != "hard").ToArray();
+
+                @if (easyQuizzes.Length > 0)
+                {
+                    <div class="mb-4">
+                        <h4 class="mb-3">Easy Level</h4>
+                        <QuizSlider QuizList="easyQuizzes"
+                                    OnQuizTypeSelection="ShowQuizTypeSelection"
+                                    OnQuizDetails="ShowQuizDetails"
+                                    OnBookmarkToggle="OnBookmarkToggled" />
+                    </div>
+                }
+
+                <!-- Display Hard Level Quizzes -->
+                @if (hardQuizzes.Length > 0)
+                {
+                    <div class="mb-4">
+                        <h4 class="mb-3">Hard Level</h4>
+                        <QuizSlider QuizList="hardQuizzes"
+                                    OnQuizTypeSelection="ShowQuizTypeSelection"
+                                    OnQuizDetails="ShowQuizDetails"
+                                    OnBookmarkToggle="OnBookmarkToggled" />
+                    </div>
+                }
+
+                <!-- Display Other Level Quizzes -->
+                @if (otherQuizzes.Length > 0)
+                {
+                    <div class="mb-4">
+                        <h4 class="mb-3">Other Levels</h4>
+                        <QuizSlider QuizList="otherQuizzes"
+                                    OnQuizTypeSelection="ShowQuizTypeSelection"
+                                    OnQuizDetails="ShowQuizDetails"
+                                    OnBookmarkToggle="OnBookmarkToggled" />
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-search fs-1 text-muted"></i>
+                    <p class="text-muted">No quizzes match your search for "@_searchTerm"</p>
+                    <button type="button" class="btn btn-outline-primary" @onclick="ClearSearch">Clear Search</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (_selectedQuizForType != null)
+{
+    <Modal Title="Select Quiz Type" OnCancelClick="() => _selectedQuizForType = null" OnActionButtonClick="() => {}" ActionButtonText="Close">
+        <div class="quiz-type-selection">
+            <div class="d-grid gap-3">
+                <button class="btn btn-lg btn-outline-primary p-3 quiz-type-card" @onclick="() => StartQuizWithMode(QuestionType.MCQ)">
+                    <h5><i class="bi bi-list-check me-2"></i>Multiple Choice Questions</h5>
+                    <p class="mb-0">Answer questions with options, save and go to next, or submit the quiz when complete.</p>
+                </button>
+                <button class="btn btn-lg btn-outline-success p-3 quiz-type-card" @onclick="() => StartQuizWithMode(QuestionType.Flashcard)">
+                    <h5><i class="bi bi-card-text me-2"></i>Flashcards</h5>
+                    <p class="mb-0">Review questions and answers by flipping cards. Navigate through questions at your own pace.</p>
+                </button>
+            </div>
+        </div>
+    </Modal>
+}
+
+<BottomSheet IsOpen="@_showQuizDetails" Title="Quiz Details" IsOpenChanged="OnBottomSheetVisibilityChanged" OnCancelClick="() => _showQuizDetails = false" ShowFooter="false">
+    @if (_quizDetails != null)
+    {
+        <div class="quiz-details-content" style="max-height: 60vh; overflow-y: auto;">
+            <div class="quiz-info">
+                <h5 class="fw-bold">@_quizDetails.Name</h5>
+                @if (!string.IsNullOrEmpty(_quizDetails.Description))
+                {
+                    <p><strong>Description:</strong> @_quizDetails.Description</p>
+                }
+                else
+                {
+                    <p><em>No description provided</em></p>
+                }
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Category:</strong></td>
+                        <td>@_quizDetails.CategoryName</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Created By:</strong></td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(_quizDetails.CreatedByAvatarPath))
+                            {
+                                <img src="@QuizImageService.GetImageUrl(_quizDetails.CreatedByAvatarPath)"
+                                     alt="Avatar"
+                                     class="rounded-circle me-2"
+                                     style="width: 30px; height: 30px; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div class="rounded-circle me-2 d-inline-flex align-items-center justify-content-center bg-secondary text-white"
+                                     style="width: 30px; height: 30px; font-size: 12px;">
+                                    @_quizDetails.CreatedByName?.FirstOrDefault().ToString().ToUpper()
+                                </div>
+                            }
+                            @_quizDetails.CreatedByName
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Questions:</strong></td>
+                        <td>@_quizDetails.TotalQuestions</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Level:</strong></td>
+                        <td>@(_quizDetails.Level ?? "Not specified")</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Time:</strong></td>
+                        <td>@_quizDetails.TimeInMinutes minutes</td>
+                    </tr>
+                </table>
+            </div>
+
+            @if (_quizDetails.RecentRatings.Any() || _quizDetails.RecentComments.Any())
+            {
+                <div class="recent-feedback mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6>Recent Feedback</h6>
+                        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => ShowAllFeedback(_quizDetails.Id)">View All Feedback</button>
+                    </div>
+                    @{
+                        // Create a dictionary to hold combined feedback
+                        var combinedFeedback = new Dictionary<int, dynamic>();
+
+                        // Add ratings to the dictionary
+                        foreach (var rating in _quizDetails.RecentRatings)
+                        {
+                            combinedFeedback[rating.StudentId] = new {
+                                StudentId = rating.StudentId,
+                                StudentName = rating.StudentName,
+                                Score = rating.Score,
+                                Comment = (string)null,
+                                CreatedOn = rating.CreatedOn
+                            };
+                        }
+
+                        // Add comments to the dictionary, combining with existing ratings if possible
+                        foreach (var comment in _quizDetails.RecentComments)
+                        {
+                            if (combinedFeedback.ContainsKey(comment.StudentId))
+                            {
+                                // Update existing entry with comment
+                                var existing = combinedFeedback[comment.StudentId];
+                                combinedFeedback[comment.StudentId] = new {
+                                    StudentId = comment.StudentId,
+                                    StudentName = comment.StudentName,
+                                    Score = existing.Score,
+                                    Comment = comment.Content,
+                                    CreatedOn = comment.CreatedOn
+                                };
+                            }
+                            else
+                            {
+                                // Add new entry with just comment
+                                combinedFeedback[comment.StudentId] = new {
+                                    StudentId = comment.StudentId,
+                                    StudentName = comment.StudentName,
+                                    Score = (string)null,
+                                    Comment = comment.Content,
+                                    CreatedOn = comment.CreatedOn
+                                };
+                            }
+                        }
+
+                        // Sort by date and take top 3
+                        var sortedFeedback = combinedFeedback.Values
+                            .OrderByDescending(f => f.CreatedOn)
+                            .Take(3)
+                            .ToList();
+                    }
+
+                    <div class="feedback-list">
+                        @foreach (var feedback in sortedFeedback)
+                        {
+                            <div class="feedback-item p-3 mb-2 border rounded">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <strong>@feedback.StudentName</strong>
+                                    @if (!string.IsNullOrEmpty(feedback.Score))
+                                    {
+                                        <span class="badge bg-primary">@GetRatingIcon(feedback.Score) @GetRatingDisplayText(feedback.Score)</span>
+                                    }
+                                </div>
+                                <small class="text-muted">@feedback.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
+
+                                @if (!string.IsNullOrEmpty(feedback.Comment))
+                                {
+                                    <div class="mt-2">
+                                        <p class="mb-0">@feedback.Comment</p>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="recent-feedback mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6>Recent Feedback</h6>
+                        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => ShowAllFeedback(_quizDetails.Id)">View All Feedback</button>
+                    </div>
+                    <p class="text-muted"><em>No feedback yet</em></p>
+                </div>
+            }
+        </div>
+    }
+    else if (_loadingDetails)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+</BottomSheet>
+
+<BottomSheet IsOpen="@_showAllFeedback" Title="All Feedback" IsOpenChanged="OnAllFeedbackBottomSheetVisibilityChanged" OnCancelClick="() => _showAllFeedback = false" ShowFooter="false">
+    @if (_allFeedback != null)
+    {
+        <div class="quiz-details-content" style="max-height: 60vh; overflow-y: auto;">
+            @if (_allFeedback.CombinedFeedback.Any())
+            {
+                <div class="feedback-list">
+                    @foreach (var feedback in _allFeedback.CombinedFeedback)
+                    {
+                        <div class="feedback-item p-3 mb-3 border rounded">
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>@feedback.StudentName</strong>
+                                @if (!string.IsNullOrEmpty(feedback.Score))
+                                {
+                                    <span class="badge bg-primary">@GetRatingIcon(feedback.Score) @GetRatingDisplayText(feedback.Score)</span>
+                                }
+                            </div>
+                            <small class="text-muted">@feedback.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
+
+                            @if (!string.IsNullOrEmpty(feedback.Comment))
+                            {
+                                <div class="mt-2">
+                                    <p class="mb-0">@feedback.Comment</p>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-3">
+                    <p class="text-muted mb-0">No feedback yet for this quiz</p>
+                </div>
+            }
+        </div>
+    }
+    else if (_loadingAllFeedback)
+    {
+        <div class="text-center py-3">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+</BottomSheet>
+
+@code {
+    private string _searchTerm = string.Empty;
+    private QuizListDto[]? _filteredQuizzes;
+    private QuizListDto[] _allQuizzes = Array.Empty<QuizListDto>();
+    private QuizListDto? _selectedQuizForType;
+    private Dictionary<Guid, bool> _bookmarkedQuizes = new();
+    private Dictionary<Guid, QuizListDto> _allQuizMap = new();
+
+    // For quiz details modal
+    private bool _showQuizDetails = false;
+    private QuizDetailsDto? _quizDetails;
+    private bool _loadingDetails = false;
+
+    // For all feedback modal
+    private bool _showAllFeedback = false;
+    private QuizAllFeedbackDto? _allFeedback;
+    private bool _loadingAllFeedback = false;
+
+    private enum QuestionType { MCQ, Flashcard }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (NavigationManager.Uri.Contains("searchTerm="))
+        {
+            var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+            if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("searchTerm", out var searchTerm))
+            {
+                _searchTerm = searchTerm.ToString();
+                await LoadQuizzes();
+                UpdateSearchResults();
+            }
+        }
+        else
+        {
+            await LoadQuizzes();
+        }
+    }
+
+    private async Task LoadQuizzes()
+    {
+        AppState.ShowLoader("Loading quizzes...");
+        try
+        {
+            // Get all active quizzes
+            _allQuizzes = await StudentQuizApi.GetActiveQuizesAsync(0); // 0 means all categories
+            _allQuizMap = _allQuizzes.ToDictionary(q => q.Id, q => q);
+
+            // Load bookmark status for each quiz
+            await LoadBookmarkStatusAsync();
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading quizzes: {ex.Message}");
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private void UpdateSearchResults()
+    {
+        if (string.IsNullOrWhiteSpace(_searchTerm))
+        {
+            _filteredQuizzes = Array.Empty<QuizListDto>();
+        }
+        else
+        {
+            // Filter all loaded quizzes based on the search term
+            var searchTermLower = _searchTerm.ToLowerInvariant();
+            _filteredQuizzes = _allQuizzes
+                .Where(q => q.Name?.ToLowerInvariant().Contains(searchTermLower) == true)
+                .ToArray();
+        }
+        StateHasChanged();
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            UpdateSearchResults();
+        }
+    }
+
+    private void ClearSearch()
+    {
+        _searchTerm = string.Empty;
+        _filteredQuizzes = Array.Empty<QuizListDto>();
+        NavigationManager.NavigateTo("/student/search", forceLoad: true);
+    }
+
+    private async Task LoadBookmarkStatusAsync()
+    {
+        if (!QuizAuthStateProvider.IsLoggedIn)
+        {
+            return;
+        }
+
+        _bookmarkedQuizes.Clear();
+        foreach (var quiz in _allQuizzes)
+        {
+            var result = await BookmarkApi.IsBookmarkedAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = result.Data;
+            }
+        }
+    }
+
+    private async Task ToggleBookmarkAsync(QuizListDto quiz)
+    {
+        if (!QuizAuthStateProvider.IsLoggedIn)
+        {
+            NavigationManager.NavigateTo("auth/login");
+            return;
+        }
+
+        var isBookmarked = _bookmarkedQuizes.ContainsKey(quiz.Id) && _bookmarkedQuizes[quiz.Id];
+
+        if (isBookmarked)
+        {
+            // Remove bookmark
+            var result = await BookmarkApi.RemoveBookmarkAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = false;
+            }
+        }
+        else
+        {
+            // Add bookmark
+            var bookmarkDto = new QuizBookmarkDto
+                {
+                    UserId = QuizAuthStateProvider.User.Id,
+                    QuizId = quiz.Id,
+                    QuizName = quiz.Name,
+                    CategoryName = quiz.CategoryName
+                };
+
+            var result = await BookmarkApi.AddBookmarkAsync(bookmarkDto);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = true;
+            }
+        }
+    }
+
+    private async Task OnBookmarkToggled(QuizListDto quiz)
+    {
+        // Refresh bookmark status when bookmark is toggled in the slider
+        var result = await BookmarkApi.IsBookmarkedAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+        if (result.IsSuccess)
+        {
+            _bookmarkedQuizes[quiz.Id] = result.Data;
+        }
+    }
+
+    private bool IsBookmarked(Guid quizId)
+    {
+        return _bookmarkedQuizes.ContainsKey(quizId) && _bookmarkedQuizes[quizId];
+    }
+
+    private void ShowQuizTypeSelection(QuizListDto quiz)
+    {
+        _selectedQuizForType = quiz;
+    }
+
+    private async Task ShowQuizDetails(Guid quizId)
+    {
+        _loadingDetails = true;
+        _quizDetails = null;
+        _showQuizDetails = true;
+
+        try
+        {
+            var response = await StudentQuizApi.GetQuizDetailsAsync(quizId);
+            if (response.IsSuccess && response.Data != null)
+            {
+                _quizDetails = response.Data;
+            }
+            else
+            {
+                AppState.ShowError(response.ErrorMessage ?? "Failed to load quiz details");
+                _showQuizDetails = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading quiz details: {ex.Message}");
+            _showQuizDetails = false;
+        }
+        finally
+        {
+            _loadingDetails = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnBottomSheetVisibilityChanged(bool isVisible)
+    {
+        _showQuizDetails = isVisible;
+        StateHasChanged();
+    }
+
+    private async Task ShowAllFeedback(Guid quizId)
+    {
+        _loadingAllFeedback = true;
+        _allFeedback = null;
+        _showAllFeedback = true;
+
+        try
+        {
+            var response = await StudentQuizApi.GetAllFeedbackAsync(quizId);
+            if (response.IsSuccess && response.Data != null)
+            {
+                _allFeedback = response.Data;
+            }
+            else
+            {
+                AppState.ShowError(response.ErrorMessage ?? "Failed to load feedback");
+                _showAllFeedback = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading feedback: {ex.Message}");
+            _showAllFeedback = false;
+        }
+        finally
+        {
+            _loadingAllFeedback = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnAllFeedbackBottomSheetVisibilityChanged(bool isVisible)
+    {
+        _showAllFeedback = isVisible;
+        StateHasChanged();
+    }
+
+    private async Task StartQuizWithMode(QuestionType type)
+    {
+        if (_selectedQuizForType == null) return;
+
+        AppState.ShowLoader("Preparing the quiz...");
+        try
+        {
+            QuizApiResponse<int> response = await StudentQuizApi.StartQuizAsync(_selectedQuizForType.Id);
+            if (!response.IsSuccess)
+            {
+                //Show error alert
+                return;
+            }
+            int studentQuizId = response.Data;
+
+            QuizState.StartQuiz(_selectedQuizForType, studentQuizId);
+
+            // Navigate to appropriate quiz type based on selection
+            switch (type)
+            {
+                case QuestionType.MCQ:
+                    NavigationManager.NavigateTo("student/quiz");
+                    break;
+                case QuestionType.Flashcard:
+                    NavigationManager.NavigateTo("student/flashcard-quiz");
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError(ex.Message);
+        }
+        finally
+        {
+            AppState.HideLoader();
+            _selectedQuizForType = null;
+        }
+    }
+
+    private string GetRatingIcon(string? rating)
+    {
+        if (string.IsNullOrEmpty(rating)) return "😐";
+
+        return rating?.ToLower().Trim() switch
+        {
+            "very bad" => "😞",
+            "bad" => "😟",
+            "normal" => "😐",
+            "good" => "😄",
+            "very good" => "😁",
+            _ => "😐" // Default to neutral face for unknown ratings
+        };
+    }
+
+    private string GetRatingDisplayText(string? rating)
+    {
+        if (string.IsNullOrEmpty(rating)) return "";
+
+        return rating?.ToLower().Trim() switch
+        {
+            "very bad" => "Very Bad",
+            "bad" => "Bad",
+            "normal" => "Normal",
+            "good" => "Good",
+            "very good" => "Very Good",
+            _ => rating ?? "" // Default to original value for unknown ratings
+        };
+    }
+
+    private void HandleSearchIconClick()
+    {
+        // Navigate to search results page with the current search term
+        if (!string.IsNullOrEmpty(_searchTerm))
+        {
+            NavigationManager.NavigateTo($"/student/search?searchTerm={Uri.EscapeDataString(_searchTerm)}");
+        }
+    }
+}

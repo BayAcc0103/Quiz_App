@@ -45,17 +45,14 @@ namespace BlazingQuiz.Api.Services
                     TotalQuestions = dto.TotalQuestions,
                     TimeInMinutes = dto.TimeInMinutes,
                     IsActive = dto.IsActive,
-                    Level = dto.Level, // Set the level
-                    CreatedBy = userId, // Set the creator ID
-                    ImagePath = dto.ImagePath, // Set the image path
-                    AudioPath = dto.AudioPath, // Set the audio path
-                    CreatedAt = DateTime.UtcNow, // Set the creation date
+                    Level = dto.Level,
+                    CreatedBy = userId,
+                    ImagePath = dto.ImagePath,
+                    AudioPath = dto.AudioPath, 
+                    CreatedAt = DateTime.UtcNow, 
                     Questions = questions
                 };
-
                 _context.Quizzes.Add(quiz);
-
-                // Add quiz-category relationships BEFORE saving to ensure atomic transaction
                 if (dto.CategoryIds != null && dto.CategoryIds.Any())
                 {
                     var quizCategories = dto.CategoryIds.Select(catId => new QuizCategory
@@ -63,11 +60,8 @@ namespace BlazingQuiz.Api.Services
                         Quiz = quiz, // Use the quiz object directly instead of quiz.Id
                         CategoryId = catId
                     }).ToList();
-
                     _context.QuizCategories.AddRange(quizCategories);
                 }
-
-                // Single SaveChangesAsync to save both quiz and quiz-categories in one transaction
             }
             else
             {

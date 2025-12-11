@@ -51,11 +51,7 @@ namespace BlazingQuiz.Api.Services
             {
                 return QuizApiResponse.Failure("Invalid email or OTP.");
             }
-
-            // Check if this email was recently verified through the VerifyOtp process
             bool isEmailVerified = otpService.IsEmailVerifiedForReset(dto.Email);
-            
-            // If not already verified, validate the OTP (which will consume it)
             if (!isEmailVerified)
             {
                 var otpValidated = otpService.ValidateOtp(dto.Email, dto.Otp);
@@ -66,11 +62,8 @@ namespace BlazingQuiz.Api.Services
             }
             else
             {
-                // If email was already verified via VerifyOtp, we don't need to validate the OTP again
-                // but we should remove the verification flag after using it
                 otpService.RemoveEmailVerification(dto.Email);
             }
-
             // Update password only if new passwords are provided
             if (!string.IsNullOrEmpty(dto.NewPassword) && !string.IsNullOrEmpty(dto.ConfirmNewPassword))
             {
@@ -82,7 +75,6 @@ namespace BlazingQuiz.Api.Services
                 user.PasswordHash = _passwordHasher.HashPassword(user, dto.NewPassword);
                 await _context.SaveChangesAsync();
             }
-
             return QuizApiResponse.Success();
         }
 

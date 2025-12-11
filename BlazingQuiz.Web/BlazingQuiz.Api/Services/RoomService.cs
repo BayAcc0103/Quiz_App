@@ -20,7 +20,6 @@ namespace BlazingQuiz.Api.Services
         {
             // Generate a unique 6-digit code
             string code = await GenerateUniqueRoomCodeAsync();
-            
             var room = new Room
             {
                 Id = Guid.NewGuid(),
@@ -33,10 +32,8 @@ namespace BlazingQuiz.Api.Services
                 QuizId = quizId,
                 IsActive = true
             };
-
             _context.Rooms.Add(room);
             await _context.SaveChangesAsync();
-
             return room;
         }
 
@@ -108,25 +105,21 @@ namespace BlazingQuiz.Api.Services
             var room = await _context.Rooms
                 .Include(r => r.Participants)
                 .FirstOrDefaultAsync(r => r.Code == code && r.IsActive);
-
             if (room == null)
             {
                 return false;
             }
-
             // Check if the room is full (reached maximum participants)
             if (room.Participants.Count >= room.MaxParticipants)
             {
                 return false; // Room is full
             }
-
             // Check if user is already in the room
             var existingParticipant = room.Participants.FirstOrDefault(p => p.UserId == userId);
             if (existingParticipant != null)
             {
                 return true; // Already joined
             }
-
             // Add user as participant
             var participant = new RoomParticipant
             {
@@ -135,7 +128,6 @@ namespace BlazingQuiz.Api.Services
                 UserId = userId,
                 JoinedAt = DateTime.UtcNow
             };
-
             _context.RoomParticipants.Add(participant);
             await _context.SaveChangesAsync();
 

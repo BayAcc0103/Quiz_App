@@ -60,13 +60,11 @@ namespace BlazingQuiz.Api.Services
                 {
                     dbCategory.CreatedBy = createdByUserId;
                 }
-
                 dbCategory.Name = dto.Name;
                 dbCategory.ImagePath = dto.ImagePath;
                 dbCategory.IsDisplay = dto.IsDisplay;
                 _context.Categories.Update(dbCategory);
                 await _context.SaveChangesAsync();
-
                 // Return the updated category
                 return QuizApiResponse<CategoryDto>.Success(new CategoryDto
                 {
