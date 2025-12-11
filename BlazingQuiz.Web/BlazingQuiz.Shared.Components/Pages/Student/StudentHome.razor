@@ -215,6 +215,43 @@
             </div>
         </div>
 
+        <!-- Search Section -->
+        <div class="mb-3 px-2">
+                    <div class="input-group">
+                        <input type="text"
+                               class="form-control form-control-lg"
+                               placeholder="Search quizzes by name..."
+                               @bind="SearchTerm"
+                               @bind:event="oninput"
+                               @onkeydown="HandleSearchKeyDown" />
+                        <button class="btn btn-outline-secondary search-btn"
+                                type="button"
+                                @onclick="HandleSearchIconClick">
+                            <i class="fas fa-search text-muted"></i>
+                        </button>
+                    </div>
+                    @if (!string.IsNullOrEmpty(_searchTerm))
+                    {
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <small class="text-muted">
+                                @if (_filteredQuizzes?.Length > 0)
+                                {
+                                    <text>@_filteredQuizzes.Length quiz@(string.IsNullOrEmpty(_searchTerm) ? "" : _filteredQuizzes.Length != 1 ? "es" : "") found</text>
+                                }
+                                else
+                                {
+                                    <text>No quizzes found matching "@_searchTerm"</text>
+                                }
+                            </small>
+                            <button type="button"
+                            class="btn btn-sm btn-outline-secondary search-btn"
+                                    @onclick="ClearSearch">
+                                Clear
+                            </button>
+                        </div>
+                    }
+        </div>
+
         <!-- Hero Section for Room Actions -->
         <div class="row mb-3 px-3">
             <div class="col-md-6">
@@ -247,90 +284,186 @@
 
         <!-- Recent Quizzes Section -->
         <div class="mb-2 d-none d-md-block">
-            <h3 class="mb-2">Recently Added</h3>
-            @if (_recentQuizzes.Length > 0)
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h3 class="mb-0">@(string.IsNullOrEmpty(_searchTerm) ? "Recently Added" : "Search Results")</h3>
+            </div>
+            @if (!string.IsNullOrEmpty(_searchTerm))
             {
-                <QuizSlider QuizList="_recentQuizzes"
-                            OnQuizTypeSelection="ShowQuizTypeSelection"
-                            OnQuizDetails="ShowQuizDetails"
-                            OnBookmarkToggle="OnBookmarkToggled" />
+                @if (_filteredQuizzes?.Length > 0)
+                {
+                    <QuizSlider QuizList="_filteredQuizzes"
+                                OnQuizTypeSelection="ShowQuizTypeSelection"
+                                OnQuizDetails="ShowQuizDetails"
+                                OnBookmarkToggle="OnBookmarkToggled" />
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="bi bi-search fs-1 text-muted"></i>
+                        <p class="text-muted">No quizzes match your search for "@_searchTerm"</p>
+                        <button type="button" class="btn btn-outline-primary" @onclick="ClearSearch">Clear Search</button>
+                    </div>
+                }
             }
             else
             {
-                <div class="text-center py-4">
-                    <p class="text-muted">No recently added quizzes available at the moment.</p>
-                </div>
-            }
-        </div>
-        <!-- Random Easy Level Quizzes Section -->
-        <div class="mb-2 d-none d-md-block">
-            <h2>Easy</h2>
-            @if (_randomEasyQuizzes.Length > 0)
-            {
-                <QuizSlider QuizList="_randomEasyQuizzes"
-                            OnQuizTypeSelection="ShowQuizTypeSelection"
-                            OnQuizDetails="ShowQuizDetails"
-                            OnBookmarkToggle="OnBookmarkToggled" />
-            }
-            else
-            {
-                <div class="text-center py-4">
-                    <p class="text-muted">No easy level quizzes available at the moment.</p>
-                </div>
-            }
-        </div>
-
-        <!-- Random Hard Level Quizzes Section -->
-        <div class="mb-2 d-none d-md-block">
-            <h2>Hard</h2>
-            @if (_randomHardQuizzes.Length > 0)
-            {
-                <QuizSlider QuizList="_randomHardQuizzes"
-                            OnQuizTypeSelection="ShowQuizTypeSelection"
-                            OnQuizDetails="ShowQuizDetails"
-                            OnBookmarkToggle="OnBookmarkToggled" />
-            }
-            else
-            {
-                <div class="text-center py-4">
-                    <p class="text-muted">No hard level quizzes available at the moment.</p>
-                </div>
+                @if (_recentQuizzes.Length > 0)
+                {
+                    <QuizSlider QuizList="_recentQuizzes"
+                                OnQuizTypeSelection="ShowQuizTypeSelection"
+                                OnQuizDetails="ShowQuizDetails"
+                                OnBookmarkToggle="OnBookmarkToggled" />
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <p class="text-muted">No recently added quizzes available at the moment.</p>
+                    </div>
+                }
             }
         </div>
 
-        <div class="mb-2 d-block d-md-none">
-            <h2>Easy</h2>
-            @if (_randomEasyQuizzes.Length > 0)
-            {
-                <MobileQuizSlider AllQuizzes="_randomEasyQuizzes"
-                                  OnQuizTypeSelection="ShowQuizTypeSelection"
-                                  OnQuizDetails="ShowQuizDetails"
-                                  OnBookmarkToggle="OnBookmarkToggled" />
-            }
-            else
-            {
-                <div class="text-center py-4">
-                    <p class="text-muted">No easy level quizzes available at the moment.</p>
-                </div>
-            }
-        </div>
+        <!-- Display all filtered quizzes when searching -->
+        @{
+            var filteredEasyQuizzes = _filteredQuizzes?.Where(q => q.Level?.ToLower() == "easy").ToArray() ?? Array.Empty<QuizListDto>();
+            var filteredHardQuizzes = _filteredQuizzes?.Where(q => q.Level?.ToLower() == "hard").ToArray() ?? Array.Empty<QuizListDto>();
+            var otherLevelQuizzes = _filteredQuizzes?.Where(q => q.Level?.ToLower() != "easy" && q.Level?.ToLower() != "hard").ToArray() ?? Array.Empty<QuizListDto>();
+        }
 
-        <div class="mb-2 d-block d-md-none">
-            <h2>Hard</h2>
-            @if (_randomHardQuizzes.Length > 0)
+        @if (!string.IsNullOrEmpty(_searchTerm) && _filteredQuizzes?.Length > 0)
+        {
+            <!-- Easy quizzes from search results -->
+            @if (filteredEasyQuizzes.Length > 0)
             {
-                <MobileQuizSlider AllQuizzes="_randomHardQuizzes"
-                                  OnQuizTypeSelection="ShowQuizTypeSelection"
-                                  OnQuizDetails="ShowQuizDetails"
-                                  OnBookmarkToggle="OnBookmarkToggled" />
-            }
-            else
-            {
-                <div class="text-center py-4">
-                    <p class="text-muted">No easy level quizzes available at the moment.</p>
+                <div class="mb-2 d-none d-md-block">
+                    <h2>Easy</h2>
+                    <QuizSlider QuizList="filteredEasyQuizzes"
+                                OnQuizTypeSelection="ShowQuizTypeSelection"
+                                OnQuizDetails="ShowQuizDetails"
+                                OnBookmarkToggle="OnBookmarkToggled" />
+                </div>
+
+                <div class="mb-2 d-block d-md-none">
+                    <h2>Easy</h2>
+                    <MobileQuizSlider AllQuizzes="filteredEasyQuizzes"
+                                      OnQuizTypeSelection="ShowQuizTypeSelection"
+                                      OnQuizDetails="ShowQuizDetails"
+                                      OnBookmarkToggle="OnBookmarkToggled" />
                 </div>
             }
-        </div>
+
+            <!-- Hard quizzes from search results -->
+            @if (filteredHardQuizzes.Length > 0)
+            {
+                <div class="mb-2 d-none d-md-block">
+                    <h2>Hard</h2>
+                    <QuizSlider QuizList="filteredHardQuizzes"
+                                OnQuizTypeSelection="ShowQuizTypeSelection"
+                                OnQuizDetails="ShowQuizDetails"
+                                OnBookmarkToggle="OnBookmarkToggled" />
+                </div>
+
+                <div class="mb-2 d-block d-md-none">
+                    <h2>Hard</h2>
+                    <MobileQuizSlider AllQuizzes="filteredHardQuizzes"
+                                      OnQuizTypeSelection="ShowQuizTypeSelection"
+                                      OnQuizDetails="ShowQuizDetails"
+                                      OnBookmarkToggle="OnBookmarkToggled" />
+                </div>
+            }
+
+            <!-- Other level quizzes from search results -->
+            @if (otherLevelQuizzes.Length > 0)
+            {
+                <div class="mb-2 d-none d-md-block">
+                    <h2>Other Levels</h2>
+                    <QuizSlider QuizList="otherLevelQuizzes"
+                                OnQuizTypeSelection="ShowQuizTypeSelection"
+                                OnQuizDetails="ShowQuizDetails"
+                                OnBookmarkToggle="OnBookmarkToggled" />
+                </div>
+
+                <div class="mb-2 d-block d-md-none">
+                    <h2>Other Levels</h2>
+                    <MobileQuizSlider AllQuizzes="otherLevelQuizzes"
+                                      OnQuizTypeSelection="ShowQuizTypeSelection"
+                                      OnQuizDetails="ShowQuizDetails"
+                                      OnBookmarkToggle="OnBookmarkToggled" />
+                </div>
+            }
+        }
+        else
+        {
+            <!-- Random Easy Level Quizzes Section -->
+            <div class="mb-2 d-none d-md-block">
+                <h2>Easy</h2>
+                @if (_randomEasyQuizzes.Length > 0)
+                {
+                    <QuizSlider QuizList="_randomEasyQuizzes"
+                                OnQuizTypeSelection="ShowQuizTypeSelection"
+                                OnQuizDetails="ShowQuizDetails"
+                                OnBookmarkToggle="OnBookmarkToggled" />
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <p class="text-muted">No easy level quizzes available at the moment.</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Random Hard Level Quizzes Section -->
+            <div class="mb-2 d-none d-md-block">
+                <h2>Hard</h2>
+                @if (_randomHardQuizzes.Length > 0)
+                {
+                    <QuizSlider QuizList="_randomHardQuizzes"
+                                OnQuizTypeSelection="ShowQuizTypeSelection"
+                                OnQuizDetails="ShowQuizDetails"
+                                OnBookmarkToggle="OnBookmarkToggled" />
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <p class="text-muted">No hard level quizzes available at the moment.</p>
+                    </div>
+                }
+            </div>
+
+            <div class="mb-2 d-block d-md-none">
+                <h2>Easy</h2>
+                @if (_randomEasyQuizzes.Length > 0)
+                {
+                    <MobileQuizSlider AllQuizzes="_randomEasyQuizzes"
+                                      OnQuizTypeSelection="ShowQuizTypeSelection"
+                                      OnQuizDetails="ShowQuizDetails"
+                                      OnBookmarkToggle="OnBookmarkToggled" />
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <p class="text-muted">No easy level quizzes available at the moment.</p>
+                    </div>
+                }
+            </div>
+
+            <div class="mb-2 d-block d-md-none">
+                <h2>Hard</h2>
+                @if (_randomHardQuizzes.Length > 0)
+                {
+                    <MobileQuizSlider AllQuizzes="_randomHardQuizzes"
+                                      OnQuizTypeSelection="ShowQuizTypeSelection"
+                                      OnQuizDetails="ShowQuizDetails"
+                                      OnBookmarkToggle="OnBookmarkToggled" />
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <p class="text-muted">No hard level quizzes available at the moment.</p>
+                    </div>
+                }
+            </div>
+        }
     </div>
 
     @if (_selectedQuizForType != null)
@@ -575,6 +708,19 @@
     private bool _isLoading;
     private QuizListDto? _selectedQuizForType;
     private Dictionary<Guid, bool> _bookmarkedQuizes = new();
+
+    // Search fields
+    private string _searchTerm = string.Empty;
+    private string SearchTerm
+    {
+        get => _searchTerm;
+        set
+        {
+            _searchTerm = value;
+            UpdateSearchResults();
+        }
+    }
+    private QuizListDto[]? _filteredQuizzes;
 
     // For quiz details modal
     private bool _showQuizDetails = false;
@@ -974,6 +1120,48 @@
         {
             AppState.HideLoader();
             StateHasChanged();
+        }
+    }
+
+    private void UpdateSearchResults()
+    {
+        if (string.IsNullOrWhiteSpace(_searchTerm))
+        {
+            _filteredQuizzes = null; // Show all quizzes when search is empty
+        }
+        else
+        {
+            // Filter all loaded quizzes based on the search term
+            var searchTermLower = _searchTerm.ToLowerInvariant();
+            _filteredQuizzes = _quizes
+                .Where(q => q.Name?.ToLowerInvariant().Contains(searchTermLower) == true)
+                .ToArray();
+        }
+        StateHasChanged();
+    }
+
+    private void ClearSearch()
+    {
+        _searchTerm = string.Empty;
+        _filteredQuizzes = null;
+        StateHasChanged();
+    }
+
+    private void HandleSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            // Navigate to the search results page with the search term
+            NavigationManager.NavigateTo($"/student/search?searchTerm={Uri.EscapeDataString(_searchTerm)}");
+        }
+    }
+
+    private void HandleSearchIconClick()
+    {
+        // Navigate to the search results page with the search term when search icon is clicked
+        if (!string.IsNullOrEmpty(_searchTerm))
+        {
+            NavigationManager.NavigateTo($"/student/search?searchTerm={Uri.EscapeDataString(_searchTerm)}");
         }
     }
 }
