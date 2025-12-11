@@ -18,5 +18,8 @@ namespace BlazingQuiz.Web.Apis
 
         [Get("/api/admin/quizes/{quizId}/students")]
         Task<AdminQuizStudentListDto> GetQuizStudentsAsync(Guid quizId, int startIndex, int pageSize, bool fetchQuizInfo);
+
+        [Post("/api/admin/users/create-user")]
+        Task<QuizApiResponse> CreateUserAsync(RegisterDto dto);
     }
 }

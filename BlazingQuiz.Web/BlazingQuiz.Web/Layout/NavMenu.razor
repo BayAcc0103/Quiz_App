@@ -31,12 +31,17 @@
                     </li>
                     <li>
                         <a href="admin/manage-students">
-                            <span class="material-symbols-outlined"> lock_person </span> User
+                            <span class="material-symbols-outlined"> lock_person </span>User
                         </a>
                     </li>
                     <li>
                         <a href="admin/rooms">
-                            <span class="material-symbols-outlined"> room_preferences </span> Room
+                            <span class="material-symbols-outlined"> room_preferences </span>Room
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/create-teacher-account">
+                            <span class="material-symbols-outlined"> person_3 </span>+ Account
                         </a>
                     </li>
                     <h4>
@@ -45,12 +50,12 @@
                     </h4>
                     <li>
                         <a href="admin/manage-quizes">
-                            <span class="material-symbols-outlined"> data_table </span> Quiz
+                            <span class="material-symbols-outlined"> data_table </span>Quiz
                         </a>
                     </li>
                     <li>
                         <a href="admin/add-quiz">
-                            <span class="material-symbols-outlined"> note_stack_add </span> Create Quiz
+                            <span class="material-symbols-outlined"> note_stack_add </span>Create Quiz
                         </a>
                     </li>
                     <h4>
@@ -65,17 +70,17 @@
                     </h4>
                     <li>
                         <a href="student/home">
-                            <span class="material-symbols-outlined"> home </span> Home
+                            <span class="material-symbols-outlined"> home </span>Home
                         </a>
                     </li>
                     <li>
                         <a href="student/my-quizes">
-                            <span class="material-symbols-outlined"> data_table </span> My quizes
+                            <span class="material-symbols-outlined"> data_table </span>My quizes
                         </a>
                     </li>
                     <li>
                         <a href="student/bookmarks">
-                            <span class="material-symbols-outlined"> bookmarks </span> Bookmarks
+                            <span class="material-symbols-outlined"> bookmarks </span>Bookmarks
                         </a>
                     </li>
                     <h4>
@@ -84,17 +89,17 @@
                     </h4>
                     <li>
                         <a href="student/joinroom">
-                            <span class="material-symbols-outlined"> home_work </span> Join Room
+                            <span class="material-symbols-outlined"> home_work </span>Join Room
                         </a>
                     </li>
                     <li>
                         <a href="student/createroom">
-                            <span class="material-symbols-outlined"> add_home_work </span> Create Room
+                            <span class="material-symbols-outlined"> add_home_work </span>Create Room
                         </a>
                     </li>
                     <li>
                         <a href="student/room-results">
-                            <span class="material-symbols-outlined"> table_chart </span> Room Results
+                            <span class="material-symbols-outlined"> table_chart </span>Room Results
                         </a>
                     </li>
                     <h4>
@@ -103,7 +108,7 @@
                     </h4>
                     <li>
                         <a href="student/profile">
-                            <span class="material-symbols-outlined"> person_pin </span> Profile
+                            <span class="material-symbols-outlined"> person_pin </span>Profile
                         </a>
                     </li>
                 </AuthorizeView>
@@ -124,22 +129,22 @@
                     </li>
                     <li>
                         <a href="teacher/manage-quizzes">
-                            <span class="material-symbols-outlined"> data_table </span> Quiz
+                            <span class="material-symbols-outlined"> data_table </span>Quiz
                         </a>
                     </li>
                     <li>
                         <a href="teacher/add-quiz">
-                            <span class="material-symbols-outlined"> note_stack_add </span> Create Quiz
+                            <span class="material-symbols-outlined"> note_stack_add </span>Create Quiz
                         </a>
                     </li>
                     <li>
                         <a href="teacher/createroom">
-                            <span class="material-symbols-outlined"> add_home_work </span> Create Room
+                            <span class="material-symbols-outlined"> add_home_work </span>Create Room
                         </a>
                     </li>
                     <li>
                         <a href="teacher/rooms">
-                            <span class="material-symbols-outlined"> room_preferences </span> Manage Rooms
+                            <span class="material-symbols-outlined"> room_preferences </span>Manage Rooms
                         </a>
                     </li>
                     <h4>
@@ -148,30 +153,30 @@
                     </h4>
                     <li>
                         <a href="teacher/profile">
-                            <span class="material-symbols-outlined"> person_pin </span> Profile
+                            <span class="material-symbols-outlined"> person_pin </span>Profile
                         </a>
                     </li>
                 </AuthorizeView>
                 <li>
                     <a role="button" @onclick="LogoutAsync">
-                        <span class="material-symbols-outlined"> logout </span> Logout
+                        <span class="material-symbols-outlined"> logout </span>Logout
                     </a>
                 </li>
             </Authorized>
             <NotAuthorized>
                 <li>
                     <a href="auth/login">
-                        <span class="material-symbols-outlined"> login </span> Login
+                        <span class="material-symbols-outlined"> login </span>Login
                     </a>
                 </li>
                 <li>
                     <a href="auth/login-admin">
-                        <span class="material-symbols-outlined"> admin_panel_settings </span> Login as Admin
+                        <span class="material-symbols-outlined"> admin_panel_settings </span>Login as Admin
                     </a>
                 </li>
                 <li>
                     <a href="auth/register">
-                        <span class="material-symbols-outlined"> person_add </span> Register
+                        <span class="material-symbols-outlined"> person_add </span>Register
                     </a>
                 </li>
             </NotAuthorized>

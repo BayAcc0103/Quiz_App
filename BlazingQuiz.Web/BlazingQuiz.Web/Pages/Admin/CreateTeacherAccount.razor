@@ -1,0 +1,129 @@
+@page "/admin/create-teacher-account"
+@using BlazingQuiz.Shared.DTOs
+@using BlazingQuiz.Shared
+@using BlazingQuiz.Web.Apis
+@using Microsoft.AspNetCore.Authorization
+@inject IAdminApi AdminApi
+@inject NavigationManager NavigationManager
+@attribute [Authorize(Roles = nameof(UserRole.Admin))]
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card shadow-lg border-dark teacher-account-card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-chalkboard-teacher me-2"></i>Create Teacher Account
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="registerDto" OnValidSubmit="HandleSubmit" class="mt-3">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger mb-3" />
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger">@errorMessage</div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(successMessage))
+                        {
+                            <div class="alert alert-success">@successMessage</div>
+                        }
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-bold">Full Name</label>
+                            <input id="name" class="form-control form-control-lg" @bind="registerDto.Name" />
+                            <ValidationMessage For="@(() => registerDto.Name)" class="text-danger" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-bold">Email</label>
+                            <input id="email" class="form-control form-control-lg" @bind="registerDto.Email" type="email" />
+                            <ValidationMessage For="@(() => registerDto.Email)" class="text-danger" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="phone" class="form-label fw-bold">Phone</label>
+                            <input id="phone" class="form-control form-control-lg" @bind="registerDto.Phone" />
+                            <ValidationMessage For="@(() => registerDto.Phone)" class="text-danger" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label fw-bold">Password</label>
+                            <input id="password" class="form-control form-control-lg" @bind="registerDto.Password" type="password" />
+                            <ValidationMessage For="@(() => registerDto.Password)" class="text-danger" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Role</label>
+                            <div class="border rounded p-3 bg-light">
+                                <span class="badge bg-secondary fs-5">@UserRole.Teacher</span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-3d btn-3d-success flex-fill me-md-2" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                }
+                                <i class="fas fa-plus-circle me-1"></i>Create Account
+                            </button>
+
+                            <button type="button" class="btn btn-3d btn-3d-secondary flex-fill" @onclick="Cancel" disabled="@isLoading">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterDto registerDto = new RegisterDto { Role = UserRole.Teacher };
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+    private bool isLoading = false;
+
+    protected override void OnInitialized()
+    {
+        registerDto.Role = UserRole.Teacher;
+    }
+
+    private async Task HandleSubmit()
+    {
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+        isLoading = true;
+
+        try
+        {
+            var result = await AdminApi.CreateUserAsync(registerDto);
+            if (result.IsSuccess)
+            {
+                successMessage = "Teacher account created successfully!";
+                registerDto = new RegisterDto { Role = UserRole.Teacher };
+            }
+            else
+            {
+                errorMessage = result.ErrorMessage ?? "An error occurred while creating the teacher account.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/admin/home");
+    }
+}

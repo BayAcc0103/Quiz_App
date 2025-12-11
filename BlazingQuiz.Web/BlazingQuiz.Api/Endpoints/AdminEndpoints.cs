@@ -1,5 +1,6 @@
 ﻿using BlazingQuiz.Api.Services;
 using BlazingQuiz.Shared;
+using BlazingQuiz.Shared.DTOs;
 
 namespace BlazingQuiz.Api.Endpoints
 {
@@ -28,6 +29,15 @@ namespace BlazingQuiz.Api.Endpoints
             {
                 await userService.ToggleUserApprovedStatusAsync(userId);
                 return Results.Ok();
+            });
+
+            group.MapPost("/create-user", async (RegisterDto dto, AdminService userService) =>
+            {
+                var result = await userService.CreateUserAsync(dto);
+                if (result.IsSuccess)
+                    return Results.Ok(result);
+                else
+                    return Results.BadRequest(result);
             });
 
             return app;

@@ -1,7 +1,9 @@
 ﻿using BlazingQuiz.Shared.DTOs;
 using BlazingQuiz.Shared;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using BlazingQuiz.Api.Data;
+using BlazingQuiz.Api.Data.Entities;
 
 namespace BlazingQuiz.Api.Services
 {
@@ -84,13 +86,13 @@ namespace BlazingQuiz.Api.Services
                     .Include(q => q.QuizCategories)
                     .ThenInclude(qc => qc.Category)
                     .Where(q => q.Id == quizId)
-                    .Select(q => new { 
-                        QuizName = q.Name, 
-                        CategoryName = q.CategoryId.HasValue ? 
-                            q.QuizCategories.Any(qc => qc.CategoryId == q.CategoryId) ? 
-                                q.QuizCategories.First(qc => qc.CategoryId == q.CategoryId).Category.Name : 
-                                "No Category" : 
-                            q.QuizCategories.Any() ? string.Join(", ", q.QuizCategories.Select(qc => qc.Category.Name)) : "No Category" 
+                    .Select(q => new {
+                        QuizName = q.Name,
+                        CategoryName = q.CategoryId.HasValue ?
+                            q.QuizCategories.Any(qc => qc.CategoryId == q.CategoryId) ?
+                                q.QuizCategories.First(qc => qc.CategoryId == q.CategoryId).Category.Name :
+                                "No Category" :
+                            q.QuizCategories.Any() ? string.Join(", ", q.QuizCategories.Select(qc => qc.Category.Name)) : "No Category"
                     })
                     .FirstOrDefaultAsync();
 
@@ -99,7 +101,7 @@ namespace BlazingQuiz.Api.Services
                     result.Students = new PageResult<AdminQuizStudentDto>([], 0);
                     return result;
                 }
-                    
+
 
                 result.QuizName = quizInfo.QuizName;
                 result.CategoryName = quizInfo.CategoryName;
@@ -136,6 +138,40 @@ namespace BlazingQuiz.Api.Services
             var pageResult = new PageResult<AdminQuizStudentDto>(students, count);
             result.Students = pageResult;
             return result;
+        }
+
+        public async Task<QuizApiResponse> CreateUserAsync(RegisterDto dto)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            var passwordHasher = new PasswordHasher<User>();
+
+            // Check if user with email already exists
+            if(await context.Users.AnyAsync(u => u.Email == dto.Email))
+            {
+                return QuizApiResponse.Failure("Email already exists.");
+            }
+
+            var user = new User
+            {
+                Name = dto.Name,
+                Email = dto.Email,
+                Phone = dto.Phone,
+                Role = dto.Role.ToString(),
+                IsApproved = true // Admin-created users are automatically approved
+            };
+
+            user.PasswordHash = passwordHasher.HashPassword(user, dto.Password);
+            context.Users.Add(user);
+
+            try
+            {
+                await context.SaveChangesAsync();
+                return QuizApiResponse.Success();
+            }
+            catch (Exception ex)
+            {
+                return QuizApiResponse.Failure(ex.Message);
+            }
         }
     }
 }
