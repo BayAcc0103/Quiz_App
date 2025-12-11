@@ -423,14 +423,6 @@ a.category-item.card-3d-raised.card-light {
     z-index: -1;
 }
 
-html:not(.dark-theme) .student-home-background::before {
-    background-image: url('/asset/background/light/bg-light5.jpg');
-}
-
-html.dark-theme .student-home-background::before {
-    background-image: url('/asset/background/dark/bg-dark5.jpg');
-}
-
 /* Animation for additional categories container */
 .additional-categories-container {
     transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;

@@ -229,7 +229,10 @@
             // Register resize event listener
             await JSRuntime.InvokeVoidAsync("eval", @"
                 if (!window.quizSliderResizeHandler) {
+                    let dotNetHelperRef = null;
+
                     window.quizSliderResizeHandler = (dotNetHelper) => {
+                        dotNetHelperRef = dotNetHelper; // Store reference for resize handler
                         setTimeout(() => {
                             const windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
                             dotNetHelper.invokeMethodAsync('RebuildSlidesBasedOnScreenSizeFromJS', windowWidth);
@@ -237,7 +240,9 @@
                     };
 
                     window.addEventListener('resize', (e) => {
-                        window.quizSliderResizeHandler(dotNetHelper);
+                        if (dotNetHelperRef) {
+                            window.quizSliderResizeHandler(dotNetHelperRef);
+                        }
                     });
                 }
             ", _objRef);
