@@ -222,15 +222,15 @@
                                class="form-control form-control-lg"
                                placeholder="Search quizzes by name..."
                                @bind="SearchTerm"
-                               @bind:event="oninput"
-                               @onkeydown="HandleSearchKeyDown" />
-                        <button class="btn btn-outline-secondary search-btn"
+                               />
+               @*  @bind:event="oninput" *@
+                <button class="btn btn-outline-secondary search-btn"
                                 type="button"
                                 @onclick="HandleSearchIconClick">
                             <i class="fas fa-search text-muted"></i>
                         </button>
                     </div>
-                    @if (!string.IsNullOrEmpty(_searchTerm))
+                    @* @if (!string.IsNullOrEmpty(_searchTerm))
                     {
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <small class="text-muted">
@@ -249,7 +249,7 @@
                                 Clear
                             </button>
                         </div>
-                    }
+                    } *@
         </div>
 
         <!-- Hero Section for Room Actions -->
@@ -282,7 +282,7 @@
             </div>
         </div>
 
-        <!-- Recent Quizzes Section -->
+        @* <!-- Recent Quizzes Section -->
         <div class="mb-2 d-none d-md-block">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h3 class="mb-0">@(string.IsNullOrEmpty(_searchTerm) ? "Recently Added" : "Search Results")</h3>
@@ -393,7 +393,23 @@
             }
         }
         else
-        {
+        { *@
+        <div class="mb-3 d-none d-md-block">
+            <h3 class="mb-3">Recently Added</h3>
+            @if (_recentQuizzes.Length > 0)
+            {
+                <QuizSlider QuizList="_recentQuizzes"
+                            OnQuizTypeSelection="ShowQuizTypeSelection"
+                            OnQuizDetails="ShowQuizDetails"
+                            OnBookmarkToggle="OnBookmarkToggled" />
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted">No recently added quizzes available at the moment.</p>
+                </div>
+            }
+        </div>
             <!-- Random Easy Level Quizzes Section -->
             <div class="mb-2 d-none d-md-block">
                 <h2>Easy</h2>
@@ -430,6 +446,23 @@
                 }
             </div>
 
+        <div class="mb-2 d-block d-md-none">
+            <h2>Recently Added</h2>
+            @if (_recentQuizzes.Length > 0)
+            {
+                <MobileQuizSlider AllQuizzes="_recentQuizzes"
+                                  OnQuizTypeSelection="ShowQuizTypeSelection"
+                                  OnQuizDetails="ShowQuizDetails"
+                                  OnBookmarkToggle="OnBookmarkToggled" />
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted">No easy level quizzes available at the moment.</p>
+                </div>
+            }
+        </div>
+
             <div class="mb-2 d-block d-md-none">
                 <h2>Easy</h2>
                 @if (_randomEasyQuizzes.Length > 0)
@@ -463,7 +496,7 @@
                     </div>
                 }
             </div>
-        }
+@*         } *@
     </div>
 
     @if (_selectedQuizForType != null)

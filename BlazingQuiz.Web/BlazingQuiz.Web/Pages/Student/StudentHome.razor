@@ -258,7 +258,22 @@
                 </div>
             }
         </div>
-
+        <div class="mb-3 d-block d-md-none">
+            <h2>Recently Added</h2>
+            @if (_recentQuizzes.Length > 0)
+            {
+                <MobileQuizSlider AllQuizzes="_recentQuizzes"
+                                  OnQuizTypeSelection="ShowQuizTypeSelection"
+                                  OnQuizDetails="ShowQuizDetails"
+                                  OnBookmarkToggle="OnBookmarkToggled" />
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted">No easy level quizzes available at the moment.</p>
+                </div>
+            }
+        </div>
         <div class="mb-3 d-block d-md-none">
             <h2>Easy</h2>
             @if (_randomEasyQuizzes.Length > 0)
@@ -973,10 +988,10 @@
             // Get all active quizzes
             var allQuizzes = await StudentQuizApi.GetActiveQuizesAsync(0); // 0 means all categories
 
-            // Filter for quizzes created in the last month and order by most recent first
-            var oneMonthAgo = DateTime.Now.AddMonths(-1);
+            // Filter for quizzes created in the last 30 days and order by most recent first
+            var thirtyDaysAgo = DateTime.Now.AddDays(-30);
             var recentQuizzes = allQuizzes
-                .Where(q => q.CreatedAt.HasValue && q.CreatedAt.Value >= oneMonthAgo)
+                .Where(q => q.CreatedAt.HasValue && q.CreatedAt.Value >= thirtyDaysAgo)
                 .OrderByDescending(q => q.CreatedAt) // Order by most recent first
                 .Take(12) // Take up to 12 quizzes for the slider (3 rows of 4)
                 .ToArray();

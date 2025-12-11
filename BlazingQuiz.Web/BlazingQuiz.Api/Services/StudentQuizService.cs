@@ -30,10 +30,10 @@ namespace BlazingQuiz.Api.Services
                 .Select(q => new QuizListDto
                 {
                     CategoryId = q.CategoryId,
-                    CategoryName = q.CategoryId.HasValue ? 
-                        q.QuizCategories.Any(qc => qc.CategoryId == q.CategoryId) ? 
-                            q.QuizCategories.First(qc => qc.CategoryId == q.CategoryId).Category.Name : 
-                            "No Category" : 
+                    CategoryName = q.CategoryId.HasValue ?
+                        q.QuizCategories.Any(qc => qc.CategoryId == q.CategoryId) ?
+                            q.QuizCategories.First(qc => qc.CategoryId == q.CategoryId).Category.Name :
+                            "No Category" :
                         q.QuizCategories.Any() ? string.Join(", ", q.QuizCategories.Select(qc => qc.Category.Name)) : "No Category",
                     Name = q.Name,
                     Description = q.Description,
@@ -44,7 +44,8 @@ namespace BlazingQuiz.Api.Services
                     ImagePath = q.ImagePath,
                     AudioPath = q.AudioPath,
                     CreatedByName = q.CreatedByUser != null ? q.CreatedByUser.Name : "Unknown",
-                    CreatedByAvatarPath = q.CreatedByUser != null ? q.CreatedByUser.AvatarPath : null
+                    CreatedByAvatarPath = q.CreatedByUser != null ? q.CreatedByUser.AvatarPath : null,
+                    CreatedAt = q.CreatedAt // Include the creation date
                 })
                 .ToArrayAsync();
             return quizzes;
