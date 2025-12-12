@@ -6,8 +6,8 @@ window.themeUtils = {
         ///asset/background/dark/bg-dark5.jpg
         // Set background based on theme
         const backgroundImage = theme === 'dark' 
-            ? 'none' 
-            : 'none';
+            ? 'url(/asset/bg-dark.jpg)' 
+            : 'url(/asset/bg-light.jpg)';
             
         document.body.style.backgroundImage = backgroundImage;
         document.body.style.backgroundSize = 'cover';
