@@ -257,13 +257,13 @@ namespace BlazingQuiz.Api.Services
 
                 // Convert feedbacks to separate ratings and comments for the DTO
                 var ratings = allFeedbacks
-                    .Where(f => !string.IsNullOrEmpty(f.Score))
+                    .Where(f => f.Score.HasValue)
                     .Select(f => new TeacherQuizRatingDto
                     {
                         Id = f.Id,
                         StudentId = f.StudentId,
                         StudentName = f.Student.Name,
-                        Score = f.Score ?? string.Empty,
+                        Score = f.ScoreText ?? string.Empty, // Use ScoreText property to get the string representation
                         CreatedOn = f.CreatedOn,
                         QuizId = f.QuizId,
                         QuizName = f.Quiz.Name
@@ -291,7 +291,7 @@ namespace BlazingQuiz.Api.Services
                         Id = f.Id,
                         StudentId = f.StudentId,
                         StudentName = f.Student.Name,
-                        Score = f.Score,
+                        Score = f.ScoreText, // Use ScoreText property to get the string representation
                         Content = f.Comment,
                         IsCommentDeleted = f.IsCommentDeleted,
                         CreatedOn = f.CreatedOn,
@@ -349,7 +349,7 @@ namespace BlazingQuiz.Api.Services
             }
 
             // Check if this feedback contains a rating (Score) to be deleted
-            if (string.IsNullOrEmpty(feedback.Score))
+            if (!feedback.Score.HasValue)
             {
                 return false; // This feedback doesn't contain a rating
             }

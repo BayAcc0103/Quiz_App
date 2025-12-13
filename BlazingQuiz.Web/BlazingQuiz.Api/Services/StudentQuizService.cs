@@ -438,7 +438,7 @@ namespace BlazingQuiz.Api.Services
                 {
                     StudentId = studentId,
                     QuizId = studentQuiz.QuizId,
-                    Score = ConvertRatingToText(dto),
+                    Score = QuizFeedback.TextScoreToInt(ConvertRatingToText(dto)), // Convert text score to integer
                     Comment = dto.CommentContent,
                     CreatedOn = DateTime.UtcNow
                 };
@@ -533,13 +533,13 @@ namespace BlazingQuiz.Api.Services
 
                 // Convert feedbacks to separate ratings and comments for the DTO
                 var recentRatings = recentFeedbacks
-                    .Where(f => !string.IsNullOrEmpty(f.Score))
+                    .Where(f => f.Score.HasValue)
                     .Select(f => new RatingDto
                     {
                         Id = f.Id,
                         StudentId = f.StudentId,
                         QuizId = f.QuizId,
-                        Score = f.Score ?? string.Empty,
+                        Score = f.ScoreText ?? string.Empty, // Use ScoreText property to get the string representation
                         CreatedOn = f.CreatedOn,
                         StudentName = f.Student.Name
                     })
@@ -582,13 +582,13 @@ namespace BlazingQuiz.Api.Services
 
                 // Convert feedbacks to separate ratings and comments for the DTO
                 var ratings = allFeedbacks
-                    .Where(f => !string.IsNullOrEmpty(f.Score))
+                    .Where(f => f.Score.HasValue)
                     .Select(f => new RatingDto
                     {
                         Id = f.Id,
                         StudentId = f.StudentId,
                         QuizId = f.QuizId,
-                        Score = f.Score ?? string.Empty,
+                        Score = f.ScoreText ?? string.Empty, // Use ScoreText property to get the string representation
                         CreatedOn = f.CreatedOn,
                         StudentName = f.Student.Name
                     })
@@ -611,14 +611,14 @@ namespace BlazingQuiz.Api.Services
                 // Create combined feedback data for students - show both ratings and comments appropriately
                 // If it's a deleted comment with no rating, hide it; if it's a deleted comment with a rating, show the rating but mark the comment appropriately
                 var combinedFeedback = allFeedbacks
-                    .Where(f => !string.IsNullOrEmpty(f.Score) || !string.IsNullOrEmpty(f.Comment)) // Include entries that have either score or comment
-                    .Where(f => !f.IsCommentDeleted || !string.IsNullOrEmpty(f.Score)) // Hide entries that are deleted comments with no rating
+                    .Where(f => f.Score.HasValue || !string.IsNullOrEmpty(f.Comment)) // Include entries that have either score or comment
+                    .Where(f => !f.IsCommentDeleted || f.Score.HasValue) // Hide entries that are deleted comments with no rating
                     .Select(f => new CombinedFeedbackDto
                     {
                         Id = f.Id,
                         StudentId = f.StudentId,
                         StudentName = f.Student.Name,
-                        Score = f.Score,
+                        Score = f.ScoreText, // Use ScoreText property to get the string representation
                         Comment = f.IsCommentDeleted ? "comment has been removed by teacher" : f.Comment, // Show placeholder for deleted comments that have ratings
                         CreatedOn = f.CreatedOn
                     })
