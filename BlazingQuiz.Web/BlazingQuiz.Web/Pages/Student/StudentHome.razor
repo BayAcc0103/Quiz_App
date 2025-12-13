@@ -140,7 +140,7 @@
     </div>
 
     <!-- Search Section -->
-    <div class="mb-3 px-2">
+    <div class="mb-5 px-2">
                 <div class="input-group">
                     <input type="text"
                            class="form-control form-control-lg"
@@ -177,7 +177,7 @@
     </div>
 
     <!-- Hero Section for Room Actions -->
-    <div class="row mb-3 px-3">
+    <div class="row mb-5 px-3">
         <div class="col-md-6">
             <div class="card card-3d-raised card-light position-relative">
                 <div class="card-body text-center mb-1 d-flex flex-column align-items-center justify-content-center">
@@ -208,7 +208,7 @@
 
         <!-- Recent Quizzes Section -->
         <div class="mb-3 d-none d-md-block">
-            <h3 class="mb-3">Recently Added</h3>
+            <h1>Recently Added</h1>
             @if (_recentQuizzes.Length > 0)
             {
                 <QuizSlider QuizList="_recentQuizzes"
@@ -225,7 +225,7 @@
         </div>
         <!-- Random Easy Level Quizzes Section -->
         <div class="mb-3 d-none d-md-block">
-            <h2>Easy</h2>
+            <h1>Easy</h1>
             @if (_randomEasyQuizzes.Length > 0)
             {
                 <QuizSlider QuizList="_randomEasyQuizzes"
@@ -243,7 +243,7 @@
 
         <!-- Random Hard Level Quizzes Section -->
         <div class="mb-3 d-none d-md-block">
-            <h2>Hard</h2>
+            <h1>Hard</h1>
             @if (_randomHardQuizzes.Length > 0)
             {
                 <QuizSlider QuizList="_randomHardQuizzes"

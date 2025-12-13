@@ -182,8 +182,9 @@
 }
 
 .question-text {
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-family: "Borel", cursive;
+    font-weight: 400;
+    font-size: 1.4rem;
     margin-top: 15px;
     color: #333;
 }
@@ -300,10 +301,12 @@
 }
 
 .option-text {
-    font-size: 1.3rem;  /* Reduced font size to save vertical space */
+    font-family: "Borel", cursive;
+    font-weight: 400;
+    font-size: 1.3rem; /* Reduced font size to save vertical space */
     color: #333;
     text-align: center;
-    line-height: 1.2;  /* Reduced line height */
+    line-height: 1.2; /* Reduced line height */
     flex: 1;
     display: flex;
     align-items: center;
