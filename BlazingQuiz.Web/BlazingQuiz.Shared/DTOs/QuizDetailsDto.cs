@@ -7,6 +7,7 @@
         public string? Description { get; set; }
         public int? CategoryId { get; set; }
         public string CategoryName { get; set; }
+        public List<string> AllCategoryNames { get; set; } = new List<string>();
         public int TotalQuestions { get; set; }
         public int TimeInMinutes { get; set; }
         public bool IsActive { get; set; }
@@ -16,7 +17,7 @@
         public string? CreatedByName { get; set; }
         public string? CreatedByAvatarPath { get; set; }
         public DateTime CreatedOn { get; set; }
-        
+
         public List<RatingDto> RecentRatings { get; set; } = new List<RatingDto>();
         public List<CommentDto> RecentComments { get; set; } = new List<CommentDto>();
     }

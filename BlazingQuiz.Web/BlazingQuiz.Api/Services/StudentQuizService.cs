@@ -526,11 +526,12 @@ namespace BlazingQuiz.Api.Services
                         Name = q.Name,
                         Description = q.Description,
                         CategoryId = q.CategoryId,
-                        CategoryName = q.CategoryId.HasValue ? 
-                            q.QuizCategories.Any(qc => qc.CategoryId == q.CategoryId) ? 
-                                q.QuizCategories.First(qc => qc.CategoryId == q.CategoryId).Category.Name : 
-                                "No Category" : 
+                        CategoryName = q.CategoryId.HasValue ?
+                            q.QuizCategories.Any(qc => qc.CategoryId == q.CategoryId) ?
+                                q.QuizCategories.First(qc => qc.CategoryId == q.CategoryId).Category.Name :
+                                "No Category" :
                             q.QuizCategories.Any() ? string.Join(", ", q.QuizCategories.Select(qc => qc.Category.Name)) : "No Category",
+                        AllCategoryNames = q.QuizCategories.Select(qc => qc.Category.Name).ToList(),
                         TotalQuestions = q.Questions.Count,
                         TimeInMinutes = q.TimeInMinutes,
                         IsActive = q.IsActive,

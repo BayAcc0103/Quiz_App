@@ -216,28 +216,121 @@
                 {
                     <p><em>No description provided</em></p>
                 }
-                <table class="table table-sm">
-                    <tr>
-                        <td><strong>Category:</strong></td>
-                        <td>@_quizDetails.CategoryName</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Created By:</strong></td>
-                        <td>@_quizDetails.CreatedByName</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Questions:</strong></td>
-                        <td>@_quizDetails.TotalQuestions</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Level:</strong></td>
-                        <td>@(_quizDetails.Level ?? "Not specified")</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Time:</strong></td>
-                        <td>@_quizDetails.TimeInMinutes minutes</td>
-                    </tr>
-                </table>
+
+                <!-- Info boxes row -->
+                <div class="row mb-3 mx-0">
+                    <div class="col-md-3 col-6 mb-2">
+                        <div class="info-box p-2 border rounded text-center">
+                            <strong>Created By</strong><br>
+                            <small>
+                                @if (!string.IsNullOrEmpty(_quizDetails.CreatedByAvatarPath))
+                                {
+                                    <img src="@QuizImageService.GetImageUrl(_quizDetails.CreatedByAvatarPath)"
+                                         alt="Avatar"
+                                         class="rounded-circle me-1"
+                                         style="width: 20px; height: 20px; object-fit: cover;" />
+                                }
+                                else
+                                {
+                                    <div class="rounded-circle me-1 d-inline-flex align-items-center justify-content-center bg-secondary text-white"
+                                         style="width: 20px; height: 20px; font-size: 10px;">
+                                        @_quizDetails.CreatedByName?.FirstOrDefault().ToString().ToUpper()
+                                    </div>
+                                }
+                                @_quizDetails.CreatedByName
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-2">
+                        <div class="info-box p-2 border rounded text-center">
+                            <strong>Questions</strong><br>
+                            <small>@_quizDetails.TotalQuestions</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-2">
+                        <div class="info-box p-2 border rounded text-center">
+                            <strong>Level</strong><br>
+                            <small>@(_quizDetails.Level ?? "Not specified")</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-2">
+                        <div class="info-box p-2 border rounded text-center">
+                            <strong>Time</strong><br>
+                            <small>@_quizDetails.TimeInMinutes minutes</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category section -->
+                <div class="category-section mb-3">
+                    <h6><strong>Category</strong></h6>
+                    @if (_quizDetails.AllCategoryNames != null && _quizDetails.AllCategoryNames.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var category in _quizDetails.AllCategoryNames)
+                            {
+                                <span class="badge bg-primary">@category</span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p>No categories assigned</p>
+                    }
+                </div>
+
+                @if (_quizDetails.RecentRatings.Any())
+                {
+                    <div class="recent-feedback mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6>Recent Ratings</h6>
+                            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => ShowAllFeedback(_quizDetails.Id)">View All Feedback</button>
+                        </div>
+                        @{
+                            // Sort ratings by date and take top 3
+                            var sortedRatings = _quizDetails.RecentRatings
+                                .OrderByDescending(f => f.CreatedOn)
+                                .Take(3)
+                                .ToList();
+                        }
+
+                        <div class="feedback-list">
+                            @foreach (var rating in sortedRatings)
+                            {
+                                <div class="feedback-item p-3 mb-2 border rounded">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <strong>@rating.StudentName</strong>
+                                        @if (!string.IsNullOrEmpty(rating.Score))
+                                        {
+                                            <span class="badge bg-primary">@GetRatingIcon(rating.Score) @GetRatingDisplayText(rating.Score)</span>
+                                        }
+                                    </div>
+                                    <small class="text-muted">@rating.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else if (_quizDetails.RecentComments.Any())
+                {
+                    <div class="recent-feedback mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6>Recent Feedback</h6>
+                            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => ShowAllFeedback(_quizDetails.Id)">View All Feedback</button>
+                        </div>
+                        <p class="text-muted"><em>No ratings yet</em></p>
+                    </div>
+                }
+                else
+                {
+                    <div class="recent-feedback mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6>Recent Feedback</h6>
+                            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => ShowAllFeedback(_quizDetails.Id)">View All Feedback</button>
+                        </div>
+                        <p class="text-muted"><em>No feedback yet</em></p>
+                    </div>
+                }
             </div>
         </div>
     }
@@ -250,6 +343,46 @@
         </div>
     }
 </BottomSheet>
+
+    <BottomSheet IsOpen="@_showAllFeedback" Title="All Feedback" IsOpenChanged="@OnAllFeedbackBottomSheetVisibilityChanged" OnCancelClick="() => _showAllFeedback = false" ShowFooter="false">
+        @if (_allFeedback != null)
+        {
+            <div class="quiz-details-content" style="max-height: 60vh; overflow-y: auto;">
+                @if (_allFeedback.CombinedFeedback.Any())
+                {
+                    <div class="feedback-list">
+                        @foreach (var feedback in _allFeedback.CombinedFeedback)
+                        {
+                            <div class="feedback-item p-3 mb-3 border rounded">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <strong>@feedback.StudentName</strong>
+                                    @if (!string.IsNullOrEmpty(feedback.Score))
+                                    {
+                                        <span class="badge bg-primary">@GetRatingIcon(feedback.Score) @GetRatingDisplayText(feedback.Score)</span>
+                                    }
+                                </div>
+                                <small class="text-muted">@feedback.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-3">
+                        <p class="text-muted mb-0">No feedback yet for this quiz</p>
+                    </div>
+                }
+            </div>
+        }
+        else if (_loadingAllFeedback)
+        {
+            <div class="text-center py-3">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+    </BottomSheet>
 
 @code {
     [Parameter] public int CategoryId { get; set; }
@@ -407,10 +540,82 @@
         }
     }
 
+    // For all feedback modal
+    private bool _showAllFeedback = false;
+    private QuizAllFeedbackDto? _allFeedback;
+    private bool _loadingAllFeedback = false;
+
+    private async Task ShowAllFeedback(Guid quizId)
+    {
+        _loadingAllFeedback = true;
+        _allFeedback = null;
+        _showAllFeedback = true;
+
+        try
+        {
+            var response = await StudentQuizApi.GetAllFeedbackAsync(quizId);
+            if (response.IsSuccess && response.Data != null)
+            {
+                _allFeedback = response.Data;
+            }
+            else
+            {
+                AppState.ShowError(response.ErrorMessage ?? "Failed to load feedback");
+                _showAllFeedback = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading feedback: {ex.Message}");
+            _showAllFeedback = false;
+        }
+        finally
+        {
+            _loadingAllFeedback = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnAllFeedbackBottomSheetVisibilityChanged(bool isVisible)
+    {
+        _showAllFeedback = isVisible;
+        StateHasChanged();
+    }
+
     private void OnBottomSheetVisibilityChanged(bool isVisible)
     {
         _showQuizDetails = isVisible;
         StateHasChanged();
+    }
+
+    private string GetRatingIcon(string? rating)
+    {
+        if (string.IsNullOrEmpty(rating)) return "😐";
+
+        return rating?.ToLower().Trim() switch
+        {
+            "very bad" => "😞",
+            "bad" => "😟",
+            "normal" => "😐",
+            "good" => "😄",
+            "very good" => "😁",
+            _ => "😐" // Default to neutral face for unknown ratings
+        };
+    }
+
+    private string GetRatingDisplayText(string? rating)
+    {
+        if (string.IsNullOrEmpty(rating)) return "";
+
+        return rating?.ToLower().Trim() switch
+        {
+            "very bad" => "Very Bad",
+            "bad" => "Bad",
+            "normal" => "Normal",
+            "good" => "Good",
+            "very good" => "Very Good",
+            _ => rating ?? "" // Default to original value for unknown ratings
+        };
     }
 
     private async Task StartQuizWithMode(QuestionType type)
