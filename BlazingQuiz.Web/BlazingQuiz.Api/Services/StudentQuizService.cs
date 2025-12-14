@@ -433,16 +433,30 @@ namespace BlazingQuiz.Api.Services
 
             try
             {
-                // Always create new feedback (allow multiple ratings per student-quiz combination)
-                var feedback = new QuizFeedback
+                // Check if feedback already exists for this student-quiz combination
+                var existingFeedback = await _context.QuizFeedbacks
+                    .FirstOrDefaultAsync(f => f.StudentId == studentId && f.QuizId == studentQuiz.QuizId);
+
+                if (existingFeedback != null)
                 {
-                    StudentId = studentId,
-                    QuizId = studentQuiz.QuizId,
-                    Score = QuizFeedback.TextScoreToInt(ConvertRatingToText(dto)), // Convert text score to integer
-                    Comment = dto.CommentContent,
-                    CreatedOn = DateTime.UtcNow
-                };
-                _context.QuizFeedbacks.Add(feedback);
+                    // Update existing feedback
+                    existingFeedback.Score = QuizFeedback.TextScoreToInt(ConvertRatingToText(dto)); // Convert text score to integer
+                    existingFeedback.Comment = dto.CommentContent;
+                    existingFeedback.CreatedOn = DateTime.UtcNow; // Update timestamp
+                }
+                else
+                {
+                    // Create new feedback
+                    var feedback = new QuizFeedback
+                    {
+                        StudentId = studentId,
+                        QuizId = studentQuiz.QuizId,
+                        Score = QuizFeedback.TextScoreToInt(ConvertRatingToText(dto)), // Convert text score to integer
+                        Comment = dto.CommentContent,
+                        CreatedOn = DateTime.UtcNow
+                    };
+                    _context.QuizFeedbacks.Add(feedback);
+                }
 
                 await _context.SaveChangesAsync();
                 return QuizApiResponse.Success();
