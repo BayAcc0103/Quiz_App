@@ -24,6 +24,9 @@ namespace BlazingQuiz.Shared.DTOs
         public string? CreatedByAvatarPath { get; set; }
         public DateTime? CreatedAt { get; set; }
 
+        // Average rating from QuizFeedback
+        public double? AverageRating { get; set; }
+
         // Collection of all categories for the quiz
         public List<string> AllCategoryNames { get; set; } = new List<string>();
     }

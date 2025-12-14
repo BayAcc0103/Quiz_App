@@ -101,12 +101,27 @@
                             <!-- Quiz statistics -->
                             <div class="quiz-stats d-flex justify-content-between mt-auto">
                                 <div class="stat-item d-flex flex-column align-items-center">
-                                    <span class="stat-value fw-bold">@quiz.TotalQuestions</span>
-                                    <small class="stat-label text-muted">Questions</small>
-                                </div>
-                                <div class="stat-item d-flex flex-column align-items-center">
-                                    <span class="stat-value fw-bold">@quiz.TimeInMinutes min</span>
-                                    <small class="stat-label text-muted">Time</small>
+                                    <div class="d-flex align-items-center">
+                                        <span class="material-symbols-outlined me-1" style="font-size: 16px;">
+                                            @if (quiz.AverageRating.HasValue && quiz.AverageRating.Value > 0)
+                                            {
+                                                @:star
+                                            }
+                                            else
+                                            {
+                                                @:star_outline
+                                            }
+                                        </span>
+                                        @if (quiz.AverageRating.HasValue)
+                                        {
+                                            <span class="stat-value fw-bold">@quiz.AverageRating.Value.ToString("F1")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="stat-value fw-bold text-muted">0</span>
+                                        }
+                                    </div>
+                                    <small class="stat-label text-muted">Rating</small>
                                 </div>
                                 <div class="stat-item d-flex flex-column align-items-center">
                                     <div class="d-flex align-items-center mb-1">

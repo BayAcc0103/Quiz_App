@@ -30,7 +30,26 @@
                                         </div>
                                         <p class="card-text">@quiz.Description</p>
                                         <div class="d-flex justify-content-between text-muted">
-                                            <small>Questions: @quiz.TotalQuestions</small>
+                                            <small>
+                                                <span class="material-symbols-outlined me-1" style="font-size: 16px;">
+                                                    @if (quiz.AverageRating.HasValue && quiz.AverageRating.Value > 0)
+                                                    {
+                                                        @:star
+                                                    }
+                                                    else
+                                                    {
+                                                        @:star_outline
+                                                    }
+                                                </span>
+                                                @if (quiz.AverageRating.HasValue)
+                                                {
+                                                    <text>@quiz.AverageRating.Value.ToString("F1")</text>
+                                                }
+                                                else
+                                                {
+                                                    <text>0</text>
+                                                }
+                                            </small>
                                             <small>Time: @quiz.TimeInMinutes min</small>
                                         </div>
                                         <div class="mt-2">

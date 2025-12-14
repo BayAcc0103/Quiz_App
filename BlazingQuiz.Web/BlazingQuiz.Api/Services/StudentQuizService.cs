@@ -26,26 +26,37 @@ namespace BlazingQuiz.Api.Services
             {
                 query = query.Where(q => q.CategoryId == categoryId || q.QuizCategories.Any(qc => qc.CategoryId == categoryId));
             }
+
             var quizzes = await query
-                .Select(q => new QuizListDto
+                .GroupJoin(
+                    _context.QuizFeedbacks,
+                    quiz => quiz.Id,
+                    feedback => feedback.QuizId,
+                    (quiz, feedbacks) => new
+                    {
+                        Quiz = quiz,
+                        AverageRating = feedbacks.Any() ? feedbacks.Average(f => f.Score) : (double?)null
+                    })
+                .Select(x => new QuizListDto
                 {
-                    CategoryId = q.CategoryId,
-                    CategoryName = q.CategoryId.HasValue ?
-                        q.QuizCategories.Any(qc => qc.CategoryId == q.CategoryId) ?
-                            q.QuizCategories.First(qc => qc.CategoryId == q.CategoryId).Category.Name :
+                    CategoryId = x.Quiz.CategoryId,
+                    CategoryName = x.Quiz.CategoryId.HasValue ?
+                        x.Quiz.QuizCategories.Any(qc => qc.CategoryId == x.Quiz.CategoryId) ?
+                            x.Quiz.QuizCategories.First(qc => qc.CategoryId == x.Quiz.CategoryId).Category.Name :
                             "No Category" :
-                        q.QuizCategories.Any() ? string.Join(", ", q.QuizCategories.Select(qc => qc.Category.Name)) : "No Category",
-                    Name = q.Name,
-                    Description = q.Description,
-                    TimeInMinutes = q.TimeInMinutes,
-                    TotalQuestions = q.Questions.Count,
-                    Id = q.Id,
-                    Level = q.Level, // Include the level
-                    ImagePath = q.ImagePath,
-                    AudioPath = q.AudioPath,
-                    CreatedByName = q.CreatedByUser != null ? q.CreatedByUser.Name : "Unknown",
-                    CreatedByAvatarPath = q.CreatedByUser != null ? q.CreatedByUser.AvatarPath : null,
-                    CreatedAt = q.CreatedAt // Include the creation date
+                        x.Quiz.QuizCategories.Any() ? string.Join(", ", x.Quiz.QuizCategories.Select(qc => qc.Category.Name)) : "No Category",
+                    Name = x.Quiz.Name,
+                    Description = x.Quiz.Description,
+                    TimeInMinutes = x.Quiz.TimeInMinutes,
+                    TotalQuestions = x.Quiz.Questions.Count,
+                    Id = x.Quiz.Id,
+                    Level = x.Quiz.Level, // Include the level
+                    ImagePath = x.Quiz.ImagePath,
+                    AudioPath = x.Quiz.AudioPath,
+                    CreatedByName = x.Quiz.CreatedByUser != null ? x.Quiz.CreatedByUser.Name : "Unknown",
+                    CreatedByAvatarPath = x.Quiz.CreatedByUser != null ? x.Quiz.CreatedByUser.AvatarPath : null,
+                    CreatedAt = x.Quiz.CreatedAt, // Include the creation date
+                    AverageRating = x.AverageRating
                 })
                 .ToArrayAsync();
             return quizzes;
