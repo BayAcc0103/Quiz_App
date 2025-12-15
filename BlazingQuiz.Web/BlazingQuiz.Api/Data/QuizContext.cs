@@ -33,6 +33,7 @@ namespace BlazingQuiz.Api.Data
         public DbSet<RoomAnswer> RoomAnswers { get; set; }
         public DbSet<TextAnswer> TextAnswers { get; set; }
         public DbSet<QuizCategory> QuizCategories { get; set; }
+        public DbSet<RecommendedQuiz> RecommendedQuizzes { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -197,6 +198,22 @@ namespace BlazingQuiz.Api.Data
                 .WithMany(q => q.StudentQuizQuestionsForRoom)
                 .HasForeignKey(s => s.QuestionId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure RecommendedQuiz entity
+            modelBuilder.Entity<RecommendedQuiz>()
+                .HasOne(rq => rq.User)
+                .WithMany() // Users can have multiple recommended quizzes
+                .HasForeignKey(rq => rq.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure RecommendedQuiz properties
+            modelBuilder.Entity<RecommendedQuiz>()
+                .Property(e => e.PredictedRating)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<RecommendedQuiz>()
+                .Property(e => e.QuizId)
+                .HasColumnType("nvarchar(max)");
 
             base.OnModelCreating(modelBuilder);
             var adminUser = new User

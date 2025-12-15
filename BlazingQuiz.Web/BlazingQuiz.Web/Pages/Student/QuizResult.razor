@@ -3,8 +3,10 @@
 @using BlazingQuiz.Shared.DTOs
 @using BlazingQuiz.Shared.Components.Components
 @using BlazingQuiz.Web.Apis
+@using BlazingQuiz.Web.Auth
 @inject IAppState AppState
 @inject IStudentQuizApi StudentQuizApi
+@inject QuizAuthStateProvider QuizAuthStateProvider
 @inject NavigationManager NavigationManager
 
 <BackButton />
@@ -112,6 +114,17 @@ else
                 }
             </div>
         </div>
+
+        <div class="row mt-4">
+            <div class="col-sm-12 text-center">
+                <button class="btn btn-primary btn-lg me-3" @onclick="GoToRecommendations">
+                    <i class="bi bi-lightbulb"></i> View Recommended Quizzes
+                </button>
+                <button class="btn btn-outline-secondary btn-lg" @onclick="GoToMyQuizzes">
+                    <i class="bi bi-arrow-left"></i> Back to My Quizzes
+                </button>
+            </div>
+        </div>
     </div>
 }
 
@@ -147,5 +160,15 @@ else
         {
             AppState.HideLoader();
         }
+    }
+
+    private void GoToRecommendations()
+    {
+        NavigationManager.NavigateTo("/student/quiz-recommendations");
+    }
+
+    private void GoToMyQuizzes()
+    {
+        NavigationManager.NavigateTo("/student/my-quizes");
     }
 }

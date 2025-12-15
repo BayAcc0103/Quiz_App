@@ -1,0 +1,157 @@
+@page "/student/quiz-recommendations"
+@using BlazingQuiz.Shared.DTOs
+@using BlazingQuiz.Web.Services
+@using BlazingQuiz.Web.Auth
+@using System.Text.Json
+@inject HttpClient Http
+@inject QuizAuthStateProvider QuizAuthStateProvider
+@inject NavigationManager Navigation
+
+<div class="quiz-recommendations-page">
+    <div class="container mt-4">
+        <h2 class="mb-4">Recommended Quizzes for You</h2>
+        
+        @if (isLoading)
+        {
+            <div class="text-center">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+        else if (recommendedQuizzes == null || !recommendedQuizzes.Any())
+        {
+            <div class="alert alert-info">
+                <p>No recommendations available at this time.</p>
+                <p>Try completing more quizzes to improve your recommendations!</p>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                @foreach (var quiz in recommendedQuizzes)
+                {
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 quiz-card">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">@quiz.Name</h5>
+                                <p class="card-text">@quiz.Description</p>
+                                
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="bi bi-person"></i> @quiz.TotalQuestions questions |
+                                        <i class="bi bi-clock"></i> @quiz.TimeInMinutes min
+                                    </small>
+                                </div>
+                                
+                                <div class="mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="rating">
+                                            <small class="text-warning">
+                                                <i class="bi bi-star-fill"></i> 
+                                                Recommended: @quiz.PredictedRating.ToString("F1")
+                                            </small>
+                                        </div>
+                                        <a href="/student/play-quiz/@quiz.QuizId" class="btn btn-primary btn-sm">Start Quiz</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .quiz-recommendations-page {
+        min-height: 100vh;
+        background-color: #f8f9fa;
+    }
+    
+    .quiz-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .quiz-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .rating {
+        color: #ffc107;
+    }
+</style>
+
+@code {
+    private List<RecommendedQuizDto> recommendedQuizzes;
+    private bool isLoading = true;
+    private int currentUserId;
+
+    public class RecommendedQuizDto
+    {
+        public string QuizId { get; set; }
+        public string Name { get; set; }
+        public string? Description { get; set; }
+        public int? CategoryId { get; set; }
+        public int TotalQuestions { get; set; }
+        public int TimeInMinutes { get; set; }
+        public string? Level { get; set; }
+        public double PredictedRating { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!QuizAuthStateProvider.IsLoggedIn)
+        {
+            Navigation.NavigateTo("/auth/login");
+            return;
+        }
+
+        currentUserId = QuizAuthStateProvider.User?.Id ?? 0;
+        await LoadRecommendations();
+    }
+
+    private async Task LoadRecommendations()
+    {
+        try
+        {
+            isLoading = true;
+
+            // Call the .NET API recommendation endpoint to get user-specific recommendations
+            var response = await Http.GetAsync($"api/Recommendation/user/{currentUserId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonString = await response.Content.ReadAsStringAsync();
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                recommendedQuizzes = JsonSerializer.Deserialize<List<RecommendedQuizDto>>(jsonString, options);
+            }
+            else
+            {
+                recommendedQuizzes = new List<RecommendedQuizDto>();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading recommendations: {ex.Message}");
+            recommendedQuizzes = new List<RecommendedQuizDto>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void RefreshRecommendations()
+    {
+        StateHasChanged();
+        _ = LoadRecommendations(); // Fire and forget
+    }
+}
