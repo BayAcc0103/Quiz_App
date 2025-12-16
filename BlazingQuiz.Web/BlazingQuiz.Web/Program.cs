@@ -30,7 +30,6 @@ builder.Services.AddSingleton<IAppState, AppState>()
     .AddSingleton<ProfileUpdateService>()
     .AddSingleton<QuizHubService>()
     .AddScoped<ThemeService>()
-    .AddScoped<RecommendationService>();
 
 builder.Services.AddHttpClient<CategoryImageService>(client =>
 {

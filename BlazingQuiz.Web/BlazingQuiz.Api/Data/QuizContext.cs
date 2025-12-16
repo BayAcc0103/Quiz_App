@@ -199,22 +199,6 @@ namespace BlazingQuiz.Api.Data
                 .HasForeignKey(s => s.QuestionId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // Configure RecommendedQuiz entity
-            modelBuilder.Entity<RecommendedQuiz>()
-                .HasOne(rq => rq.User)
-                .WithMany() // Users can have multiple recommended quizzes
-                .HasForeignKey(rq => rq.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            // Configure RecommendedQuiz properties
-            modelBuilder.Entity<RecommendedQuiz>()
-                .Property(e => e.PredictedRating)
-                .HasColumnType("decimal(18,2)");
-
-            modelBuilder.Entity<RecommendedQuiz>()
-                .Property(e => e.QuizId)
-                .HasColumnType("nvarchar(max)");
-
             base.OnModelCreating(modelBuilder);
             var adminUser = new User
             {

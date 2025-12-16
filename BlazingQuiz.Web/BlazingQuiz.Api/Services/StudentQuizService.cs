@@ -3,8 +3,6 @@ using BlazingQuiz.Api.Data.Entities;
 using BlazingQuiz.Shared.DTOs;
 using BlazingQuiz.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
-using System.IO;
 
 namespace BlazingQuiz.Api.Services
 {
@@ -471,79 +469,13 @@ namespace BlazingQuiz.Api.Services
                     _context.QuizFeedbacks.Add(feedback);
                 }
 
-                await _context.SaveChangesAsync();
-
-                // Trigger recommendation update after saving the feedback
-                await TriggerRecommendationUpdateAsync(studentId);
+                await _context.SaveChangesAsync()
 
                 return QuizApiResponse.Success();
             }
             catch (Exception ex)
             {
                 return QuizApiResponse.Failure(ex.Message);
-            }
-        }
-
-        private async Task TriggerRecommendationUpdateAsync(int userId)
-        {
-            try
-            {
-                // Option 1: Call Python script directly
-                string pythonScriptPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "recommender_system", "trigger_recommendation_update.py");
-
-                // If the relative path doesn't work, try another relative path or absolute
-                if (!System.IO.File.Exists(pythonScriptPath))
-                {
-                    pythonScriptPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "recommender_system", "trigger_recommendation_update.py");
-                }
-
-                if (!System.IO.File.Exists(pythonScriptPath))
-                {
-                    // Try the absolute path from the project root
-                    string projectRoot = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(AppContext.BaseDirectory))));
-                    pythonScriptPath = Path.Combine(projectRoot, "recommender_system", "trigger_recommendation_update.py");
-                }
-
-                if (System.IO.File.Exists(pythonScriptPath))
-                {
-                    var startInfo = new ProcessStartInfo
-                    {
-                        FileName = "python",
-                        Arguments = $"\"{pythonScriptPath}\" --user-id {userId} --method local",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    };
-
-                    using (var process = Process.Start(startInfo))
-                    {
-                        if (process != null)
-                        {
-                            string output = await process.StandardOutput.ReadToEndAsync();
-                            string error = await process.StandardError.ReadToEndAsync();
-
-                            await process.WaitForExitAsync();
-
-                            if (process.ExitCode != 0)
-                            {
-                                Console.WriteLine($"Python script error for user {userId}: {error}");
-                            }
-                            else
-                            {
-                                Console.WriteLine($"Python script output for user {userId}: {output}");
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    Console.WriteLine($"Python script not found at: {pythonScriptPath}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error triggering recommendation update for user {userId}: {ex.Message}");
             }
         }
 
