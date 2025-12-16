@@ -27,5 +27,8 @@ namespace BlazingQuiz.Shared.Components.Apis
 
         [Delete("/api/quizes/comments/{commentId}")]
         Task<QuizApiResponse> DeleteCommentAsync(int commentId);
+
+        [Get("/api/quizes/{quizId}")]
+        Task<ApiResponse<QuizDetailsDto>> GetQuizByIdAsync(string quizId);
     }
 }

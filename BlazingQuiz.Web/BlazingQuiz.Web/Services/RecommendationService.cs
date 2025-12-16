@@ -22,8 +22,8 @@ namespace BlazingQuiz.Web.Services
                 {
                     var userId = _authStateProvider.User.Id;
 
-                    // Call the API to trigger recommendation update
-                    var response = await _httpClient.PostAsync($"/api/Recommendation/trigger/{userId}", null);
+                    // Call the Python service API to trigger recommendation update
+                    var response = await _httpClient.PostAsync($"http://localhost:5000/api/recommendations/trigger/{userId}", null);
 
                     if (!response.IsSuccessStatusCode)
                     {

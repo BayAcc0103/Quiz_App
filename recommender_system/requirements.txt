@@ -1,0 +1,10 @@
+Flask==2.3.3
+Flask-CORS==4.0.0
+numpy>=1.21.0
+pandas>=1.5.0
+scikit-learn>=1.3.0
+SQLAlchemy>=2.0.0
+pyodbc>=4.0.0  # For SQL Server connections
+psycopg2-binary>=2.9.0  # For PostgreSQL connections
+mysql-connector-python>=8.0.0  # For MySQL connections
+requests>=2.31.0

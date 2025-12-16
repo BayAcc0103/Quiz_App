@@ -1,0 +1,17 @@
+# Quiz Recommendation System - Configuration
+
+# Database connection string
+# Examples:
+# For SQL Server: mssql+pyodbc://username:password@server:port/database?driver=ODBC+Driver+17+for+SQL+Server
+# For PostgreSQL: postgresql+psycopg2://username:password@host:port/database
+# For MySQL: mysql+pymysql://username:password@host:port/database
+# For SQLite: sqlite:///path/to/database.db
+
+DATABASE_CONNECTION_STRING=sqlite:///quiz_app.db
+
+# Flask server configuration
+PORT=5000
+
+# Recommendation system configuration
+K_NEIGHBORS=5
+UPDATE_INTERVAL_MINUTES=5

@@ -33,7 +33,7 @@ namespace BlazingQuiz.Api.Data
         public DbSet<RoomAnswer> RoomAnswers { get; set; }
         public DbSet<TextAnswer> TextAnswers { get; set; }
         public DbSet<QuizCategory> QuizCategories { get; set; }
-        public DbSet<RecommendedQuiz> RecommendedQuizzes { get; set; }
+        public DbSet<RecommendedQuiz> RecommendedQuizzes { get; set; } 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -197,6 +197,13 @@ namespace BlazingQuiz.Api.Data
                 .HasOne(s => s.Question)
                 .WithMany(q => q.StudentQuizQuestionsForRoom)
                 .HasForeignKey(s => s.QuestionId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure RecommendedQuiz entity
+            modelBuilder.Entity<RecommendedQuiz>()
+                .HasOne(rq => rq.User)
+                .WithMany()
+                .HasForeignKey(rq => rq.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             base.OnModelCreating(modelBuilder);

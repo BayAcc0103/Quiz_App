@@ -469,7 +469,7 @@ namespace BlazingQuiz.Api.Services
                     _context.QuizFeedbacks.Add(feedback);
                 }
 
-                await _context.SaveChangesAsync()
+                await _context.SaveChangesAsync();
 
                 return QuizApiResponse.Success();
             }

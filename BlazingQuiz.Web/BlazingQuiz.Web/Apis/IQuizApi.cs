@@ -36,5 +36,8 @@ namespace BlazingQuiz.Web.Apis
 
         [Delete("/api/quizes/{quizId}")]
         Task<QuizApiResponse> DeleteQuizAsync(Guid quizId);
+
+        [Get("/api/quizes/{quizId}")]
+        Task<ApiResponse<QuizDetailsDto>> GetQuizByIdAsync(string quizId);
     }
 }
