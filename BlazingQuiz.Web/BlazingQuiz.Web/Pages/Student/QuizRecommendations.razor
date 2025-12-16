@@ -3,12 +3,15 @@
 @using BlazingQuiz.Shared.DTOs
 @using BlazingQuiz.Shared.Components.Components
 @using BlazingQuiz.Web.Apis
-@using BlazingQuiz.Web.Auth
+@using System.Text.Json.Serialization;
 @inject IAppState AppState
 @inject HttpClient HttpClient
 @inject IQuizApi QuizApi
+@inject IStudentQuizApi StudentQuizApi
 @inject QuizAuthStateProvider QuizAuthStateProvider
 @inject NavigationManager NavigationManager
+@inject QuizState QuizState
+@inject QuizImageService QuizImageService
 
 <BackButton />
 
@@ -33,10 +36,10 @@
                 <p>The AI recommendation service is currently not running.</p>
                 <p>You can still browse quizzes based on your previous activity and popular choices.</p>
                 <div class="mt-3">
-                    <button class="btn btn-primary me-2" @onclick="() => NavigationManager.NavigateTo('/student/my-quizes')">
+                    <button class="btn btn-primary me-2" @onclick="GoToMyQuizzes">
                         Browse My Quizzes
                     </button>
-                    <button class="btn btn-outline-secondary" @onclick="() => NavigationManager.NavigateTo('/student/popular-quizes')">
+                    <button class="btn btn-outline-secondary" @onclick="GoToPopularQuizzes">
                         Browse Popular Quizzes
                     </button>
                 </div>
@@ -95,55 +98,117 @@
         </div>
 
         <!-- Recommendations Section -->
-        <div class="row">
-            @foreach (var recommendation in _recommendations)
-            {
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 recommendation-card">
-                        @if (recommendation.QuizDetails?.ImagePath != null)
-                        {
-                            <img src="@recommendation.QuizDetails.ImagePath" class="card-img-top" alt="@recommendation.QuizDetails.Name" style="height: 150px; object-fit: cover;" />
-                        }
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">@recommendation.QuizDetails?.Name</h5>
-                            <p class="card-text flex-grow-1">
-                                @if (!string.IsNullOrEmpty(recommendation.QuizDetails?.Description))
+        @if (_recommendations?.Any() == true)
+        {
+            <h4>Recommended For You</h4>
+            <div class="row">
+                @foreach (var recommendation in _recommendations)
+                {
+                    if (recommendation.QuizDetails != null)
+                    {
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="quiz-card-3d position-relative h-100">
+                                <!-- Quiz level badge -->
+                                <div class="level-badge position-absolute top-0 start-0 m-3">
+                                    <span class="badge badge-@(recommendation.QuizDetails.Level?.ToLower() == "easy" ? "success" : recommendation.QuizDetails.Level?.ToLower() == "medium" ? "warning" : "danger")">
+                                        @recommendation.QuizDetails.Level
+                                    </span>
+                                </div>
+
+                                <!-- Bookmark button placeholder -->
+                                <button type="button" class="btn btn-bookmark" disabled>
+                                    <span class="material-symbols-outlined text-muted">
+                                        bookmark_add
+                                    </span>
+                                </button>
+
+                                <!-- Quiz image -->
+                                @if (!string.IsNullOrEmpty(recommendation.QuizDetails.ImagePath))
                                 {
-                                    @recommendation.QuizDetails.Description
+                                    <div class="quiz-image-container">
+                                        <img src="@QuizImageService.GetImageUrl(recommendation.QuizDetails.ImagePath)"
+                                             alt="@recommendation.QuizDetails.Name" class="quiz-image" />
+                                    </div>
                                 }
                                 else
                                 {
-                                    <span class="text-muted">No description available</span>
+                                    <div class="quiz-image quiz-image-placeholder d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-journal-text fs-1 text-white"></i>
+                                    </div>
                                 }
-                            </p>
-                            <div class="mt-auto">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <small class="text-muted">
-                                        <i class="bi bi-star-fill text-warning"></i>
-                                        @recommendation.PredictedRating.ToString("F1") Predicted Rating
-                                    </small>
-                                    <small class="text-muted">
-                                        @recommendation.QuizDetails?.TotalQuestions Questions
-                                    </small>
+
+                                <!-- Quiz content -->
+                                <div class="quiz-content p-3">
+                                    <h5 class="fw-bold mb-3 text-truncate" title="@recommendation.QuizDetails.Name">@recommendation.QuizDetails.Name</h5>
+
+                                    <!-- Quiz statistics -->
+                                    <div class="quiz-stats d-flex justify-content-between mt-auto">
+                                        <div class="stat-item d-flex flex-column align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <span class="material-symbols-outlined me-1" style="font-size: 16px;">
+                                                    star
+                                                </span>
+                                                <span class="stat-value fw-bold">@recommendation.PredictedRating.ToString("F1")</span>
+                                            </div>
+                                            <small class="stat-label text-muted">Predicted Rating</small>
+                                        </div>
+                                        <div class="stat-item d-flex flex-column align-items-center">
+                                            <div class="d-flex align-items-center mb-1">
+                                                @if (!string.IsNullOrEmpty(recommendation.QuizDetails.CreatedByAvatarPath))
+                                                {
+                                                    <img src="@QuizImageService.GetImageUrl(recommendation.QuizDetails.CreatedByAvatarPath)"
+                                                         alt="@recommendation.QuizDetails.CreatedByName's avatar"
+                                                         class="rounded-circle me-2"
+                                                         style="width: 24px; height: 24px; object-fit: cover;"
+                                                         title="@recommendation.QuizDetails.CreatedByName" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="rounded-circle me-2 d-flex align-items-center justify-content-center bg-secondary text-white"
+                                                         style="width: 24px; height: 24px; font-size: 10px;"
+                                                         title="@recommendation.QuizDetails.CreatedByName">
+                                                        @recommendation.QuizDetails.CreatedByName?.FirstOrDefault().ToString().ToUpper()
+                                                    </div>
+                                                }
+                                                <span class="stat-value fw-bold small">@recommendation.QuizDetails.CreatedByName</span>
+                                            </div>
+                                            <small class="stat-label text-muted">Creator</small>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="d-flex justify-content-between">
-                                    <span class="badge bg-info">@recommendation.QuizDetails?.Level</span>
-                                    @if (recommendation.QuizDetails?.TimeInMinutes > 0)
-                                    {
-                                        <small class="text-muted"><i class="bi bi-clock"></i> @recommendation.QuizDetails.TimeInMinutes min</small>
-                                    }
-                                </div>
-                                <div class="mt-3">
-                                    <button class="btn btn-success w-100" @onclick="() => StartQuiz(recommendation.QuizId)">
-                                        <i class="bi bi-play-circle"></i> Start Quiz
-                                    </button>
+
+                                <!-- Action buttons -->
+                                <div class="card-button-overlay">
+                                    <div class="quiz-actions-section d-flex gap-1">
+                                        <button type="button"
+                                                class="btn btn-3d btn-3d-info btn-sm flex-fill"
+                                                @onclick="() => StartQuiz(recommendation.QuizId)">
+                                            Start Quiz
+                                        </button>
+                                        <a href="student/createroom?quizId=@recommendation.QuizId" class="btn btn-3d btn-3d-primary btn-sm flex-fill">
+                                            Create Room
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-3d btn-3d-success btn-sm flex-fill"
+                                                @onclick="() => ShowQuizDetails(recommendation.QuizId)">
+                                            View Details
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            }
-        </div>
+                    }
+                    else
+                    {
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="alert alert-warning small">
+                                <em>Details not available for quiz ID: @recommendation.QuizId</em>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
     }
 </div>
 
@@ -213,6 +278,7 @@
                                 Console.WriteLine($"Error loading quiz details for {rec.QuizId}: {ex.Message}");
                             }
                         }
+
                     }
                     else
                     {
@@ -272,11 +338,46 @@
         };
     }
 
-    private void StartQuiz(string? quizId)
+    private async Task StartQuiz(string? quizId)
     {
-        if (!string.IsNullOrEmpty(quizId))
+        if (!string.IsNullOrEmpty(quizId) && Guid.TryParse(quizId, out Guid guid))
         {
-            NavigationManager.NavigateTo($"/student/quiz/{quizId}");
+            // Get quiz details to pass to QuizState
+            var quizResult = await QuizApi.GetQuizByIdAsync(quizId);
+            if (quizResult.IsSuccessStatusCode && quizResult.Content != null)
+            {
+                var quizDetails = new QuizListDto
+                {
+                    Id = guid,
+                    Name = quizResult.Content.Name,
+                    Description = quizResult.Content.Description,
+                    ImagePath = quizResult.Content.ImagePath,
+                    Level = quizResult.Content.Level,
+                    TimeInMinutes = quizResult.Content.TimeInMinutes,
+                    TotalQuestions = quizResult.Content.TotalQuestions,
+                    CategoryId = quizResult.Content.CategoryId,
+                    CategoryName = quizResult.Content.CategoryName,
+                    CreatedByName = quizResult.Content.CreatedByName,
+                    CreatedByAvatarPath = quizResult.Content.CreatedByAvatarPath
+                };
+
+                // Start the quiz via the API
+                var startResult = await StudentQuizApi.StartQuizAsync(guid);
+                if (startResult.IsSuccess)
+                {
+                    int studentQuizId = startResult.Data;
+                    QuizState.StartQuiz(quizDetails, studentQuizId);
+                    NavigationManager.NavigateTo("student/quiz");
+                }
+                else
+                {
+                    NavigationManager.NavigateTo($"/student/quiz/{guid}");
+                }
+            }
+            else
+            {
+                NavigationManager.NavigateTo($"/student/quiz/{guid}");
+            }
         }
     }
 
@@ -290,6 +391,14 @@
         NavigationManager.NavigateTo("/student/popular-quizes");
     }
 
+    private async Task ShowQuizDetails(string quizId)
+    {
+        if (Guid.TryParse(quizId, out Guid guid))
+        {
+            NavigationManager.NavigateTo($"/student/quiz/{guid}");
+        }
+    }
+
     public class PythonRecommendationResponse
     {
         public int UserId { get; set; }
@@ -299,18 +408,26 @@
 
     public class PythonRecommendation
     {
+        [JsonPropertyName("quiz_id")]
         public string QuizId { get; set; } = string.Empty;
+
+        [JsonPropertyName("predicted_rating")]
         public double PredictedRating { get; set; }
+
+        [JsonPropertyName("similar_rated_quiz_ids")]
         public List<SimilarRatedQuiz>? SimilarRatedQuizIds { get; set; }
+
         public QuizDetailsDto? QuizDetails { get; set; }
     }
 
     public class SimilarRatedQuiz
     {
+        [JsonPropertyName("quiz_id")]
         public string QuizId { get; set; } = string.Empty;
+
+        [JsonPropertyName("similarity")]
         public double Similarity { get; set; }
     }
-
     public class AnalysisStats
     {
         public double AverageRating { get; set; } = 0.0;

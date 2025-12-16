@@ -47,7 +47,7 @@ class QuizRecommendationSystem:
             rf.StudentId as student_id,
             rf.QuizId as quiz_id,
             rf.Score as rating
-        FROM QuizFeedback rf
+        FROM QuizFeedbacks rf
         WHERE rf.Score IS NOT NULL
         ORDER BY rf.StudentId, rf.QuizId
         """
@@ -113,7 +113,8 @@ class QuizRecommendationSystem:
         if df.empty:
             return
 
-        # Get unique quizzes with their features - using the correct table name 'Quiz'
+        # Get unique quizzes with their features - using the correct table name 'Quizzes'
+        # Primary query for SQL Server (with CAST for GUID handling)
         quiz_query = """
         SELECT
             q.Id as quiz_id,
@@ -123,12 +124,12 @@ class QuizRecommendationSystem:
             q.Level,
             COALESCE(AVG(rf.Score), 0) as avg_rating,
             COUNT(rf.Score) as rating_count
-        FROM Quiz q
-        LEFT JOIN QuizFeedback rf ON CAST(q.Id AS VARCHAR(MAX)) = rf.QuizId
+        FROM Quizzes q
+        LEFT JOIN QuizFeedbacks rf ON CAST(q.Id AS VARCHAR(MAX)) = rf.QuizId
         GROUP BY q.Id, q.CategoryId, q.TotalQuestions, q.TimeInMinutes, q.Level
         """
 
-        # Alternative query for different database systems
+        # Alternative query for SQLite and other databases that handle GUIDs properly as text
         quiz_query_alt = """
         SELECT
             q.Id as quiz_id,
@@ -136,10 +137,10 @@ class QuizRecommendationSystem:
             q.TotalQuestions,
             q.TimeInMinutes,
             q.Level,
-            COALESCE(AVG(CAST(rf.Score AS FLOAT)), 0) as avg_rating,
+            COALESCE(AVG(rf.Score), 0) as avg_rating,
             COUNT(rf.Score) as rating_count
-        FROM Quiz q
-        LEFT JOIN QuizFeedback rf ON q.Id = rf.QuizId
+        FROM Quizzes q
+        LEFT JOIN QuizFeedbacks rf ON q.Id = rf.QuizId
         GROUP BY q.Id, q.CategoryId, q.TotalQuestions, q.TimeInMinutes, q.Level
         """
 
@@ -249,7 +250,10 @@ class QuizRecommendationSystem:
                 'predicted_rating': round(predicted_rating, 2)
             })
         
-        logger.info(f"Generated {len(final_recommendations)} recommendations for user {user_id}")
+        # Log the recommended quiz IDs
+        recommended_quiz_ids = [rec['quiz_id'] for rec in final_recommendations]
+        logger.info(f"Generated {len(final_recommendations)} recommendations for user {user_id}: {recommended_quiz_ids}")
+        print(f"Generated {len(final_recommendations)} recommendations for user {user_id}: {recommended_quiz_ids}")
         return final_recommendations
     
     def get_popular_quizzes(self, n_recommendations: int = 5) -> list:
@@ -262,7 +266,7 @@ class QuizRecommendationSystem:
             rf.QuizId as quiz_id,
             AVG(rf.Score) as avg_rating,
             COUNT(rf.Score) as rating_count
-        FROM QuizFeedback rf
+        FROM QuizFeedbacks rf
         WHERE rf.Score IS NOT NULL
         GROUP BY rf.QuizId
         HAVING COUNT(rf.Score) >= 1
@@ -283,6 +287,10 @@ class QuizRecommendationSystem:
                 'rating_count': int(row['rating_count'])
             })
 
+        # Log the popular quiz IDs
+        popular_quiz_ids = [rec['quiz_id'] for rec in recommendations]
+        logger.info(f"Popular quizzes recommended: {popular_quiz_ids}")
+        print(f"Popular quiz IDs from database: {popular_quiz_ids}")
         return recommendations
 
     def get_quiz_details(self, quiz_ids):
@@ -304,7 +312,7 @@ class QuizRecommendationSystem:
             TimeInMinutes as time_in_minutes,
             Level as level,
             CreatedAt as created_at
-        FROM Quiz
+        FROM Quizzes
         WHERE CAST(Id AS VARCHAR(MAX)) IN ({placeholders})
         """
 
@@ -380,6 +388,11 @@ class QuizRecommendationSystem:
                 'similar_rated_quiz_ids': similar_to_user_rated
             })
         
+        # Log the recommended quiz IDs
+        recommended_quiz_ids = [rec['quiz_id'] for rec in enhanced_recommendations[:n_recommendations]]
+        logger.info(f"Recommended quizzes for user {user_id}: {recommended_quiz_ids}")
+        print(f"Recommended quiz IDs from database for user {user_id}: {recommended_quiz_ids}")
+
         # Limit to required number
         return {
             'user_id': user_id,
@@ -480,6 +493,11 @@ class QuizRecommendationSystem:
                 # If user has not rated any quizzes, return popular ones based on overall ratings
                 recommendations = [r for r in self.get_popular_quizzes(n_recommendations)]
 
+        # Log the recommended quiz IDs
+        recommended_quiz_ids = [rec['quiz_id'] for rec in recommendations[:n_recommendations]]
+        logger.info(f"Recommended quizzes for user {user_id} (KNN features): {recommended_quiz_ids}")
+        print(f"Recommended quiz IDs from database for user {user_id} (KNN features): {recommended_quiz_ids}")
+
         return {
             'user_id': user_id,
             'recommendations': recommendations[:n_recommendations],
@@ -515,8 +533,14 @@ app = Flask(__name__)
 CORS(app)
 
 # Configuration
-DATABASE_CONNECTION_STRING = os.getenv('DATABASE_CONNECTION_STRING', 
-    'sqlite:///quiz_app.db')  # Default fallback
+try:
+    from config import DATABASE_CONNECTION_STRING
+except ImportError:
+    # Fallback to environment variable or default
+    DATABASE_CONNECTION_STRING = os.getenv('DATABASE_CONNECTION_STRING',
+        'mssql+pyodbc://@./BlazingQuiz'
+        '?driver=ODBC+Driver+17+for+SQL+Server'
+        '&trusted_connection=yes')  # Default SQL Server connection
 
 # Initialize recommendation system
 rec_system = QuizRecommendationSystem(
