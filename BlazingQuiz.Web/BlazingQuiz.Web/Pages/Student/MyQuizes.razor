@@ -1,44 +1,66 @@
 ﻿@page "/student/my-quizes"
 @inject IAppState AppState
 @inject IStudentQuizApi StudentQuizApi
-
-<BackButton />
-
-<h3>MyQuizes</h3>
+@inject IJSRuntime JSRuntime
 
 <div class="container">
-    <QuickGrid ItemsProvider="_itemsProvider" Pagination="_paginationState" Class="table table-striped table-hover">
-        <PropertyColumn Property="q => q.QuizName" Title="Quiz Name"/>
-        <PropertyColumn Property="q => q.CategoryName" Title="Category Name" />
-        <PropertyColumn Property="q => q.Status"/>
-        <PropertyColumn Property="q => q.StartedOn" Title="Started" Format="dd MM yyyy hh:mm" />
-        <TemplateColumn Title="Completed">
-            @if (context.CompletedOn.HasValue)
-            {
-                <span>@context.CompletedOn.Value.ToString("dd MM yyyy hh:mm")</span>
-            }
-            else
-            {
-                if (context.Status == "Exited")
-                {
-                    <span>Quiz Exited</span>
-                }
-                else
-                {
-                    <span>-</span>
-                }
-            }
-        </TemplateColumn>
-        <PropertyColumn Property="q => q.Total" Class="text-center"/>
-        <TemplateColumn Title="Result">
-            @if (context.Status == "Completed")
-            {
-                <a href="/student/quiz-result/@context.Id" class="btn btn-sm btn-primary">Result</a>
-            }
-        </TemplateColumn>
-    </QuickGrid>
-    <Paginator State="_paginationState" />
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-10">
+            <div class="hanging-container">
+                <div class="hanging-content">
+                    <h3>My Quizzes</h3>
+                </div>
+                <div class="rope left-rope"></div>
+                <div class="rope right-rope"></div>
+            </div>
+
+            <div class="card card-3d-raised card-light">
+                <div class="card-body">
+                    <QuickGrid ItemsProvider="_itemsProvider" Pagination="_paginationState" Class="table table-striped table-hover table-3d">
+                        <PropertyColumn Property="q => q.QuizName" Title="Quiz Name"/>
+                        <PropertyColumn Property="q => q.Status"/>
+                        <PropertyColumn Property="q => q.StartedOn" Title="Started" Format="dd MM yyyy hh:mm" />
+                        <TemplateColumn Title="Time Taken">
+                            @if (context.CompletedOn.HasValue)
+                            {
+                                @if (context.StartedOn != default(DateTime) && context.CompletedOn.HasValue)
+                                {
+                                    <span>@FormatTimeSpan(context.CompletedOn.Value - context.StartedOn)</span>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            }
+                            else
+                            {
+                                if (context.Status == "Exited")
+                                {
+                                    <span>Quiz Exited</span>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            }
+                        </TemplateColumn>
+                        <PropertyColumn Property="q => q.Total" Class="text-center"/>
+                        <TemplateColumn Title="Result">
+                            @if (context.Status == "Completed")
+                            {
+                                <a href="/student/quiz-result/@context.Id" class="btn btn-3d btn-3d-primary btn-xs">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </a>
+                            }
+                        </TemplateColumn>
+                    </QuickGrid>
+                    <Paginator State="_paginationState" />
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
 @code {
     private const int DefaultPageSize = 10;
     private GridItemsProvider<StudentQuizDto>? _itemsProvider;
@@ -48,10 +70,17 @@
     {
         _itemsProvider = async (request) =>
         {
-            AppState.ShowLoader("Loading quizes");
+            AppState.ShowLoader("Loading quizzes");
             var pageResult = await StudentQuizApi.GetStudentQuizesAsync(request.StartIndex, request.Count ?? DefaultPageSize);
             AppState.HideLoader();
             return GridItemsProviderResult.From(pageResult.Records, pageResult.TotalCount);
         };
+    }
+
+    private string FormatTimeSpan(TimeSpan timeSpan)
+    {
+        int minutes = (int)timeSpan.TotalMinutes;
+        int seconds = timeSpan.Seconds;
+        return $"{minutes:D2}:{seconds:D2}";
     }
 }
