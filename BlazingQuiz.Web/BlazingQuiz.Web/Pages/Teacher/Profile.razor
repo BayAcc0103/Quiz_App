@@ -9,8 +9,6 @@
 @inject NavigationManager NavigationManager
 @inject ProfileUpdateService ProfileUpdateService
 
-<BackButton />
-
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-10 col-lg-8">
@@ -21,6 +19,7 @@
                 <div class="rope left-rope"></div>
                 <div class="rope right-rope"></div>
             </div>
+            <BackButton />
             <div class="card card-3d-raised card-light">
                 <div class="card-body">
                     @if (_isLoading)
