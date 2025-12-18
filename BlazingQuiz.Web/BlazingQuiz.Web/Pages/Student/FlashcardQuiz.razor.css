@@ -32,6 +32,19 @@
     min-height: 500px; /* Fixed minimum height for consistency */
 }
 
+/* Mobile-specific flip card optimizations */
+@media (max-width: 768px) {
+    .flip-card {
+        min-height: 400px; /* Adjusted minimum height for mobile */
+        border: 2px solid #000; /* Slightly thinner border */
+        border-radius: 10px; /* Slightly smaller radius */
+    }
+
+    .flip-card.flipped {
+        transform: rotateY(180deg);
+    }
+}
+
 .flip-card.flipped {
     transform: rotateY(180deg);
 }
@@ -103,7 +116,7 @@
 }
 
 .card-options {
-    display: flex; /* Single row layout */
+    display: flex; /* Single row layout on desktop */
     flex-wrap: wrap; /* Allow wrapping if needed */
     gap: 10px;
     width: 100%;
@@ -115,6 +128,7 @@
     justify-content: center; /* Center the options */
     align-self: flex-start; /* Align to top of flex container */
 }
+
 
 /* Image container styles */
 .question-image-container {
@@ -282,6 +296,10 @@
     transform: perspective(500px) rotateY(0deg);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Space between icon and text */
 }
 
 .flashcard-button:hover:not(:disabled) {
@@ -315,6 +333,85 @@
     color: white;
 }
 
+/* Google Material Icons styles */
+.button-icon {
+    font-size: 1.2rem;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1;
+}
+
+/* Mobile-specific button layout - single row */
+@media (max-width: 768px) {
+    .flashcard-navigation {
+        flex-wrap: nowrap; /* Prevent wrapping to keep buttons in single row */
+        justify-content: center; /* Center the navigation */
+        gap: 5px; /* Smaller gap on mobile */
+    }
+
+    .flashcard-button {
+        padding: 14px 8px; /* Adjusted padding for mobile */
+        font-size: 0.85rem; /* Slightly smaller text on mobile */
+        min-height: 48px; /* Ensure minimum touch target size */
+        border-radius: 8px; /* Slightly smaller radius */
+        flex: 1; /* Allow buttons to expand equally */
+        min-width: 0; /* Allow flex to control sizing */
+    }
+
+    /* On very small screens, make sure buttons are not too narrow */
+    .flashcard-button span {
+        font-size: 1.1rem; /* Adjust icon size on mobile */
+    }
+
+    .flash-card-flip-btn {
+        flex: 1.2; /* Make flip button slightly wider than others */
+    }
+
+    /* Adjust text/icon sizes to prevent overflow */
+    .flashcard-button .button-icon {
+        font-size: 1.1rem;
+    }
+}
+
+/* Extra small devices (phones, 320px and up) */
+@media (max-width: 575.98px) {
+    .flashcard-navigation {
+        gap: 3px; /* Even smaller gap on very small screens */
+    }
+
+    .flashcard-button {
+        padding: 12px 6px; /* Further reduce padding */
+        font-size: 0.8rem; /* Smaller text */
+        min-height: 45px; /* Slightly smaller touch targets */
+    }
+
+    .flashcard-button .button-icon {
+        font-size: 1rem; /* Smaller icons */
+    }
+
+    .flash-card-flip-btn {
+        flex: 1.2; /* Maintain flip button width ratio on small screens */
+    }
+}
+
+/* Landscape mobile devices */
+@media (min-width: 576px) and (max-height: 500px) {
+    .flashcard-navigation {
+        gap: 4px; /* Adjust gap for landscape */
+    }
+
+    .flashcard-button {
+        padding: 13px 7px; /* Adjust for landscape */
+        font-size: 0.85rem;
+        min-height: 46px;
+    }
+
+    .flash-card-flip-btn {
+        flex: 1.2; /* Maintain flip button width ratio in landscape */
+    }
+}
+
+
 /* Progress counter styling similar to quiz page */
 .question-progress-container {
     display: flex;
@@ -326,6 +423,15 @@
     display: flex;
     gap: 5px;
     align-items: center;
+}
+
+/* Mobile-specific progress container adjustments */
+@media (max-width: 768px) {
+    .progress-hanging-container {
+        gap: 2px; /* Smaller gap on mobile */
+        flex-wrap: wrap; /* Allow wrapping if needed */
+        justify-content: center; /* Center align on mobile */
+    }
 }
 
 .hanging-quiz-info {
@@ -377,57 +483,251 @@
     right: calc(50% - 20px);
 }
 
+/* Mobile-specific hanging elements adjustments */
+@media (max-width: 768px) {
+    .hanging-quiz-info {
+        margin: 10px 0 20px 0; /* Reduced margins */
+    }
+
+    .hanging-content {
+        padding: 8px 6px !important; /* Reduced padding */
+        min-width: 60px !important; /* Narrower */
+        border-radius: 15px; /* Slightly smaller radius */
+    }
+
+    .hanging-content h6 {
+        font-size: 0.95rem; /* Smaller text */
+        font-weight: 600; /* Slightly bolder for readability */
+    }
+}
+
+/* Extra small devices (phones, 320px and up) */
+@media (max-width: 575.98px) {
+    .hanging-content {
+        padding: 6px 4px !important; /* Even smaller padding */
+        min-width: 50px !important; /* Narrower */
+    }
+
+    .hanging-content h6 {
+        font-size: 0.85rem; /* Even smaller text */
+    }
+}
+
 /* Responsive design - maintain fixed card proportions */
 @media (max-width: 768px) {
-    .flashcard-navigation {
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .flashcard-button {
-        width: 100%;
-    }
-
     .flip-card-container {
-        height: 450px; /* Increased height for mobile */
-        max-width: 95vw; /* Ensure it fits on smaller screens */
+        height: 50vh; /* Use viewport height for better scaling */
+        max-width: 95vw;
+        min-height: 400px; /* Ensure minimum height for usability */
+    }
+
+    .flip-card {
+        height: 100%;
+        min-height: 400px;
+    }
+
+    .card-face {
+        padding: 10px;
+        height: auto;
     }
 
     .question-image-container {
-        max-height: 35%; /* Reduced max height for mobile */
+        margin: 8px 0; /* Smaller margins */
+        padding: 5px; /* Smaller padding */
+    }
+
+    .question-image-container img {
+        max-height: 150px; /* Limit image height on mobile */
+        border: 3px solid #000; /* Slightly thinner border */
     }
 
     .card-question {
-        font-size: 1.3rem; /* Adjusted for mobile */
-        max-height: 20%; /* Reduced for mobile */
+        font-size: 1.2rem; /* Adjusted for mobile readability */
+        max-height: 25%; /* Give more space for content */
+        padding: 5px; /* Reduce padding */
+        line-height: 1.4; /* Improve readability */
+    }
+
+    .card-content-question,
+    .card-content-answer {
+        padding: 10px; /* Reduce padding for mobile */
+        flex: 1; /* Take full available space */
+        justify-content: flex-start; /* Align content to start */
     }
 
     .card-options {
         flex-direction: column; /* Stack options in column on mobile */
         align-items: center;
-        max-height: 25%; /* Reduced for mobile */
+        max-height: 40%; /* Allow more space for options */
+        padding: 10px 5px; /* Adjust padding */
+        gap: 8px; /* Smaller gap between options */
+        margin-top: 5px; /* Small margin for spacing */
     }
 
     .card-option {
-        font-size: 1rem; /* Slightly larger for mobile readability */
-        min-height: 100px; /* Adjusted for mobile */
-        padding: 8px;
-        min-width: 200px; /* Wider options on mobile for better touch targets */
+        font-size: 0.95rem; /* Slightly smaller font but readable */
+        min-height: 80px; /* Larger touch target */
+        padding: 12px 8px; /* Adjusted padding */
+        min-width: 90%; /* Full width on mobile for better touch targets */
+        max-width: 300px; /* Max width to prevent overly wide options */
         flex: none; /* Don't flex on mobile */
     }
 
+    .card-option.correct {
+        transform: perspective(500px) translateY(-2px); /* Smaller lift effect */
+        box-shadow:
+            -1px 1px 0px 0px rgba(0, 0, 0, 0.75),
+            0px 4px 8px rgba(0, 0, 0, 0.3) !important; /* Smaller shadow */
+    }
+
     .card-answer {
-        font-size: 1.3rem; /* Adjusted for mobile */
-        max-height: 20%; /* Reduced for mobile */
+        font-size: 1.2rem; /* Adjusted for mobile readability */
+        max-height: 30%; /* More space for answers */
+        padding: 10px; /* Adjust padding */
+    }
+
+    .flashcard-text-answer {
+        padding: 10px; /* Smaller padding */
+        font-size: 1.1rem; /* Adjusted for mobile */
+        margin-bottom: 6px; /* Smaller margin */
+    }
+
+    .card-hint {
+        font-size: 0.8rem; /* Smaller hint text */
+        padding: 6px 10px; /* Smaller padding */
+        margin-top: 0; /* Remove extra margin */
     }
 
     .rope {
-        display: none;
+        display: none; /* Hide ropes on mobile */
     }
 
     .hanging-content {
-        padding: 10px 5px;
-        min-width: 60px;
+        padding: 10px 8px; /* Adjusted padding */
+        min-width: 70px; /* Slightly wider */
+        border-radius: 15px; /* Softer corners */
+    }
+
+    .hanging-content h6 {
+        font-size: 1rem; /* Smaller text */
+    }
+
+    .hanging-quiz-info {
+        margin: 10px 0 20px 0; /* Smaller margins */
+    }
+
+    .container {
+        padding: 5px; /* Add padding to container */
+        width: 100%; /* Ensure full width */
+        max-width: 100%; /* Prevent overflow */
+    }
+
+    .row {
+        margin: 0 -5px; /* Adjust margins */
+        width: calc(100% + 10px); /* Compensate for padding */
+    }
+
+    .col-lg-10 {
+        padding: 0 5px; /* Add padding to column */
+        max-width: 100%; /* Ensure it doesn't exceed container */
+    }
+}
+
+/* Extra small devices (phones, 320px and up) */
+@media (max-width: 575.98px) {
+    .flip-card-container {
+        height: 55vh; /* Increase height for very small screens */
+        min-height: 350px; /* Ensure sufficient space */
+    }
+
+    .card-question {
+        font-size: 1.1rem; /* Even smaller font for tiny screens */
+    }
+
+    .card-option {
+        font-size: 0.9rem; /* Slightly smaller font */
+        min-height: 70px; /* Slightly smaller height */
+        padding: 10px 6px; /* Reduce padding */
+    }
+
+    .card-answer {
+        font-size: 1.1rem; /* Adjust for tiny screens */
+    }
+
+    .flashcard-text-answer {
+        font-size: 1rem; /* Smaller text */
+        padding: 8px; /* Less padding */
+    }
+
+    .flashcard-button {
+        padding: 16px 8px; /* Adjust padding */
+        font-size: 0.95rem; /* Slightly smaller text */
+    }
+
+    .hanging-content {
+        min-width: 60px; /* Narrower on very small screens */
+        padding: 8px 6px; /* Smaller padding */
+    }
+
+    .hanging-content h6 {
+        font-size: 0.9rem; /* Smaller text */
+    }
+}
+
+/* Small tablets (landscape phones, 576px to 767px) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .flip-card-container {
+        height: 50vh; /* Good height for tablet portrait */
+        min-height: 400px; /* Ensure enough space */
+    }
+
+    .card-question {
+        font-size: 1.25rem; /* Slightly larger than on phones */
+    }
+
+    .card-options {
+        flex-direction: column; /* Ensure column layout on small tablets */
+        align-items: center; /* Center align options */
+        max-height: 40%; /* Allow more space for options */
+    }
+
+    .card-option {
+        min-height: 85px; /* Slightly taller */
+        width: 90%; /* nearly full width on small tablets */
+        max-width: 300px; /* Max width to prevent overly wide options */
+    }
+}
+
+/* Landscape mobile devices */
+@media (min-width: 576px) and (max-height: 500px) {
+    /* For short screens like landscape mobile phones */
+    .flip-card-container {
+        height: 65vh; /* Use more of available height */
+        min-height: 300px; /* Minimum for usability */
+    }
+
+    .card-content-question,
+    .card-content-answer {
+        padding: 8px; /* Reduce padding on short screens */
+    }
+
+    .card-question {
+        font-size: 1.1rem; /* Smaller font for short screens */
+        max-height: 30%; /* Allow more space for content */
+    }
+
+    .card-options {
+        max-height: 35%; /* Adjust for short screens */
+        flex-direction: column; /* Ensure column layout even in landscape */
+        align-items: center; /* Center align options in landscape */
+        gap: 6px; /* Smaller gap for short screens */
+    }
+
+    .card-option {
+        min-height: 60px; /* Smaller height for short screens */
+        width: 95%; /* Nearly full width for better touch targets */
+        max-width: 280px; /* Max width to prevent overly wide options */
+        font-size: 0.9rem; /* Slightly smaller text for short screens */
     }
 }
 

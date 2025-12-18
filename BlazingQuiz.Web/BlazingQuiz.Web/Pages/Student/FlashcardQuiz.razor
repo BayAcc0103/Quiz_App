@@ -161,26 +161,26 @@
                         <button class="flashcard-button flash-card-prev-btn"
                                 @onclick="PreviousQuestion"
                                 disabled="@(_currentIndex == 0)">
-                            <i class="bi bi-arrow-left me-1"></i> Previous
+                            <span class="material-symbols-outlined button-icon">arrow_back</span> Previous
                         </button>
 
                         <button class="flashcard-button flash-card-flip-btn"
                                 @onclick="ToggleFlip">
-                            <i class="bi bi-arrow-repeat me-1"></i> @_flipButtonText
+                            <span class="material-symbols-outlined button-icon">flip</span> @_flipButtonText
                         </button>
 
                         @if (_currentIndex == _questions.Count - 1)
                         {
                             <button class="flashcard-button flash-card-submit-btn"
                                     @onclick="SubmitQuizAsync">
-                                Submit Quiz <i class="bi bi-check2-all ms-1"></i>
+                                Submit Quiz <span class="material-symbols-outlined button-icon ms-1">done</span>
                             </button>
                         }
                         else
                         {
                             <button class="flashcard-button flash-card-next-btn"
                                     @onclick="NextQuestion">
-                                Next <i class="bi bi-arrow-right ms-1"></i>
+                                Next <span class="material-symbols-outlined button-icon ms-1">arrow_forward</span>
                             </button>
                         }
                     </div>
