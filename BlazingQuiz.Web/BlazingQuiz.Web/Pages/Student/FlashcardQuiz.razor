@@ -13,180 +13,180 @@
 
 @if(QuizState.Quiz != null)
 {
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <!-- Hanging element showing the quiz name -->
-                <div class="d-flex justify-content-center">
-                    <div class="hanging-quiz-info hanging-quiz-title">
+    <div class="flashcard-mobile-layout">
+        <div class="flashcard-header">
+            <!-- Hanging element showing the quiz name -->
+            <div class="d-flex justify-content-center">
+                <div class="hanging-quiz-info hanging-quiz-title">
+                    <div class="hanging-content">
+                        <h3 class="mb-0">@QuizState.Quiz.Name</h3>
+                    </div>
+                    <div class="rope left-rope"></div>
+                    <div class="rope right-rope"></div>
+                </div>
+            </div>
+
+            <!-- Progress counter with hanging elements -->
+            <div class="d-flex justify-content-center">
+                <div class="progress-hanging-container">
+                    <!-- Current question count -->
+                    <div class="hanging-quiz-info hanging-question-current me-2">
                         <div class="hanging-content">
-                            <h3 class="mb-0">@QuizState.Quiz.Name</h3>
+                            <h6 class="mb-0">@(_currentIndex + 1)</h6>
+                        </div>
+                        <div class="rope left-rope"></div>
+                        <div class="rope right-rope"></div>
+                    </div>
+
+                    <!-- Separator -->
+                    <div class="hanging-quiz-info hanging-separator mx-2">
+                        <div class="hanging-content">
+                            <h6 class="mb-0">/</h6>
+                        </div>
+                        <div class="rope left-rope"></div>
+                        <div class="rope right-rope"></div>
+                    </div>
+
+                    <!-- Total questions -->
+                    <div class="hanging-quiz-info hanging-question-total ms-2">
+                        <div class="hanging-content">
+                            <h6 class="mb-0">@_questions.Count</h6>
                         </div>
                         <div class="rope left-rope"></div>
                         <div class="rope right-rope"></div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Progress counter with hanging elements -->
-                <div class="d-flex justify-content-center">
-                    <div class="progress-hanging-container">
-                        <!-- Current question count -->
-                        <div class="hanging-quiz-info hanging-question-current me-2">
-                            <div class="hanging-content">
-                                <h6 class="mb-0">@(_currentIndex + 1)</h6>
-                            </div>
-                            <div class="rope left-rope"></div>
-                            <div class="rope right-rope"></div>
-                        </div>
+        @if (_questions.Any())
+        {
+            @if (_isPageReady)
+            {
+                <div class="flashcard-main-content">
+                    <div class="flashcard-container">
+                        <div class="flip-card-container">
+                            <div class="flip-card @(IsFlipped ? "flipped" : "")" id="flip-card-@_currentIndex">
+                                <div class="card-face card-front">
+                                    <div class="card-content-question">
+                                        <!-- Question Image -->
+                                        @if (!string.IsNullOrEmpty(_currentQuestion.ImagePath))
+                                        {
+                                            <div class="question-image-container mb-3">
+                                                <img src="@QuestionImageService.GetImageUrl(_currentQuestion.ImagePath)" alt="Question Image" class="img-fluid" />
+                                            </div>
+                                        }
 
-                        <!-- Separator -->
-                        <div class="hanging-quiz-info hanging-separator mx-2">
-                            <div class="hanging-content">
-                                <h6 class="mb-0">/</h6>
-                            </div>
-                            <div class="rope left-rope"></div>
-                            <div class="rope right-rope"></div>
-                        </div>
+                                        <!-- Question Audio -->
+                                        @if (!string.IsNullOrEmpty(_currentQuestion.AudioPath))
+                                        {
+                                            <div class="question-audio-container mb-3">
+                                                @if (_currentQuestion.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                                                {
+                                                    <audio controls class="w-100">
+                                                        <source src="@QuestionAudioService.GetAudioUrl(_currentQuestion.AudioPath)" type="audio/mpeg" />
+                                                        Your browser does not support the audio element.
+                                                    </audio>
+                                                }
+                                                else
+                                                {
+                                                    <div class="alert alert-info card-3d-raised">Audio file available: @_currentQuestion.AudioPath</div>
+                                                }
+                                            </div>
+                                        }
 
-                        <!-- Total questions -->
-                        <div class="hanging-quiz-info hanging-question-total ms-2">
-                            <div class="hanging-content">
-                                <h6 class="mb-0">@_questions.Count</h6>
-                            </div>
-                            <div class="rope left-rope"></div>
-                            <div class="rope right-rope"></div>
-                        </div>
-                    </div>
-                </div>
+                                        <!-- Question Text -->
+                                        <h5 class="card-question">@_currentQuestion.Text</h5>
 
-                @if (_questions.Any())
-                {
-                    @if (_isPageReady)
-                    {
-                        <div class="flashcard-container">
-                            <div class="flip-card-container">
-                                <div class="flip-card @(IsFlipped ? "flipped" : "")" id="flip-card-@_currentIndex">
-                                    <div class="card-face card-front">
-                                        <div class="card-content-question">
-                                            <!-- Question Image -->
-                                            @if (!string.IsNullOrEmpty(_currentQuestion.ImagePath))
-                                            {
-                                                <div class="question-image-container mb-3">
-                                                    <img src="@QuestionImageService.GetImageUrl(_currentQuestion.ImagePath)" alt="Question Image" class="img-fluid" />
-                                                </div>
-                                            }
-
-                                            <!-- Question Audio -->
-                                            @if (!string.IsNullOrEmpty(_currentQuestion.AudioPath))
-                                            {
-                                                <div class="question-audio-container mb-3">
-                                                    @if (_currentQuestion.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
-                                                    {
-                                                        <audio controls class="w-100">
-                                                            <source src="@QuestionAudioService.GetAudioUrl(_currentQuestion.AudioPath)" type="audio/mpeg" />
-                                                            Your browser does not support the audio element.
-                                                        </audio>
-                                                    }
-                                                    else
-                                                    {
-                                                        <div class="alert alert-info card-3d-raised">Audio file available: @_currentQuestion.AudioPath</div>
-                                                    }
-                                                </div>
-                                            }
-
-                                            <!-- Question Text -->
-                                            <h5 class="card-question">@_currentQuestion.Text</h5>
-
-                                            @if (!_currentQuestion.IsTextAnswer && _currentQuestion.Options.Any())
-                                            {
-                                                <div class="card-options mt-3">
-                                                    @foreach (var option in _currentQuestion.Options)
-                                                    {
-                                                        <div class="card-option">@option.Text</div>
-                                                    }
-                                                </div>
-                                            }
-                                        </div>
-                                        <div class="card-hint flip-indicator">
-                                            <i class="bi bi-arrow-repeat"></i> Click card or button to flip
-                                        </div>
+                                        @if (!_currentQuestion.IsTextAnswer && _currentQuestion.Options.Any())
+                                        {
+                                            <div class="card-options mt-3">
+                                                @foreach (var option in _currentQuestion.Options)
+                                                {
+                                                    <div class="card-option">@option.Text</div>
+                                                }
+                                            </div>
+                                        }
                                     </div>
-                                    <div class="card-face card-back">
-                                        <div class="card-content-answer">
-                                            <h5 class="card-question">Answer</h5>
-                                            @if (_currentQuestion.IsTextAnswer)
-                                            {
-                                                <div class="card-answer mt-3">
-                                                    @if (_currentQuestion.TextAnswers != null && _currentQuestion.TextAnswers.Any())
+                                    <div class="card-hint flip-indicator">
+                                        <i class="bi bi-arrow-repeat"></i> Click card or button to flip
+                                    </div>
+                                </div>
+                                <div class="card-face card-back">
+                                    <div class="card-content-answer">
+                                        <h5 class="card-question">Answer</h5>
+                                        @if (_currentQuestion.IsTextAnswer)
+                                        {
+                                            <div class="card-answer mt-3">
+                                                @if (_currentQuestion.TextAnswers != null && _currentQuestion.TextAnswers.Any())
+                                                {
+                                                    @foreach (var textAnswer in _currentQuestion.TextAnswers)
                                                     {
-                                                        @foreach (var textAnswer in _currentQuestion.TextAnswers)
-                                                        {
-                                                            <div class="flashcard-text-answer">@textAnswer.Text</div>
-                                                        }
+                                                        <div class="flashcard-text-answer">@textAnswer.Text</div>
                                                     }
-                                                    else
-                                                    {
-                                                        <div class="flashcard-text-answer">No answer provided</div>
-                                                    }
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                <div class="card-options">
-                                                    @foreach (var option in _currentQuestion.Options.Where(o => o.IsCorrect))
-                                                    {
-                                                        <div class="card-option correct">@option.Text</div>
-                                                    }
-                                                </div>
-                                            }
-                                        </div>
-                                        <div class="card-hint">
-                                            <i class="bi bi-arrow-repeat"></i> Click to flip back
-                                        </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="flashcard-text-answer">No answer provided</div>
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="card-options">
+                                                @foreach (var option in _currentQuestion.Options.Where(o => o.IsCorrect))
+                                                {
+                                                    <div class="card-option correct">@option.Text</div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="card-hint">
+                                        <i class="bi bi-arrow-repeat"></i> Click to flip back
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    }
-                    else
-                    {
-                        <div class="d-flex justify-content-center">
-                            <div class="spinner-border" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                        </div>
-                    }
-
-                    <div class="flashcard-navigation mt-3">
-                        <button class="flashcard-button flash-card-prev-btn"
-                                @onclick="PreviousQuestion"
-                                disabled="@(_currentIndex == 0)">
-                            <span class="material-symbols-outlined button-icon">arrow_back</span> Previous
-                        </button>
-
-                        <button class="flashcard-button flash-card-flip-btn"
-                                @onclick="ToggleFlip">
-                            <span class="material-symbols-outlined button-icon">flip</span> @_flipButtonText
-                        </button>
-
-                        @if (_currentIndex == _questions.Count - 1)
-                        {
-                            <button class="flashcard-button flash-card-submit-btn"
-                                    @onclick="SubmitQuizAsync">
-                                Submit Quiz <span class="material-symbols-outlined button-icon ms-1">done</span>
-                            </button>
-                        }
-                        else
-                        {
-                            <button class="flashcard-button flash-card-next-btn"
-                                    @onclick="NextQuestion">
-                                Next <span class="material-symbols-outlined button-icon ms-1">arrow_forward</span>
-                            </button>
-                        }
                     </div>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex justify-content-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+
+            <div class="flashcard-navigation">
+                <button class="flashcard-button flash-card-prev-btn"
+                        @onclick="PreviousQuestion"
+                        disabled="@(_currentIndex == 0)">
+                    <span class="material-symbols-outlined button-icon">arrow_back</span> Previous
+                </button>
+
+                <button class="flashcard-button flash-card-flip-btn"
+                        @onclick="ToggleFlip">
+                    <span class="material-symbols-outlined button-icon">flip</span> @_flipButtonText
+                </button>
+
+                @if (_currentIndex == _questions.Count - 1)
+                {
+                    <button class="flashcard-button flash-card-submit-btn"
+                            @onclick="SubmitQuizAsync">
+                        Submit Quiz <span class="material-symbols-outlined button-icon ms-1">done</span>
+                    </button>
+                }
+                else
+                {
+                    <button class="flashcard-button flash-card-next-btn"
+                            @onclick="NextQuestion">
+                        Next <span class="material-symbols-outlined button-icon ms-1">arrow_forward</span>
+                    </button>
                 }
             </div>
-        </div>
+        }
     </div>
 }
 else

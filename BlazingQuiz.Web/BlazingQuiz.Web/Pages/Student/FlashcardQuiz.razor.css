@@ -341,6 +341,32 @@
     line-height: 1;
 }
 
+/* Base styles for mobile layout */
+.flashcard-mobile-layout {
+    position: relative;
+    min-height: 100vh;
+    padding-bottom: 80px; /* Space for fixed navigation on mobile */
+}
+
+.flashcard-header {
+    margin-bottom: 20px;
+}
+
+.flashcard-main-content {
+    margin-bottom: 20px;
+}
+
+.flashcard-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+    width: 100%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    gap: 10px;
+}
+
 /* Mobile-specific button layout - single row */
 @media (max-width: 768px) {
     .flashcard-navigation {
@@ -728,6 +754,95 @@
         width: 95%; /* Nearly full width for better touch targets */
         max-width: 280px; /* Max width to prevent overly wide options */
         font-size: 0.9rem; /* Slightly smaller text for short screens */
+    }
+}
+
+/* Mobile-specific layout with fixed bottom buttons */
+@media (max-width: 768px) {
+    .flashcard-mobile-layout {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        max-height: 100vh;
+        overflow: hidden;
+    }
+
+    .flashcard-header {
+        flex: 0 0 auto;
+        padding: 0 10px;
+        margin-bottom: 10px;
+    }
+
+    .flashcard-main-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 10px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    .flashcard-navigation {
+        flex: 0 0 auto;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 10px 15px;
+        background: white;
+        border-top: 1px solid #dee2e6;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        z-index: 1000;
+        justify-content: space-between;
+    }
+
+    /* Adjust flip card container for mobile layout */
+    .flip-card-container {
+        height: 50vh; /* Use half the viewport height */
+        max-width: 95vw;
+        min-height: 350px;
+    }
+
+    /* Adjust hanging elements for mobile */
+    .hanging-quiz-info {
+        margin: 5px 0 15px 0; /* Reduced margins */
+    }
+
+    .hanging-content {
+        padding: 10px 8px !important; /* Smaller padding */
+        min-width: 65px !important; /* Narrower */
+    }
+
+    .hanging-content h6 {
+        font-size: 0.95rem; /* Smaller text */
+    }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 575.98px) {
+    .flashcard-navigation {
+        padding: 8px 10px;
+        gap: 5px;
+    }
+
+    .flashcard-button {
+        padding: 14px 6px;
+        font-size: 0.8rem;
+        min-height: 48px;
+    }
+
+    .flip-card-container {
+        min-height: 320px;
+        height: 45vh;
+    }
+
+    .hanging-content {
+        min-width: 55px !important; /* Even narrower */
+        padding: 8px 6px !important; /* Smaller padding */
+    }
+
+    .hanging-content h6 {
+        font-size: 0.85rem; /* Even smaller text */
     }
 }
 
