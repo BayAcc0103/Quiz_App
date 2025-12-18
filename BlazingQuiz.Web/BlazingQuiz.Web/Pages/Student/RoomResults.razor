@@ -6,14 +6,19 @@
 
 @layout QuizPageLayout
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">Lịch sử thi phòng Quiz</h3>
-                    <small>Các phòng đã tham gia và kết quả chi tiết</small>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-10">
+
+            <div class="hanging-container">
+                <div class="hanging-content">
+                    <h3>Room History</h3>
                 </div>
+                <div class="rope left-rope"></div>
+                <div class="rope right-rope"></div>
+            </div>
+
+            <div class="card card-3d-raised card-light">
                 <div class="card-body">
                     @if (isLoading)
                     {
@@ -33,102 +38,79 @@
                         <div class="text-center mt-5">
                             <h4>Chưa có lịch sử phòng nào</h4>
                             <p class="text-muted">Bạn chưa tham gia bất kỳ phòng quiz nào</p>
-                            <button type="button" class="btn btn-primary" @onclick="GoToHome">Tham gia phòng mới</button>
+                            <button type="button" class="btn btn-3d btn-3d-primary" @onclick="GoToHome">Tham gia phòng mới</button>
                         </div>
                     }
                     else
                     {
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead class="table-dark">
+                        <table class="table table-striped table-hover table-3d d-md-table">
+                            <thead>
+                                <tr>
+                                    <th>Phòng</th>
+                                    <th>Quiz</th>
+                                    <th class="d-none d-md-table-cell">Xếp hạng</th>
+                                    <th class="d-md-table-cell">Số câu đúng</th>
+                                    <th class="d-none d-md-table-cell">Thời gian</th>
+                                    <th class="d-md-table-cell">Ngày chơi</th>
+                                    <th class="d-md-table-cell">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var history in roomHistories)
+                                {
                                     <tr>
-                                        <th>Phòng</th>
-                                        <th>Quiz</th>
-                                        <th>Xếp hạng</th>
-                                        <th>Số câu đúng</th>
-                                        <th>Thời gian</th>
-                                        <th>Ngày chơi</th>
-                                        <th>Hành động</th>
+                                        <td>
+                                            <div class="d-flex flex-column">
+                                                <strong>@history.RoomName</strong>
+                                                <small class="text-muted">Mã: @history.RoomCode</small>
+                                            </div>
+                                        </td>
+                                        <td>@history.QuizName</td>
+                                        <td class="d-none d-md-table-cell">
+                                            <span class="badge badge-room-rank @(history.Rank <= 3 ? "bg-warning text-dark" : "bg-secondary")">@history.Rank</span>
+                                            @if (history.Rank == 1)
+                                            {
+                                                <span class="ms-1">🥇</span>
+                                            }
+                                            else if (history.Rank == 2)
+                                            {
+                                                <span class="ms-1">🥈</span>
+                                            }
+                                            else if (history.Rank == 3)
+                                            {
+                                                <span class="ms-1">🥉</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <strong>@history.CorrectAnswers</strong>/@history.TotalQuestions
+                                        </td>
+                                        <td class="d-none d-md-table-cell">
+                                            @if (history.CompletionTime.HasValue)
+                                            {
+                                                @history.CompletionTime.Value.ToString(@"mm\:ss")
+                                            }
+                                            else
+                                            {
+                                                <em>Không có</em>
+                                            }
+                                        </td>
+                                        <td class="d-md-table-cell">
+                                            @history.CompletedOn?.ToString("dd/MM/yyyy HH:mm")
+                                        </td>
+                                        <td class="d-md-table-cell">
+                                            <button type="button" class="btn btn-3d btn-3d-primary btn-xs" @onclick="() => ViewLeaderboard(history.RoomId, history.QuizId)">Xem bảng xếp hạng</button>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var history in roomHistories)
-                                    {
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex flex-column">
-                                                    <strong>@history.RoomName</strong>
-                                                    <small class="text-muted">Mã: @history.RoomCode</small>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex flex-column">
-                                                    <span>@history.QuizName</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span class="badge @(history.Rank <= 3 ? "bg-warning text-dark" : "bg-secondary")">@history.Rank</span>
-                                                @if (history.Rank == 1)
-                                                {
-                                                    <span class="ms-1">🥇</span>
-                                                }
-                                                else if (history.Rank == 2)
-                                                {
-                                                    <span class="ms-1">🥈</span>
-                                                }
-                                                else if (history.Rank == 3)
-                                                {
-                                                    <span class="ms-1">🥉</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                <strong>@history.CorrectAnswers</strong>/@history.TotalQuestions
-                                            </td>
-                                            <td>
-                                                @if (history.CompletionTime.HasValue)
-                                                {
-                                                    @history.CompletionTime.Value.ToString(@"mm\:ss")
-                                                }
-                                                else
-                                                {
-                                                    <em>Không có</em>
-                                                }
-                                            </td>
-                                            <td>
-                                                @history.CompletedOn?.ToString("dd/MM/yyyy HH:mm")
-                                            </td>
-                                            <td>
-                                                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => ViewLeaderboard(history.RoomId, history.QuizId)">Xem bảng xếp hạng</button>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="mt-4 d-flex justify-content-between">
-                            <button type="button" class="btn btn-secondary" @onclick="GoToHome">Về trang chủ</button>
-                        </div>
+                                }
+                            </tbody>
+                        </table>
                     }
                 </div>
             </div>
+
         </div>
     </div>
 </div>
-
-<style>
-    .table th {
-        vertical-align: middle;
-    }
-
-    .table td {
-        vertical-align: middle;
-    }
-
-    .badge {
-        font-size: 1em;
-    }
-</style>
 
 @code {
     private bool isLoading = true;
