@@ -1,0 +1,449 @@
+/* Card styles to match the quiz card design with 3D raised effect - FIXED SIZE */
+.flashcard-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.flip-card-container {
+    perspective: 1500px;
+    margin: 0 auto; /* Center the card */
+    width: 100%;
+    max-width: 900px; /* Increased max width */
+    height: 600px; /* Increased height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flip-card {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 3px solid #000 !important;
+    border-radius: 12px;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    background: transparent;
+    min-height: 500px; /* Fixed minimum height for consistency */
+}
+
+.flip-card.flipped {
+    transform: rotateY(180deg);
+}
+
+.card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 9px; /* slightly smaller than outer border */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Align content to start */
+    align-items: center;
+    padding: 15px; /* Standardized padding */
+    text-align: center;
+    overflow: hidden; /* Prevent overflow */
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    box-sizing: border-box; /* Include padding in element's total width/height */
+}
+
+.card-front {
+    background-color: #ffffff;
+    color: #333;
+}
+
+.card-back {
+    background-color: #ffffff;
+    color: #333;
+    transform: rotateY(180deg);
+}
+
+.card-question {
+    font-family: "Borel", cursive;
+    font-weight: 400;
+    font-size: 1.6rem; /* Slightly larger font */
+    line-height: 1.3; /* Tighter line height */
+    color: #333;
+    text-align: center;
+    flex: 0 0 auto; /* Don't grow or shrink */
+    width: 100%;
+    max-height: 15%; /* Reduced to accommodate larger images */
+    padding: 0 5px; /* Add horizontal padding */
+}
+
+.card-content-question {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Align to start instead of center */
+    flex: 1; /* Take remaining space */
+    padding: 20px; /* Add more padding around content */
+    overflow: hidden; /* Prevent overflow */
+    box-sizing: border-box; /* Include padding in element's total width/height */
+}
+
+.card-content-answer {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Align to start instead of center */
+    flex: 1; /* Take remaining space */
+    padding: 20px; /* Add more padding around content */
+    overflow: hidden; /* Prevent overflow */
+    box-sizing: border-box; /* Include padding in element's total width/height */
+}
+
+.card-options {
+    display: flex; /* Single row layout */
+    flex-wrap: wrap; /* Allow wrapping if needed */
+    gap: 10px;
+    width: 100%;
+    padding: 15px 5px; /* Add padding to options area */
+    max-width: 100%;
+    margin: 0 auto;
+    max-height: 30%; /* Reduced height to accommodate larger images */
+    overflow-y: auto;
+    justify-content: center; /* Center the options */
+    align-self: flex-start; /* Align to top of flex container */
+}
+
+/* Image container styles */
+.question-image-container {
+    text-align: center;
+    width: 100%;
+    max-height: 45%; /* Increased image height to make it more prominent */
+    overflow: hidden;
+    margin: 10px 0; /* Increased margin for better spacing */
+    padding: 10px; /* Increased padding */
+}
+
+.question-image-container img {
+    max-width: 100%;
+    max-height: 100%;
+    border: 4px solid #000; /* Bold black border */
+    border-radius: 8px;
+    object-fit: contain; /* Maintain aspect ratio */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Add subtle shadow for prominence */
+}
+
+/* Audio container styles */
+.question-audio-container {
+    width: 100%;
+    text-align: center;
+    margin: 5px 0; /* Better margin distribution */
+    padding: 5px; /* Add padding */
+}
+
+.question-audio-container audio {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Alert box for non-mp3 files */
+.alert {
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.card-option {
+    border: 2px solid #000 !important;
+    box-shadow:
+        -3px 3px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+    background-color: #ffffff;
+    border-radius: 8px;
+    cursor: default; /* Options are not clickable in flashcards */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 10px; /* Increased padding for better touch targets */
+    position: relative;
+    flex: 1; /* Allow flex grow in row layout */
+    min-width: 120px; /* Minimum width for options */
+    min-height: 100px; /* Height for consistency */
+    font-family: "Borel", cursive;
+    font-weight: 400;
+    font-size: 1.1rem; /* Reduced font size */
+    color: #333;
+    overflow: hidden; /* Prevent text overflow */
+}
+
+.card-option.correct {
+    background-color: #d1ecf1;
+    border-color: #0dcaf0 !important;
+    transform: perspective(500px) translateY(-3px);
+    box-shadow:
+        -2px 2px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 6px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.card-option:hover {
+    background-color: #e9ecef;
+    transform: perspective(500px) translateY(-2px);
+    box-shadow:
+        -2px 2px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.card-answer {
+    font-size: 1.5rem; /* Slightly larger font */
+    font-weight: 600;
+    margin: 0px 0 5px 0; /* Better margin distribution */
+    padding: 15px; /* Reduced padding */
+    border-radius: 10px;
+    text-align: center;
+    width: 100%;
+}
+
+.flashcard-text-answer {
+    padding: 12px; /* Reduced padding */
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    margin-bottom: 8px; /* Reduced margin */
+    font-weight: 500;
+    font-size: 1.3rem;
+}
+
+.card-hint {
+    font-size: 0.9rem; /* Smaller font size */
+    opacity: 0.8;
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: rgba(0, 0, 0, 0.1);
+    padding: 8px 15px; /* Reduced padding */
+    border-radius: 25px;
+    margin-top: 5px; /* Reduced margin */
+    width: 100%;
+    justify-content: center;
+    flex: 0 0 auto; /* Don't grow or shrink */
+}
+
+.flip-indicator {
+    animation: pulse 2s infinite;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Button styling to match quiz page */
+.flashcard-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+    width: 100%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    gap: 10px;
+}
+
+.flashcard-button {
+    flex: 1;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    text-align: center;
+    min-width: 100px;
+    border: 3px solid #000 !important;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: #fff;
+}
+
+.flashcard-button:hover:not(:disabled) {
+    transform: perspective(500px) translateY(2px);
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+        0px 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+.flashcard-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.flash-card-prev-btn {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+}
+
+.flash-card-flip-btn {
+    background: linear-gradient(135deg, #007bff, #0069d9);
+    color: white;
+}
+
+.flash-card-next-btn, .flash-card-submit-btn {
+    background: linear-gradient(135deg, #28a745, #218838);
+    color: white;
+}
+
+/* Progress counter styling similar to quiz page */
+.question-progress-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.progress-hanging-container {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.hanging-quiz-info {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0 30px 0;
+}
+
+.hanging-content {
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    padding: 15px 10px !important;
+    border-radius: 20px;
+    text-align: center;
+    z-index: 2;
+    color: white;
+    min-width: 80px !important;
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.hanging-content h6 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.rope {
+    position: absolute;
+    width: 6px;
+    height: 60px;
+    background: linear-gradient(to bottom, #8B4513, #A0522D, #8B4513);
+    z-index: -1;
+    border: 1px solid #000;
+    box-shadow: -1px 1px 0px 0px rgba(0, 0, 0, 0.75), 0px 1px 2px rgba(0, 0, 0, 0.3);
+    top: -60px;
+}
+
+.hanging-question-current .left-rope,
+.hanging-separator .left-rope,
+.hanging-question-total .left-rope {
+    left: calc(50% - 20px);
+}
+
+.hanging-question-current .right-rope,
+.hanging-separator .right-rope,
+.hanging-question-total .right-rope {
+    right: calc(50% - 20px);
+}
+
+/* Responsive design - maintain fixed card proportions */
+@media (max-width: 768px) {
+    .flashcard-navigation {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .flashcard-button {
+        width: 100%;
+    }
+
+    .flip-card-container {
+        height: 450px; /* Increased height for mobile */
+        max-width: 95vw; /* Ensure it fits on smaller screens */
+    }
+
+    .question-image-container {
+        max-height: 35%; /* Reduced max height for mobile */
+    }
+
+    .card-question {
+        font-size: 1.3rem; /* Adjusted for mobile */
+        max-height: 20%; /* Reduced for mobile */
+    }
+
+    .card-options {
+        flex-direction: column; /* Stack options in column on mobile */
+        align-items: center;
+        max-height: 25%; /* Reduced for mobile */
+    }
+
+    .card-option {
+        font-size: 1rem; /* Slightly larger for mobile readability */
+        min-height: 100px; /* Adjusted for mobile */
+        padding: 8px;
+        min-width: 200px; /* Wider options on mobile for better touch targets */
+        flex: none; /* Don't flex on mobile */
+    }
+
+    .card-answer {
+        font-size: 1.3rem; /* Adjusted for mobile */
+        max-height: 20%; /* Reduced for mobile */
+    }
+
+    .rope {
+        display: none;
+    }
+
+    .hanging-content {
+        padding: 10px 5px;
+        min-width: 60px;
+    }
+}
+
+/* Medium screens */
+@media (min-width: 769px) and (max-width: 1199px) {
+    .flip-card-container {
+        height: 550px; /* Increased height for medium screens */
+        max-width: 800px; /* Increased width for medium screens */
+    }
+
+    .card-option {
+        min-height: 110px; /* Adjusted for medium screens */
+        min-width: 100px; /* Adjusted for medium screens */
+    }
+
+    .card-question {
+        font-size: 1.5rem;
+    }
+}

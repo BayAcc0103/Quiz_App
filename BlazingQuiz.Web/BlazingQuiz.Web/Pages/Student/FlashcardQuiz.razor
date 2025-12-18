@@ -3,71 +3,146 @@
 @using BlazingQuiz.Shared.Components.Components
 @using BlazingQuiz.Web.Apis
 
-@layout QuizPageLayout 
+@layout QuizPageLayout
 @inject NavigationManager NavigationManager
 @inject QuizState QuizState
 @inject BlazingQuiz.Web.Apis.IStudentQuizApi StudentQuizApi
 @inject IAppState AppState
+@inject QuestionImageService QuestionImageService
+@inject QuestionAudioService QuestionAudioService
 
 @if(QuizState.Quiz != null)
 {
-    <div class="container-fluid">
-        <div class="row mb-3">
-            <div class="col-sm-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h6>Question @(_currentIndex + 1) of @_questions.Count</h6>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Hanging element showing the quiz name -->
+                <div class="d-flex justify-content-center">
+                    <div class="hanging-quiz-info hanging-quiz-title">
+                        <div class="hanging-content">
+                            <h3 class="mb-0">@QuizState.Quiz.Name</h3>
+                        </div>
+                        <div class="rope left-rope"></div>
+                        <div class="rope right-rope"></div>
+                    </div>
                 </div>
-                
+
+                <!-- Progress counter with hanging elements -->
+                <div class="d-flex justify-content-center">
+                    <div class="progress-hanging-container">
+                        <!-- Current question count -->
+                        <div class="hanging-quiz-info hanging-question-current me-2">
+                            <div class="hanging-content">
+                                <h6 class="mb-0">@(_currentIndex + 1)</h6>
+                            </div>
+                            <div class="rope left-rope"></div>
+                            <div class="rope right-rope"></div>
+                        </div>
+
+                        <!-- Separator -->
+                        <div class="hanging-quiz-info hanging-separator mx-2">
+                            <div class="hanging-content">
+                                <h6 class="mb-0">/</h6>
+                            </div>
+                            <div class="rope left-rope"></div>
+                            <div class="rope right-rope"></div>
+                        </div>
+
+                        <!-- Total questions -->
+                        <div class="hanging-quiz-info hanging-question-total ms-2">
+                            <div class="hanging-content">
+                                <h6 class="mb-0">@_questions.Count</h6>
+                            </div>
+                            <div class="rope left-rope"></div>
+                            <div class="rope right-rope"></div>
+                        </div>
+                    </div>
+                </div>
+
                 @if (_questions.Any())
                 {
                     @if (_isPageReady)
                     {
-                        <div class="flip-card-container">
-                            <div class="flip-card @(IsFlipped ? "flipped" : "")" id="flip-card-@_currentIndex">
-                                <div class="card-face card-front">
-                                    <h5 class="card-question">@_currentQuestion.Text</h5>
-                                    @if (!_currentQuestion.IsTextAnswer && _currentQuestion.Options.Any())
-                                    {
-                                        <div class="card-options mt-3">
-                                            @foreach (var option in _currentQuestion.Options)
+                        <div class="flashcard-container">
+                            <div class="flip-card-container">
+                                <div class="flip-card @(IsFlipped ? "flipped" : "")" id="flip-card-@_currentIndex">
+                                    <div class="card-face card-front">
+                                        <div class="card-content-question">
+                                            <!-- Question Image -->
+                                            @if (!string.IsNullOrEmpty(_currentQuestion.ImagePath))
                                             {
-                                                <div class="card-option">@option.Text</div>
+                                                <div class="question-image-container mb-3">
+                                                    <img src="@QuestionImageService.GetImageUrl(_currentQuestion.ImagePath)" alt="Question Image" class="img-fluid" />
+                                                </div>
+                                            }
+
+                                            <!-- Question Audio -->
+                                            @if (!string.IsNullOrEmpty(_currentQuestion.AudioPath))
+                                            {
+                                                <div class="question-audio-container mb-3">
+                                                    @if (_currentQuestion.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                                                    {
+                                                        <audio controls class="w-100">
+                                                            <source src="@QuestionAudioService.GetAudioUrl(_currentQuestion.AudioPath)" type="audio/mpeg" />
+                                                            Your browser does not support the audio element.
+                                                        </audio>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="alert alert-info card-3d-raised">Audio file available: @_currentQuestion.AudioPath</div>
+                                                    }
+                                                </div>
+                                            }
+
+                                            <!-- Question Text -->
+                                            <h5 class="card-question">@_currentQuestion.Text</h5>
+
+                                            @if (!_currentQuestion.IsTextAnswer && _currentQuestion.Options.Any())
+                                            {
+                                                <div class="card-options mt-3">
+                                                    @foreach (var option in _currentQuestion.Options)
+                                                    {
+                                                        <div class="card-option">@option.Text</div>
+                                                    }
+                                                </div>
                                             }
                                         </div>
-                                    }
-                                    <div class="card-hint flip-indicator">
-                                        <i class="bi bi-arrow-repeat"></i> Click card or button to flip
+                                        <div class="card-hint flip-indicator">
+                                            <i class="bi bi-arrow-repeat"></i> Click card or button to flip
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="card-face card-back">
-                                    <h5 class="card-question">Answer</h5>
-                                    @if (_currentQuestion.IsTextAnswer)
-                                    {
-                                        <div class="card-answer mt-3">
-                                            @if (_currentQuestion.TextAnswers != null && _currentQuestion.TextAnswers.Any())
+                                    <div class="card-face card-back">
+                                        <div class="card-content-answer">
+                                            <h5 class="card-question">Answer</h5>
+                                            @if (_currentQuestion.IsTextAnswer)
                                             {
-                                                @foreach (var textAnswer in _currentQuestion.TextAnswers)
-                                                {
-                                                    <div class="flashcard-text-answer">@textAnswer.Text</div>
-                                                }
+                                                <div class="card-answer mt-3">
+                                                    @if (_currentQuestion.TextAnswers != null && _currentQuestion.TextAnswers.Any())
+                                                    {
+                                                        @foreach (var textAnswer in _currentQuestion.TextAnswers)
+                                                        {
+                                                            <div class="flashcard-text-answer">@textAnswer.Text</div>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="flashcard-text-answer">No answer provided</div>
+                                                    }
+                                                </div>
                                             }
                                             else
                                             {
-                                                <div class="flashcard-text-answer">No answer provided</div>
+                                                <div class="card-options">
+                                                    @foreach (var option in _currentQuestion.Options.Where(o => o.IsCorrect))
+                                                    {
+                                                        <div class="card-option correct">@option.Text</div>
+                                                    }
+                                                </div>
                                             }
                                         </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="card-options mt-3">
-                                            @foreach (var option in _currentQuestion.Options.Where(o => o.IsCorrect))
-                                            {
-                                                <div class="card-option">@option.Text</div>
-                                            }
+                                        <div class="card-hint">
+                                            <i class="bi bi-arrow-repeat"></i> Click to flip back
                                         </div>
-                                    }
-                                    <div class="card-hint">
-                                        <i class="bi bi-arrow-repeat"></i> Click to flip back
                                     </div>
                                 </div>
                             </div>
@@ -81,29 +156,29 @@
                             </div>
                         </div>
                     }
-                    
+
                     <div class="flashcard-navigation mt-3">
-                        <button class="flashcard-button flash-card-prev-btn" 
-                                @onclick="PreviousQuestion" 
+                        <button class="flashcard-button flash-card-prev-btn"
+                                @onclick="PreviousQuestion"
                                 disabled="@(_currentIndex == 0)">
                             <i class="bi bi-arrow-left me-1"></i> Previous
                         </button>
-                        
-                        <button class="flashcard-button flash-card-flip-btn" 
+
+                        <button class="flashcard-button flash-card-flip-btn"
                                 @onclick="ToggleFlip">
                             <i class="bi bi-arrow-repeat me-1"></i> @_flipButtonText
                         </button>
-                        
+
                         @if (_currentIndex == _questions.Count - 1)
                         {
-                            <button class="flashcard-button flash-card-next-btn" 
+                            <button class="flashcard-button flash-card-submit-btn"
                                     @onclick="SubmitQuizAsync">
                                 Submit Quiz <i class="bi bi-check2-all ms-1"></i>
                             </button>
                         }
                         else
                         {
-                            <button class="flashcard-button flash-card-next-btn" 
+                            <button class="flashcard-button flash-card-next-btn"
                                     @onclick="NextQuestion">
                                 Next <i class="bi bi-arrow-right ms-1"></i>
                             </button>
@@ -133,238 +208,6 @@ else
     </Modal>
 }
 
-<style>
-    .container-fluid {
-        padding: 20px;
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        min-height: 100vh;
-    }
-    
-    .flashcard-navigation {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 25px;
-        width: 100%;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
-        gap: 10px;
-    }
-    
-    .flashcard-button {
-        flex: 1;
-        padding: 12px 15px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 0.95rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        text-align: center;
-        min-width: 100px;
-    }
-    
-    .flashcard-button:hover:not(:disabled) {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-    }
-    
-    .flashcard-button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-    }
-    
-    .flash-card-prev-btn {
-        background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
-        color: white;
-    }
-    
-    .flash-card-next-btn {
-        background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
-        color: white;
-    }
-    
-    .flash-card-flip-btn {
-        background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
-        color: white;
-    }
-    
-    .quiz-progress-container {
-        background: white;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-    
-    .question-counter {
-        font-weight: bold;
-        color: #2d3436;
-        font-size: 1.1rem;
-    }
-    
-    .quiz-title {
-        color: #2d3436;
-        margin-bottom: 5px;
-        font-weight: 600;
-    }
-    
-    /* Enhanced flip card styling */
-    .flip-card-container {
-        perspective: 1500px;
-        margin: 20px auto;
-        width: 100%;
-        max-width: 600px;
-        height: 350px;
-    }
-    
-    .flip-card {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        transform-style: preserve-3d;
-        transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        border-radius: 15px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.25);
-        border: 2px solid rgba(255,255,255,0.1);
-    }
-    
-    .flip-card.flipped {
-        transform: rotateY(180deg);
-    }
-    
-    .card-face {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        backface-visibility: hidden;
-        border-radius: 13px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 25px;
-        text-align: center;
-        overflow: auto;
-        -webkit-backface-visibility: hidden;
-        -moz-backface-visibility: hidden;
-    }
-    
-    .card-front {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-    
-    .card-back {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        color: white;
-        transform: rotateY(180deg);
-    }
-    
-    .card-question {
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 20px;
-        line-height: 1.4;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    
-    .card-options {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        width: 100%;
-        max-height: 150px;
-        overflow-y: auto;
-        padding: 5px;
-    }
-    
-    .card-option {
-        padding: 14px;
-        background-color: rgba(255, 255, 255, 0.25);
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 1px solid rgba(255,255,255,0.3);
-        text-align: left;
-        font-size: 1rem;
-    }
-    
-    .card-option:hover {
-        background-color: rgba(255, 255, 255, 0.35);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    
-    .card-answer {
-        font-size: 1.4rem;
-        font-weight: 600;
-        margin-top: 10px;
-        padding: 20px;
-        background-color: rgba(255, 255, 255, 0.25);
-        border-radius: 10px;
-        text-align: center;
-        width: 100%;
-        line-height: 1.5;
-    }
-    
-    .card-hint {
-        font-size: 1rem;
-        opacity: 0.8;
-        margin-top: auto;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background-color: rgba(0, 0, 0, 0.1);
-        padding: 10px 20px;
-        border-radius: 25px;
-        margin-top: 20px;
-    }
-    
-    .flip-indicator {
-        animation: pulse 2s infinite;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-    
-    @@keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-    }
-    
-    @@media (max-width: 768px) {
-        .flashcard-navigation {
-            flex-direction: column;
-            gap: 12px;
-        }
-        
-        .flashcard-button {
-            width: 100%;
-        }
-        
-        .flip-card-container {
-            height: 300px;
-        }
-        
-        .card-question {
-            font-size: 1.2rem;
-        }
-        
-        .card-option {
-            font-size: 0.9rem;
-            padding: 12px;
-        }
-        
-        .card-answer {
-            font-size: 1.2rem;
-        }
-    }
-</style>
 
 <script>
     // Custom JavaScript for enhanced flip card interactions
