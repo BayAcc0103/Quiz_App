@@ -91,8 +91,9 @@
                                 <button class="page-link"
                                         disabled="@(CurrentPage == 1)"
                                         @onclick="() => NavigateToPage(CurrentPage - 1)">
-                                    <span class="d-md-none">Prev</span>
-                                    <span class="d-none d-md-block">Previous</span>
+                                        <span class="material-symbols-outlined">
+                                        chevron_left
+                                        </span>
                                 </button>
                             </li>
 
@@ -225,8 +226,9 @@
                                 <button class="page-link"
                                         disabled="@(CurrentPage == TotalPages)"
                                         @onclick="() => NavigateToPage(CurrentPage + 1)">
-                                    <span class="d-md-none">Next</span>
-                                    <span class="d-none d-md-block">Next</span>
+                                    <span class="material-symbols-outlined">
+                                        chevron_right
+                                    </span>
                                 </button>
                             </li>
 
