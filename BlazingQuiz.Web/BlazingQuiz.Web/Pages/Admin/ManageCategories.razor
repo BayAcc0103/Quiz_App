@@ -92,7 +92,7 @@
                                 @if(_errorMessage != null)
                                 {
                                     <div class="mb-3 border-danger border-1 d-flex justify-content-between gap-2 mt-3">
-                                        <p class="m-0">@_errorMessage</p>
+                                        <p class="m0">@_errorMessage</p>
                                         <button type="button" class="btn btn-3d btn-3d-danger btn-sm" @onclick="() => _errorMessage = null">X</button>
                                     </div>
                                 }
@@ -160,20 +160,50 @@
         </div>
     </div>
 
+    <!-- Top section: Refresh button and page size selector -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div class="mb-2 mb-md-0">
+                    <label for="pageSize" class="form-label mb-0">Items per page:</label>
+                    <select id="pageSize" class="form-select ms-2" style="display: inline-block; width: auto;" @onchange="OnPageSizeChanged">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                        <option value="40">40</option>
+                    </select>
+                </div>
+                <button class="btn btn-3d btn-3d-primary" @onclick="LoadCategoriesAsync">
+                    <span class="bi bi-arrow-repeat"></span> Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Bottom section: Category grid -->
     <div class="row">
         <div class="col-12">
-            <h3>Categories</h3>
-            @if(_categories.Length == 0)
+            @{
+                var filteredCategories = FilterCategories();
+                totalCategories = filteredCategories.Count;
+                totalPages = (int)Math.Ceiling((double)totalCategories / pageSize);
+            }
+            <h3>Categories (@totalCategories)</h3>
+
+            @if(!filteredCategories.Any())
             {
                 <div class="text-center">
-                    <p class="text-danger h5">No categories available</p>
+                    <p class="text-danger h5">@(!string.IsNullOrEmpty(_searchTerm) ? "No categories found" : "No categories available")</p>
+                    @if (isLoading == false && string.IsNullOrEmpty(_searchTerm))
+                    {
+                        <p class="mb-0">Currently there are no categories in the system.</p>
+                    }
                 </div>
             }
             else
             {
                 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 row-cols-xl-10 g-3">
-                    @foreach (var category in FilteredCategories)
+                    @foreach (var category in currentPageCategories)
                     {
                         <div class="col">
                             <div class="card h-100 category-card category-card-3d">
@@ -221,10 +251,59 @@
                     }
                 </div>
 
-                @if (FilteredCategories.Length == 0 && !string.IsNullOrEmpty(_searchTerm))
+                @if (isLoading)
+                {
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(_searchTerm) && filteredCategories.Any() == false)
                 {
                     <div class="text-center mt-4">
                         <p class="text-muted">No categories found matching "@_searchTerm"</p>
+                    </div>
+                }
+
+                <!-- Pagination controls -->
+                @if (filteredCategories.Any() && filteredCategories.Count > pageSize)
+                {
+                    <nav aria-label="Category pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => NavigateToPage(1)" disabled="@(currentPage == 1)">First</button>
+                            </li>
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => NavigateToPage(currentPage - 1)" disabled="@(currentPage == 1)">Previous</button>
+                            </li>
+
+                            @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
+                            {
+                                var pageNumber = i;
+
+                                <li class="page-item @(pageNumber == currentPage ? "active" : "")">
+                                    <button class="page-link"
+                                            @onclick="() => NavigateToPage(pageNumber)">
+                                        @pageNumber
+                                    </button>
+                                </li>
+                            }
+
+                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => NavigateToPage(currentPage + 1)" disabled="@(currentPage == totalPages)">Next</button>
+                            </li>
+                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => NavigateToPage(totalPages)" disabled="@(currentPage == totalPages)">Last</button>
+                            </li>
+                        </ul>
+                    </nav>
+
+                    <div class="d-flex justify-content-center mt-2">
+                        <p class="text-muted">
+                            Page @currentPage of @totalPages (@totalCategories total categories)
+                        </p>
                     </div>
                 }
             }
@@ -233,50 +312,51 @@
 </div>
 
 @code {
-    private CategoryDto[] _categories = [];
+    private List<CategoryDto> _categories = new();
+    private List<CategoryDto> currentPageCategories = new();
     private CategoryDto _category = new();
     private IBrowserFile? _selectedImageFile;
     private bool _isBusy;
+    private bool isLoading = true;
     private string? _errorMessage;
     private int _uploadProgress = 0;
     private string _searchTerm = string.Empty;
     private string? _displayFilter = null; // null = all, "true" = displayed, "false" = hidden
 
+    // Pagination properties similar to MyQuizes
+    private int currentPage = 1;
+    private int pageSize = 10; // Default page size to match rooms page
+    private int totalCategories = 0;
+    private int totalPages = 0;
+
     private int CurrentUserId { get; set; }
 
-    private CategoryDto[] FilteredCategories
+    private List<CategoryDto> FilterCategories()
     {
-        get
+        var result = _categories.AsEnumerable();
+
+        // Apply search filter
+        if (!string.IsNullOrWhiteSpace(_searchTerm))
         {
-            var result = _categories.AsEnumerable();
-
-            // Apply search filter
-            if (!string.IsNullOrWhiteSpace(_searchTerm))
-            {
-                result = result.Where(c =>
-                    c.Name.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase));
-            }
-
-            // Apply display status filter
-            if (!string.IsNullOrEmpty(_displayFilter))
-            {
-                if (_displayFilter == "true") // Show displayed categories only
-                {
-                    result = result.Where(c => c.IsDisplay);
-                }
-                else if (_displayFilter == "false") // Show hidden categories only
-                {
-                    result = result.Where(c => !c.IsDisplay);
-                }
-            }
-
-            return result.ToArray();
+            var searchTermLower = _searchTerm.ToLowerInvariant();
+            result = result.Where(c =>
+                c.Name.ToLowerInvariant().Contains(searchTermLower));
         }
-    }
 
-    private void OnDisplayFilterChanged(ChangeEventArgs e)
-    {
-        _displayFilter = e.Value?.ToString();
+        // Apply display status filter
+        if (!string.IsNullOrEmpty(_displayFilter))
+        {
+            if (_displayFilter == "true") // Show displayed categories only
+            {
+                result = result.Where(c => c.IsDisplay);
+            }
+            else if (_displayFilter == "false") // Show hidden categories only
+            {
+                result = result.Where(c => !c.IsDisplay);
+            }
+        }
+
+        return result.ToList();
     }
 
     protected override async Task OnInitializedAsync()
@@ -290,9 +370,75 @@
 
     private async Task LoadCategoriesAsync()
     {
-        AppState.ShowLoader("Loading categories...");
-        _categories = await CategoryApi.GetCategoriesAsync();
-        AppState.HideLoader();
+        try
+        {
+            AppState.ShowLoader("Loading categories...");
+            isLoading = true;
+            var allCategories = (await CategoryApi.GetCategoriesAsync())?.ToList() ?? new List<CategoryDto>();
+            _categories = allCategories;
+            totalCategories = allCategories.Count;
+            totalPages = (int)Math.Ceiling((double)totalCategories / pageSize);
+
+            // Reset to first page when loading new data
+            if (currentPage > totalPages && totalPages > 0)
+            {
+                currentPage = totalPages;
+            }
+            else if (totalPages == 0)
+            {
+                currentPage = 1;
+            }
+
+            await NavigateToPage(currentPage);
+        }
+        catch (Exception ex)
+        {
+            // Log error or show notification
+            Console.WriteLine($"Error loading categories: {ex.Message}");
+        }
+        finally
+        {
+            AppState.HideLoader();
+            isLoading = false;
+        }
+    }
+
+    private async Task NavigateToPage(int page)
+    {
+        if (page < 1 || page > totalPages)
+            return;
+
+        currentPage = page;
+
+        var filteredCategories = FilterCategories();
+        currentPageCategories = filteredCategories
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        StateHasChanged();
+    }
+
+    private void OnPageSizeChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int newSize))
+        {
+            pageSize = newSize;
+            currentPage = 1; // Reset to first page when page size changes
+            // Update total pages based on the filtered results
+            var filteredCategories = FilterCategories();
+            totalCategories = filteredCategories.Count;
+            totalPages = (int)Math.Ceiling((double)totalCategories / pageSize);
+            _ = NavigateToPage(currentPage); // Use _ to ignore the Task return value
+        }
+    }
+
+    private void OnDisplayFilterChanged(ChangeEventArgs e)
+    {
+        _displayFilter = e.Value?.ToString();
+        // Reset to first page when filter changes
+        currentPage = 1;
+        _ = NavigateToPage(currentPage);
     }
 
     private async Task OnEditCategory(CategoryDto category)
@@ -478,7 +624,8 @@
 
                 if (response.IsSuccess)
                 {
-                    _categories = _categories.Where(c => c.Id != category.Id).ToArray();
+                    // Reload categories to ensure the deletion is reflected
+                    await LoadCategoriesAsync();
                 }
                 else
                 {

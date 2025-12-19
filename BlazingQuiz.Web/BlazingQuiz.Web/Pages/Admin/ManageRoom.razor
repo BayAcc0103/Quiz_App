@@ -57,10 +57,10 @@
                 <div class="mb-2 mb-md-0">
                     <label for="pageSize" class="form-label mb-0">Items per page:</label>
                     <select id="pageSize" class="form-select ms-2" style="display: inline-block; width: auto;" @onchange="OnPageSizeChanged">
-                        <option value="9">9</option>
-                        <option value="12">12</option>
-                        <option value="18">18</option>
-                        <option value="24">24</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                        <option value="40">40</option>
                     </select>
                 </div>
                 <button class="btn btn-3d btn-3d-primary" @onclick="RefreshRooms" disabled="@isDeleting">
@@ -72,13 +72,14 @@
     <!-- Bottom section: Room grid -->
     <div class="row">
         <div class="col-12">
-            <h3>Rooms (@totalRooms)</h3>
             @{
                 var filteredRooms = FilterRooms();
-                var paginatedRooms = PaginateRooms(filteredRooms);
+                totalRooms = filteredRooms.Count;
+                totalPages = (int)Math.Ceiling((double)totalRooms / pageSize);
             }
+            <h3>Rooms (@totalRooms)</h3>
 
-            @if(filteredRooms == null || !filteredRooms.Any())
+            @if(!filteredRooms.Any())
             {
                 <div class="text-center">
                     <p class="text-danger h5">@(!string.IsNullOrEmpty(_searchTerm) ? "No rooms found" : "No rooms available")</p>
@@ -91,7 +92,7 @@
             else
             {
                 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3">
-                    @foreach (var room in paginatedRooms)
+                    @foreach (var room in currentPageRooms)
                     {
                         <div class="col">
                             <div class="card h-100 room-card room-card-3d" title="@room.Name">
@@ -127,7 +128,7 @@
                     }
                 </div>
 
-                @if (rooms != null && rooms.Any() && isLoading)
+                @if (rooms.Any() && isLoading)
                 {
                     <div class="d-flex justify-content-center">
                         <div class="spinner-border" role="status">
@@ -144,29 +145,34 @@
                 }
 
                 <!-- Pagination controls -->
-                @if (filteredRooms != null && filteredRooms.Any() && filteredRooms.Count > pageSize)
+                @if (filteredRooms.Any() && filteredRooms.Count > pageSize)
                 {
                     <nav aria-label="Room pagination" class="mt-4">
                         <ul class="pagination justify-content-center">
                             <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                                <button class="page-link" @onclick="() => GoToPage(1)" disabled="@(currentPage == 1)">First</button>
+                                <button class="page-link" @onclick="() => NavigateToPage(1)" disabled="@(currentPage == 1)">First</button>
                             </li>
                             <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                                <button class="page-link" @onclick="() => GoToPage(currentPage - 1)" disabled="@(currentPage == 1)">Previous</button>
+                                <button class="page-link" @onclick="() => NavigateToPage(currentPage - 1)" disabled="@(currentPage == 1)">Previous</button>
                             </li>
 
                             @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
                             {
-                                <li class="page-item @(i == currentPage ? "active" : "")">
-                                    <button class="page-link" @onclick="() => GoToPage(i)">@i</button>
+                                var pageNumber = i;
+
+                                <li class="page-item @(pageNumber == currentPage ? "active" : "")">
+                                    <button class="page-link"
+                                            @onclick="() => NavigateToPage(pageNumber)">
+                                        @pageNumber
+                                    </button>
                                 </li>
                             }
 
                             <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                                <button class="page-link" @onclick="() => GoToPage(currentPage + 1)" disabled="@(currentPage == totalPages)">Next</button>
+                                <button class="page-link" @onclick="() => NavigateToPage(currentPage + 1)" disabled="@(currentPage == totalPages)">Next</button>
                             </li>
                             <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                                <button class="page-link" @onclick="() => GoToPage(totalPages)" disabled="@(currentPage == totalPages)">Last</button>
+                                <button class="page-link" @onclick="() => NavigateToPage(totalPages)" disabled="@(currentPage == totalPages)">Last</button>
                             </li>
                         </ul>
                     </nav>
@@ -183,14 +189,15 @@
 </div>
 
 @code {
-    private List<RoomDto>? rooms;
+    private List<RoomDto> rooms = new();
+    private List<RoomDto> currentPageRooms = new();
     private bool isLoading = true;
     private bool isDeleting = false;
     private string _searchTerm = string.Empty;
 
-    // Pagination properties
+    // Pagination properties similar to MyQuizes
     private int currentPage = 1;
-    private int pageSize = 12; // Default page size
+    private int pageSize = 10; // Default page size
     private int totalRooms = 0;
     private int totalPages = 0;
 
@@ -204,8 +211,9 @@
         try
         {
             isLoading = true;
-            rooms = (await RoomApi.GetRoomsForAdminAsync())?.ToList() ?? new List<RoomDto>();
-            totalRooms = rooms?.Count ?? 0;
+            var allRooms = (await RoomApi.GetRoomsForAdminAsync())?.ToList() ?? new List<RoomDto>();
+            rooms = allRooms;
+            totalRooms = allRooms.Count;
             totalPages = (int)Math.Ceiling((double)totalRooms / pageSize);
 
             // Reset to first page when loading new data
@@ -217,6 +225,8 @@
             {
                 currentPage = 1;
             }
+
+            await NavigateToPage(currentPage);
         }
         catch (Exception ex)
         {
@@ -229,57 +239,33 @@
         }
     }
 
-    private List<RoomDto>? FilterRooms()
+    private List<RoomDto> FilterRooms()
     {
-        if (rooms == null)
-            return null;
-
         if (string.IsNullOrWhiteSpace(_searchTerm))
             return rooms;
 
         var searchTermLower = _searchTerm.ToLowerInvariant();
-        var filtered = rooms.Where(r =>
+        return rooms.Where(r =>
             r.Name.ToLowerInvariant().Contains(searchTermLower) ||
             r.Code.ToLowerInvariant().Contains(searchTermLower) ||
             r.CreatedByName.ToLowerInvariant().Contains(searchTermLower)
         ).ToList();
-
-        // Update total count after filtering
-        totalRooms = filtered.Count;
-        totalPages = (int)Math.Ceiling((double)totalRooms / pageSize);
-
-        return filtered;
     }
 
-    private List<RoomDto> PaginateRooms(List<RoomDto>? filteredRooms)
+    private async Task NavigateToPage(int page)
     {
-        if (filteredRooms == null || !filteredRooms.Any())
-            return new List<RoomDto>();
+        if (page < 1 || page > totalPages)
+            return;
 
-        // Calculate total pages based on filtered results
-        totalPages = (int)Math.Ceiling((double)filteredRooms.Count / pageSize);
+        currentPage = page;
 
-        // Ensure current page is within valid range
-        if (currentPage > totalPages && totalPages > 0)
-        {
-            currentPage = totalPages;
-        }
-        else if (totalPages == 0)
-        {
-            currentPage = 1;
-        }
+        var filteredRooms = FilterRooms();
+        currentPageRooms = filteredRooms
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
 
-        // Calculate start index and take the appropriate page
-        int startIndex = (currentPage - 1) * pageSize;
-        return filteredRooms.Skip(startIndex).Take(pageSize).ToList();
-    }
-
-    private void GoToPage(int page)
-    {
-        if (page >= 1 && page <= totalPages)
-        {
-            currentPage = page;
-        }
+        StateHasChanged();
     }
 
     private void OnPageSizeChanged(ChangeEventArgs e)
@@ -288,6 +274,11 @@
         {
             pageSize = newSize;
             currentPage = 1; // Reset to first page when page size changes
+            // Update total pages based on the filtered results
+            var filteredRooms = FilterRooms();
+            totalRooms = filteredRooms.Count;
+            totalPages = (int)Math.Ceiling((double)totalRooms / pageSize);
+            _ = NavigateToPage(currentPage); // Use _ to ignore the Task return value
         }
     }
 
