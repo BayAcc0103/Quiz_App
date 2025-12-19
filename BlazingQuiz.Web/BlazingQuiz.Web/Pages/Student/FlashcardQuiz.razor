@@ -100,7 +100,7 @@
 
                                         @if (!_currentQuestion.IsTextAnswer && _currentQuestion.Options.Any())
                                         {
-                                            <div class="card-options mt-3">
+                                            <div class="card-options">
                                                 @foreach (var option in _currentQuestion.Options)
                                                 {
                                                     <div class="card-option">@option.Text</div>
@@ -117,7 +117,7 @@
                                         <h5 class="card-question">Answer</h5>
                                         @if (_currentQuestion.IsTextAnswer)
                                         {
-                                            <div class="card-answer mt-3">
+                                            <div class="card-answer">
                                                 @if (_currentQuestion.TextAnswers != null && _currentQuestion.TextAnswers.Any())
                                                 {
                                                     @foreach (var textAnswer in _currentQuestion.TextAnswers)
@@ -163,26 +163,38 @@
                 <button class="flashcard-button flash-card-prev-btn"
                         @onclick="PreviousQuestion"
                         disabled="@(_currentIndex == 0)">
-                    <span class="material-symbols-outlined button-icon">arrow_back</span> Previous
+                    <span class="material-symbols-outlined button-icon">arrow_back</span>
+                    <span class="d-none d-md-inline">
+                        Previous
+                    </span>
                 </button>
 
                 <button class="flashcard-button flash-card-flip-btn"
                         @onclick="ToggleFlip">
-                    <span class="material-symbols-outlined button-icon">flip</span> @_flipButtonText
+                    <span class="material-symbols-outlined button-icon">flip</span>
+                    <span class="d-none d-md-inline">
+                        @_flipButtonText
+                    </span>
                 </button>
 
                 @if (_currentIndex == _questions.Count - 1)
                 {
                     <button class="flashcard-button flash-card-submit-btn"
                             @onclick="SubmitQuizAsync">
-                        Submit Quiz <span class="material-symbols-outlined button-icon ms-1">done</span>
+                        <span class="d-none d-md-inline">
+                            Submit Quiz
+                        </span> 
+                        <span class="material-symbols-outlined button-icon ms-1">done</span>
                     </button>
                 }
                 else
                 {
                     <button class="flashcard-button flash-card-next-btn"
                             @onclick="NextQuestion">
-                        Next <span class="material-symbols-outlined button-icon ms-1">arrow_forward</span>
+                        <span class="d-none d-md-inline">
+                            Next
+                        </span>
+                        <span class="material-symbols-outlined button-icon ms-1">arrow_forward</span>
                     </button>
                 }
             </div>
