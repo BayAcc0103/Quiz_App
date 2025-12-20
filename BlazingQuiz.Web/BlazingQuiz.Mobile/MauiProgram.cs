@@ -5,6 +5,7 @@ using BlazingQuiz.Shared.Components.Auth;
 using BlazingQuiz.Shared.Components.Services;
 using BlazingQuiz.Shared.Components.Services.SignalR;
 using BlazingQuiz.Web.Apis;
+using BlazingQuiz.Web.Services.Theme;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Logging;
 using Refit;
@@ -49,7 +50,8 @@ namespace BlazingQuiz.Mobile
                 .AddSingleton<IAppState, AppState>()
                 .AddSingleton<IPlatform, MobilePlatform>()
                 .AddSingleton<ProfileUpdateService>()
-                .AddSingleton<QuizHubService>();
+                .AddSingleton<QuizHubService>()
+                .AddScoped<ThemeService>();
 
             // Register services that depend on HttpClient and QuizAuthStateProvider
             builder.Services.AddScoped(sp =>
