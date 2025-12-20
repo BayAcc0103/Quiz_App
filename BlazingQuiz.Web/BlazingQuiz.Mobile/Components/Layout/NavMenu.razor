@@ -3,6 +3,7 @@
 @using BlazingQuiz.Shared.Components.Apis
 @using BlazingQuiz.Shared.Components.Services
 @using Microsoft.AspNetCore.Components.Authorization
+@using BlazingQuiz.Mobile.Components.Shared
 @inject QuizAuthStateProvider QuizAuthStateProvider
 @inject IAuthApi AuthApi
 @inject UserAvatarService UserAvatarService
@@ -177,6 +178,7 @@
     <AuthorizeView>
             <Authorized>
             <AuthorizeView Roles="@($"{nameof(UserRole.Student)},{nameof(UserRole.Teacher)}")" Context="adminContext">
+                <ThemeToggle />
                 <div class="user-account">
                     <div class="user-profile">
                         @if (!string.IsNullOrEmpty(_userDto?.AvatarPath))

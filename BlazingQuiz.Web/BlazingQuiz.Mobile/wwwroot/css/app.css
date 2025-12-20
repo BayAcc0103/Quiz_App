@@ -1,9 +1,9 @@
 ﻿:root{
     --app-color: #052767;
 }
-/*html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-}*/
+html, body {
+    font-family: "Coiny", system-ui;
+}
 
 a, .btn-link {
     color: #006bb7;
