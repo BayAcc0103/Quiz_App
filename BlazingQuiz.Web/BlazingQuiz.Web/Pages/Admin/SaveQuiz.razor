@@ -173,61 +173,64 @@
 
                     <div class="question-card-content">
                         <div class="row">
-                            <!-- Left side: Question Text, Image, and Audio -->
+                            <!-- Left side: Question Text -->
                             <div class="col-md-6 border-end">
                                 <div class="mb-3">
                                     <label class="form-label">Question Text</label>
                                     <textarea @bind="question.Text" class="form-control form-control-centered" rows="3" style="font-size: 1.1rem; letter-spacing: 0.1rem;"></textarea>
                                 </div>
 
-                                <!-- Question Image Upload Section -->
-                                <div class="mb-3">
-                                    <label class="form-label">Question Image</label>
-                                    @if (!string.IsNullOrEmpty(question.ImagePath))
-                                    {
-                                        <div class="mb-2">
-                                            <img src="@QuestionImageService.GetImageUrl(question.ImagePath)" alt="Question Image" class="img-thumbnail w-100" style="max-height: 200px; object-fit: cover;" />
-                                            <div class="mt-2">
-                                                <button type="button" class="btn btn-3d btn-3d-danger" @onclick="() => RemoveQuestionImageAsync(question)" title="Remove Question Image">Remove Image</button>
+                                <!-- Question Image and Audio on the same row -->
+                                <div class="row">
+                                    <!-- Question Image Upload Section -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Question Image</label>
+                                        @if (!string.IsNullOrEmpty(question.ImagePath))
+                                        {
+                                            <div class="mb-2">
+                                                <img src="@QuestionImageService.GetImageUrl(question.ImagePath)" alt="Question Image" class="img-thumbnail w-100" style="max-height: 200px; object-fit: cover;" />
+                                                <div class="mt-2">
+                                                    <button type="button" class="btn btn-3d btn-3d-danger" @onclick="() => RemoveQuestionImageAsync(question)" title="Remove Question Image">Remove Image</button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    }
-                                    <FileUpload CurrentFile="@GetQuestionImageFile(question)"
-                                               OnFileChanged="@(file => OnQuestionImageFileChanged(question, file))"
-                                               AcceptedFileTypes="image/*"
-                                               MaxFileSize="10 * 1024 * 1024"
-                                               UploadText="Click or drag question image to upload"
-                                               UploadHint="Supports JPG, PNG, GIF up to 10MB" />
-                                </div>
+                                        }
+                                        <FileUpload CurrentFile="@GetQuestionImageFile(question)"
+                                                   OnFileChanged="@(file => OnQuestionImageFileChanged(question, file))"
+                                                   AcceptedFileTypes="image/*"
+                                                   MaxFileSize="10 * 1024 * 1024"
+                                                   UploadText="Click or drag question image to upload"
+                                                   UploadHint="Supports JPG, PNG, GIF up to 10MB" />
+                                    </div>
 
-                                <!-- Question Audio Upload Section -->
-                                <div class="mb-3">
-                                    <label class="form-label">Question Audio (MP3)</label>
-                                    @if (!string.IsNullOrEmpty(question.AudioPath))
-                                    {
-                                        <div class="mb-2">
-                                            @if (question.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
-                                            {
-                                                <audio controls class="w-100">
-                                                    <source src="@QuestionAudioService.GetAudioUrl(question.AudioPath)" type="audio/mpeg" />
-                                                    Your browser does not support the audio element.
-                                                </audio>
-                                            }
-                                            else
-                                            {
-                                                <span>Audio file: @question.AudioPath</span>
-                                            }
-                                            <div class="mt-2">
-                                                <button type="button" class="btn btn-3d btn-3d-danger" @onclick="() => RemoveQuestionAudioAsync(question)" title="Remove Question Audio">Remove Audio</button>
+                                    <!-- Question Audio Upload Section -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Question Audio (MP3)</label>
+                                        @if (!string.IsNullOrEmpty(question.AudioPath))
+                                        {
+                                            <div class="mb-2">
+                                                @if (question.AudioPath.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                                                {
+                                                    <audio controls class="w-100">
+                                                        <source src="@QuestionAudioService.GetAudioUrl(question.AudioPath)" type="audio/mpeg" />
+                                                        Your browser does not support the audio element.
+                                                    </audio>
+                                                }
+                                                else
+                                                {
+                                                    <span>Audio file: @question.AudioPath</span>
+                                                }
+                                                <div class="mt-2">
+                                                    <button type="button" class="btn btn-3d btn-3d-danger" @onclick="() => RemoveQuestionAudioAsync(question)" title="Remove Question Audio">Remove Audio</button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    }
-                                    <FileUpload CurrentFile="@GetQuestionAudioFile(question)"
-                                               OnFileChanged="@(file => OnQuestionImageFileChanged(question, file))"
-                                               AcceptedFileTypes=".mp3,audio/*"
-                                               MaxFileSize="20 * 1024 * 1024"
-                                               UploadText="Click or drag MP3 file to upload"
-                                               UploadHint="Supports MP3 files up to 20MB" />
+                                        }
+                                        <FileUpload CurrentFile="@GetQuestionAudioFile(question)"
+                                                   OnFileChanged="@(file => OnQuestionAudioFileChanged(question, file))"
+                                                   AcceptedFileTypes=".mp3,audio/*"
+                                                   MaxFileSize="20 * 1024 * 1024"
+                                                   UploadText="Click or drag MP3 file to upload"
+                                                   UploadHint="Supports MP3 files up to 20MB" />
+                                    </div>
                                 </div>
                             </div>
 
@@ -779,6 +782,12 @@
     private async Task OnQuestionImageFileChanged(QuestionDto question, IBrowserFile file)
     {
         _questionImageFiles[question] = file;
+        StateHasChanged();
+    }
+
+    private async Task OnQuestionAudioFileChanged(QuestionDto question, IBrowserFile file)
+    {
+        _questionAudioFiles[question] = file;
         StateHasChanged();
     }
 
