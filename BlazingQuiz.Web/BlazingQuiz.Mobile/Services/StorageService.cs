@@ -10,7 +10,7 @@ namespace BlazingQuiz.Mobile.Services
     public class StorageService : IStorageService
     {
         public ValueTask<string> GetItem(string key) =>
-            ValueTask.FromResult(Preferences.Default.Get<string?>(key, null));
+            ValueTask.FromResult(Preferences.Default.Get<string?>(key, null) ?? string.Empty);
 
         public ValueTask RemoveItem(string key)
         {

@@ -7,7 +7,9 @@ using BlazingQuiz.Shared.Components.Services.SignalR;
 using BlazingQuiz.Web.Apis;
 using BlazingQuiz.Web.Services.Theme;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.WebView.Maui;
 using Microsoft.Extensions.Logging;
+using Microsoft.JSInterop;
 using Refit;
 
 
@@ -51,7 +53,13 @@ namespace BlazingQuiz.Mobile
                 .AddSingleton<IPlatform, MobilePlatform>()
                 .AddSingleton<ProfileUpdateService>()
                 .AddSingleton<QuizHubService>()
-                .AddScoped<ThemeService>();
+                .AddScoped<ThemeService>(serviceProvider =>
+                {
+                    var jsRuntime = serviceProvider.GetRequiredService<IJSRuntime>();
+                    var platform = serviceProvider.GetRequiredService<IPlatform>();
+                    var storageService = serviceProvider.GetRequiredService<IStorageService>();
+                    return new ThemeService(jsRuntime, platform, storageService);
+                });
 
             // Register services that depend on HttpClient and QuizAuthStateProvider
             builder.Services.AddScoped(sp =>

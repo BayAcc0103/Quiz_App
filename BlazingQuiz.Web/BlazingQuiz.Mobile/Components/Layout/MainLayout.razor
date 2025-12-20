@@ -1,12 +1,28 @@
 ﻿@inherits LayoutComponentBase
+@inject QuizAuthStateProvider QuizAuthStateProvider
 
 <div class="page">
     <div>
         <NavMenu />
     </div>
 
-
     <main>
+        <div class="top-row px-4">
+            @if (QuizAuthStateProvider.IsLoggedIn)
+            {
+                <div class="ms-auto d-flex align-items-center gap-3">
+                    <ThemeToggle />
+                </div>
+            }
+            else
+            {
+                <div class="ms-auto d-flex align-items-center gap-3">
+                    <ThemeToggle />
+                    <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+                </div>
+            }
+        </div>
+
         <article class="content mt-5">
             @Body
         </article>

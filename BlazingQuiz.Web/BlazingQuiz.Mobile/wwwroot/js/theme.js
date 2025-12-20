@@ -1,4 +1,4 @@
-// Theme utility functions
+// Theme utility functions for MAUI
 window.themeUtils = {
     setTheme: function(theme) {
         // Ensure DOM is ready before making changes
@@ -27,8 +27,8 @@ window.themeUtils = {
 
         // Set background based on theme
         const backgroundImage = theme === 'dark'
-            ? 'url(/asset/bg-dark.jpg)'
-            : 'url(/asset/bg-light16.jpg)';
+            ? 'url(asset/bg-dark.jpg)'
+            : 'url(asset/bg-light16.jpg)';
 
         // Only set background if the element exists
         if (document.body) {

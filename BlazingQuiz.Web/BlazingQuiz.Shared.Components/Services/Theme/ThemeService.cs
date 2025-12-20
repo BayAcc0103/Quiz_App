@@ -1,4 +1,5 @@
 using Microsoft.JSInterop;
+using BlazingQuiz.Shared;
 
 namespace BlazingQuiz.Web.Services.Theme;
 
@@ -11,14 +12,18 @@ public enum ThemeMode
 public class ThemeService
 {
     private readonly IJSRuntime _jsRuntime;
+    private readonly IPlatform _platform;
+    private readonly IStorageService? _storageService;
     private ThemeMode _currentTheme;
     public event Action? OnThemeChanged;
 
     public ThemeMode CurrentTheme => _currentTheme;
 
-    public ThemeService(IJSRuntime jsRuntime)
+    public ThemeService(IJSRuntime jsRuntime, IPlatform platform, IStorageService? storageService = null)
     {
         _jsRuntime = jsRuntime;
+        _platform = platform;
+        _storageService = storageService;
         _currentTheme = ThemeMode.Light; // default to light mode
     }
 
@@ -26,13 +31,31 @@ public class ThemeService
     {
         try
         {
-            var theme = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "theme");
+            string theme;
+            if (_platform.IsWeb)
+            {
+                // Web implementation
+                theme = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "theme");
+            }
+            else
+            {
+                // Mobile implementation - use local storage service
+                if (_storageService == null)
+                {
+                    // Fallback if storage service not provided
+                    _currentTheme = ThemeMode.Light;
+                    await ApplyThemeAsync(_currentTheme);
+                    return;
+                }
+                theme = await _storageService.GetItem("theme");
+            }
+
             _currentTheme = string.IsNullOrEmpty(theme) || theme == "light" ? ThemeMode.Light : ThemeMode.Dark;
             await ApplyThemeAsync(_currentTheme);
         }
         catch
         {
-            // If localStorage is not available, use default theme
+            // If storage is not available, use default theme
             _currentTheme = ThemeMode.Light;
             await ApplyThemeAsync(_currentTheme);
         }
@@ -42,7 +65,19 @@ public class ThemeService
     {
         _currentTheme = theme;
         await ApplyThemeAsync(theme);
-        await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "theme", theme.ToString().ToLower());
+
+        if (_platform.IsWeb)
+        {
+            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "theme", theme.ToString().ToLower());
+        }
+        else
+        {
+            if (_storageService != null)
+            {
+                await _storageService.SetItem("theme", theme.ToString().ToLower());
+            }
+        }
+
         OnThemeChanged?.Invoke();
     }
 
@@ -55,6 +90,7 @@ public class ThemeService
     private async Task ApplyThemeAsync(ThemeMode theme)
     {
         var themeString = theme == ThemeMode.Dark ? "dark" : "light";
+        // Use the same themeUtils function for both web and mobile
         await _jsRuntime.InvokeVoidAsync("themeUtils.setTheme", themeString);
     }
 }
