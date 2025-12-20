@@ -8,6 +8,7 @@
 @inject QuizAuthStateProvider QuizAuthStateProvider
 @inject NavigationManager NavigationManager
 @inject ProfileUpdateService ProfileUpdateService
+@inject IJSRuntime JSRuntime
 
 <div class="container">
     <div class="row justify-content-center">
@@ -59,24 +60,27 @@
                                                  class="rounded-circle avatar-centered"
                                                  style="width: 150px; height: 150px; object-fit: cover; border: 2px solid #dee2e6;" />
                                         }
+                                        <button type="button"
+                                                class="btn btn-primary avatar-add-btn rounded-circle position-absolute shadow-sm"
+                                                style="bottom: 0; right: 0; transform: translate(25%, 25%); width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 1rem; border: 2px solid white;"
+                                                @onclick="OpenAvatarFileDialog">
+                                            <span class="material-symbols-outlined">
+                                                add_photo_alternate
+                                            </span>
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="mt-2">
+                                <div class="mt-4">
                                     @if (!string.IsNullOrEmpty(_userDto.AvatarPath))
                                     {
                                         <button type="button" class="btn btn-3d btn-3d-secondary btn-sm" @onclick="RemoveAvatarAsync">Remove Avatar</button>
                                     }
                                 </div>
-                                <div class="file-upload-wrapper">
-                                    <FileUpload CurrentFile="@_selectedAvatarFile"
-                                                OnFileChanged="OnAvatarFileChanged"
-                                                MaxFileSize="5242880"
-                                                ShowProgress="true"
-                                                IsUploading="@_isUploading"
-                                                ProgressPercentage="@_uploadProgress"
-                                                UploadText="Drag & drop your avatar here"
-                                                UploadHint="or click to browse (JPG, PNG, GIF up to 5MB)" />
-                                </div>
+                                <!-- Hidden file input for avatar selection -->
+                                <InputFile id="avatarFileInput"
+                                           OnChange="@OnAvatarFileChanged"
+                                           style="display: none;"
+                                           accept="image/*" />
                             </div>
 
                             <!-- Profile Form -->
@@ -198,8 +202,9 @@
         }
     }
 
-    private async Task OnAvatarFileChanged(IBrowserFile? file)
+    private async Task OnAvatarFileChanged(InputFileChangeEventArgs e)
     {
+        var file = e.File;
         _selectedAvatarFile = file;
 
         // If a file is selected, automatically upload it
@@ -207,6 +212,11 @@
         {
             await UploadAvatarAsync(file);
         }
+    }
+
+    private async Task OpenAvatarFileDialog()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('avatarFileInput').click();");
     }
 
     private async Task UploadAvatarAsync(IBrowserFile file)
