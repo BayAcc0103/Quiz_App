@@ -11,13 +11,11 @@
             @if (QuizAuthStateProvider.IsLoggedIn)
             {
                 <div class="ms-auto d-flex align-items-center gap-3">
-                    <ThemeToggle />
                 </div>
             }
             else
             {
                 <div class="ms-auto d-flex align-items-center gap-3">
-                    <ThemeToggle />
                     <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
                 </div>
             }
@@ -28,10 +26,3 @@
         </article>
     </main>
 </div>
-@code{
-    private bool _menuOpen = false;
-    private void ToggleMenu()
-    {
-        _menuOpen = !_menuOpen;
-    }
-}

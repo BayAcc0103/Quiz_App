@@ -3,6 +3,7 @@
 @using BlazingQuiz.Shared.Components.Apis
 @using BlazingQuiz.Shared.Components.Services
 @using Microsoft.AspNetCore.Components.Authorization
+@using BlazingQuiz.Shared.Components.Components.Shared
 @inject QuizAuthStateProvider QuizAuthStateProvider
 @inject IAuthApi AuthApi
 @inject UserAvatarService UserAvatarService
@@ -177,6 +178,9 @@
     <AuthorizeView>
             <Authorized>
             <AuthorizeView Roles="@($"{nameof(UserRole.Student)},{nameof(UserRole.Teacher)}")" Context="adminContext">
+                    <div class="theme-toggle-section">
+                    <ThemeToggleMobile/>
+                    </div>
                 <div class="user-account">
                     <div class="user-profile">
                         @if (!string.IsNullOrEmpty(_userDto?.AvatarPath))
@@ -273,6 +277,7 @@
 <!-- Mobile top row with toggle button -->
 <div class="top-row navbar navbar-dark d-md-none">
     <div class="container-fluid">
+        <div class="d-flex align-items-center gap-3">
             <div class="user-profile">
                 @if (!string.IsNullOrEmpty(_userDto?.AvatarPath))
                 {
@@ -287,6 +292,8 @@
                          class="rounded-circle" />
                 }
             </div>
+            <ThemeToggle />
+        </div>
         <img src="asset/logo.png" alt="logo" class="logo-image" />
         <button title="Navigation menu" class="navbar-toggler raised-3d" @onclick="ToggleNavMenu">
             <span class="material-symbols-outlined">

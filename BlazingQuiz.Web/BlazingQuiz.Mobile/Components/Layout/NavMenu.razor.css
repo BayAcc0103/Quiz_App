@@ -202,9 +202,25 @@ body {
                 color: #000; /* icon màu đen cho đối lập với nền vàng */
             }
 
+/* THEME TOGGLE SECTION */
+.theme-toggle-section {
+    margin-top: 10px;
+    padding: 8px;
+    margin-left: -4px;
+    margin-right: -4px;
+    border-radius: 0 14px 14px 0; /* Only right side border-radius */
+    transition: all 0.25s ease;
+    background: linear-gradient( 135deg, rgba(237, 239, 0, 0.5), rgba(204, 255, 0, 0.3) );
+    box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3);
+    border: 2px solid #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 /* USER ACCOUNT – CARD 3D DƯỚI CÙNG */
 .user-account {
-    margin-top: auto;
+    margin-top: 10px;
     padding: 10px 8px;
     margin-left: -4px;
     margin-right: -4px;
@@ -316,6 +332,17 @@ body {
             height: 100%;
             position: relative;
             padding: 0 0.5rem; /* Add back padding inside the container */
+        }
+
+        .top-row .d-flex.align-items-center.gap-3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .top-row .theme-toggle-container {
+            width: auto;
+            min-width: 80px; /* Ensure the theme toggle has enough space */
         }
 
         .top-row .user-profile {

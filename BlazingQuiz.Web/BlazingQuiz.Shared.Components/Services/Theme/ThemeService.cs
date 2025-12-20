@@ -1,7 +1,7 @@
 using Microsoft.JSInterop;
 using BlazingQuiz.Shared;
 
-namespace BlazingQuiz.Web.Services.Theme;
+namespace BlazingQuiz.Shared.Components.Services.Theme;
 
 public enum ThemeMode
 {
