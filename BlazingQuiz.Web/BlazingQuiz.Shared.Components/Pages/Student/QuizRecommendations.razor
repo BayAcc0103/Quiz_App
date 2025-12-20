@@ -1,0 +1,792 @@
+﻿@page "/student/quiz-recommendations"
+@using BlazingQuiz.Shared
+@using BlazingQuiz.Shared.DTOs
+@using BlazingQuiz.Shared.Components.Components
+@using BlazingQuiz.Shared.Components.Apis
+@using System.Text.Json.Serialization;
+@inject IAppState AppState
+@inject HttpClient HttpClient
+@inject IQuizApi QuizApi
+@inject IStudentQuizApi StudentQuizApi
+@inject IBookmarkApi BookmarkApi
+@inject QuizAuthStateProvider QuizAuthStateProvider
+@inject NavigationManager NavigationManager
+@inject QuizState QuizState
+@inject QuizImageService QuizImageService
+
+<link href="~/Pages/Student/QuizRecommendations.razor.css" rel="stylesheet" />
+
+<div class="container-fluid quiz-recommendations-container">
+    <div class="row">
+        <div class="col-12">
+            <h3>Recommended Quizzes for You</h3>
+            <p class="text-muted">Based on your quiz performance and preferences</p>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <Loader />
+    }
+    else if (_hasError)
+    {
+        @if (_hasPythonServiceError)
+        {
+            <div class="alert alert-warning">
+                <h4>Recommendation Service Not Available</h4>
+                <p>The AI recommendation service is currently not running.</p>
+                <p>You can still browse quizzes based on your previous activity and popular choices.</p>
+                <div class="mt-3">
+                    <button class="btn btn-primary me-2" @onclick="GoToMyQuizzes">
+                        Browse My Quizzes
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick="GoToPopularQuizzes">
+                        Browse Popular Quizzes
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-danger">
+                <h4>Error</h4>
+                <p>Unable to load quiz recommendations. Please try again later.</p>
+                <button class="btn btn-primary" @onclick="LoadRecommendations">Retry</button>
+            </div>
+        }
+    }
+    else if (_recommendations?.Any() != true)
+    {
+        <div class="alert alert-info">
+            <h4>No Recommendations Available</h4>
+            <p>Complete more quizzes to receive personalized recommendations.</p>
+            <p>The recommendation system analyzes your quiz performance and preferences to suggest relevant quizzes.</p>
+            <button class="btn btn-primary" @onclick="GoToMyQuizzes">Browse All Quizzes</button>
+        </div>
+    }
+    else
+    {
+        <!-- Analysis Summary Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card analysis-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Your Performance Analysis</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center p-3">
+                                    <div class="display-4 text-primary">@_analysisStats.HighestRatedCategory</div>
+                                    <p class="text-muted">Favorite Category</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3">
+                                    <div class="display-4 text-success">@_analysisStats.AverageRating.ToString("F1")</div>
+                                    <p class="text-muted">Avg. Predicted Rating</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3">
+                                    <div class="display-4 text-info">@_analysisStats.RecommendedCount</div>
+                                    <p class="text-muted">Recommended Quizzes</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations Section -->
+        @if (_recommendations?.Any() == true)
+        {
+            <h4>Recommended For You</h4>
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+                @foreach (var recommendation in _recommendations)
+                {
+                    var quiz = GetQuizByRecommendationId(recommendation.QuizId);
+                    if (quiz != null)
+                    {
+                        <div class="col">
+                            <div class="quiz-card-3d position-relative h-100">
+                                <!-- Quiz level badge -->
+                                <div class="level-badge position-absolute top-0 start-0 m-3">
+                                    <span class="badge badge-@(quiz.Level?.ToLower() == "easy" ? "success" : quiz.Level?.ToLower() == "medium" ? "warning" : "danger")">
+                                        @quiz.Level
+                                    </span>
+                                </div>
+
+                                <!-- Bookmark button -->
+                                <button type="button"
+                                        class="btn btn-bookmark @(IsBookmarked(quiz.Id) ? "bookmarked" : "")"
+                                        @onclick="() => ToggleBookmarkAsync(quiz)"
+                                        title="@(IsBookmarked(quiz.Id) ? "Remove bookmark" : "Add to bookmarks")">
+
+                                    <span class="material-symbols-outlined @(IsBookmarked(quiz.Id) ? "text-warning" : "text-muted")">
+                                        @(IsBookmarked(quiz.Id) ? "bookmark" : "bookmark_add")
+                                    </span>
+                                </button>
+
+                                <!-- Quiz image -->
+                                @if (!string.IsNullOrEmpty(quiz.ImagePath))
+                                {
+                                    <div class="quiz-image-container">
+                                        <img src="@QuizImageService.GetImageUrl(quiz.ImagePath)" alt="@quiz.Name" class="quiz-image" />
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="quiz-image quiz-image-placeholder d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-journal-text fs-1 text-white"></i>
+                                    </div>
+                                }
+
+                                <!-- Quiz content -->
+                                <div class="quiz-content p-3">
+                                    <h5 class="fw-bold mb-3 text-truncate" title="@quiz.Name">@quiz.Name</h5>
+
+                                    <!-- Quiz statistics -->
+                                    <div class="quiz-stats d-flex justify-content-between mt-auto">
+                                        <div class="stat-item d-flex flex-column align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <span class="material-symbols-outlined me-1" style="font-size: 16px;">
+                                                    @if (quiz.AverageRating.HasValue && quiz.AverageRating.Value > 0)
+                                                    {
+                                                        @:star
+                                                    }
+                                                    else
+                                                    {
+                                                        @:star_outline
+                                                    }
+                                                </span>
+                                                @if (quiz.AverageRating.HasValue)
+                                                {
+                                                    <span class="stat-value fw-bold">@quiz.AverageRating.Value.ToString("F1")</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="stat-value fw-bold text-muted">0</span>
+                                                }
+                                            </div>
+                                            <small class="stat-label text-muted">Rating</small>
+                                        </div>
+                                        <div class="stat-item d-flex flex-column align-items-center">
+                                            <div class="d-flex align-items-center mb-1">
+                                                @if (!string.IsNullOrEmpty(quiz.CreatedByAvatarPath))
+                                                {
+                                                    <img src="@QuizImageService.GetImageUrl(quiz.CreatedByAvatarPath)"
+                                                         alt="@quiz.CreatedByName's avatar"
+                                                         class="rounded-circle me-2"
+                                                         style="width: 24px; height: 24px; object-fit: cover;"
+                                                         title="@quiz.CreatedByName" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="rounded-circle me-2 d-flex align-items-center justify-content-center bg-secondary text-white"
+                                                         style="width: 24px; height: 24px; font-size: 10px;"
+                                                         title="@quiz.CreatedByName">
+                                                        @quiz.CreatedByName?.FirstOrDefault().ToString().ToUpper()
+                                                    </div>
+                                                }
+                                                <span class="stat-value fw-bold small">@quiz.CreatedByName</span>
+                                            </div>
+                                            <small class="stat-label text-muted">Creator</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Action buttons -->
+                                <div class="card-button-overlay">
+                                    <div class="quiz-actions-section d-flex gap-1">
+                                        <button type="button"
+                                                class="btn btn-3d btn-3d-info btn-sm flex-fill"
+                                                @onclick="() => ShowQuizTypeSelection(quiz)">
+                                            Start Quiz
+                                        </button>
+                                        <a href="student/createroom?quizId=@quiz.Id" class="btn btn-3d btn-3d-primary btn-sm flex-fill">
+                                            Create Room
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-3d btn-3d-success btn-sm flex-fill"
+                                                @onclick="() => ShowQuizDetails(quiz.Id)">
+                                            View Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        // Try to show what we have even if quiz details are not fully loaded
+                        <div class="col">
+                            <div class="quiz-card-3d position-relative h-100">
+                                <div class="level-badge position-absolute top-0 start-0 m-3">
+                                    <span class="badge bg-secondary">Loading...</span>
+                                </div>
+
+                                <div class="quiz-image quiz-image-placeholder d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-journal-text fs-1 text-white"></i>
+                                </div>
+
+                                <div class="quiz-content p-3">
+                                    <h5 class="fw-bold mb-3 text-truncate">Quiz ID: @recommendation.QuizId</h5>
+                                    <div class="quiz-stats d-flex justify-content-between mt-auto">
+                                        <div class="stat-item d-flex flex-column align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <span class="material-symbols-outlined me-1" style="font-size: 16px;">
+                                                    star
+                                                </span>
+                                                <span class="stat-value fw-bold">@recommendation.PredictedRating.ToString("F1")</span>
+                                            </div>
+                                            <small class="stat-label text-muted">Predicted Rating</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card-button-overlay">
+                                    <div class="quiz-actions-section d-flex gap-1">
+                                        <button type="button"
+                                                class="btn btn-3d btn-3d-info btn-sm flex-fill"
+                                                @onclick="() => StartQuizFromIdString(recommendation.QuizId)"
+                                                disabled>
+                                            Start Quiz
+                                        </button>
+                                        <a href="#" class="btn btn-3d btn-3d-primary btn-sm flex-fill" @onclick="() => RedirectToCreateRoom(recommendation.QuizId)" preventDefault>
+                                            Create Room
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-3d btn-3d-success btn-sm flex-fill"
+                                                disabled>
+                                            View Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<PythonRecommendation> _recommendations = new();
+    private List<QuizListDto> _allAvailableQuizzes = new();
+    private bool _isLoading = true;
+    private bool _hasError = false;
+    private bool _hasPythonServiceError = false;
+    private Dictionary<Guid, bool> _bookmarkedQuizes = new();
+
+    // Analysis statistics
+    private AnalysisStats _analysisStats = new AnalysisStats();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRecommendations();
+    }
+
+    private async Task LoadRecommendations()
+    {
+        _isLoading = true;
+        _hasError = false;
+
+        try
+        {
+            AppState.ShowLoader("Loading recommendations from AI service...");
+
+            var userId = QuizAuthStateProvider.User?.Id;
+            if (userId.HasValue)
+            {
+                // First, load all available quizzes to have them cached
+                var allQuizzesResult = await StudentQuizApi.GetActiveQuizesAsync(0); // 0 means all categories
+                _allAvailableQuizzes = allQuizzesResult?.ToList() ?? new List<QuizListDto>();
+
+                // Call the Python service API to get recommendations
+                string apiUrl = string.Format("http://localhost:5000/api/recommendations/{0}?n=10", userId.Value);
+                var response = await HttpClient.GetAsync(apiUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var options = new System.Text.Json.JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        };
+                    var pythonResponse = System.Text.Json.JsonSerializer.Deserialize<PythonRecommendationResponse>(content, options);
+
+                    if (pythonResponse?.Recommendations != null)
+                    {
+                        _recommendations = pythonResponse.Recommendations;
+
+                        // Calculate analysis statistics
+                        CalculateAnalysisStats();
+
+                        // Load bookmark status for each quiz
+                        await LoadBookmarkStatusAsync();
+                    }
+                    else
+                    {
+                        _hasError = true;
+                    }
+                }
+                else
+                {
+                    _hasError = true;
+                }
+            }
+            else
+            {
+                _hasError = true;
+            }
+        }
+        catch (System.Net.Http.HttpRequestException ex)
+        {
+            _hasError = true;
+            _hasPythonServiceError = true;
+            Console.WriteLine($"Python recommendation service not available: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            _hasError = true;
+            Console.WriteLine($"Error loading recommendations from Python service: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+            AppState.HideLoader();
+        }
+    }
+
+    private async Task LoadBookmarkStatusAsync()
+    {
+        if (!QuizAuthStateProvider.IsLoggedIn)
+        {
+            return;
+        }
+
+        _bookmarkedQuizes.Clear();
+        foreach (var quiz in _allAvailableQuizzes)
+        {
+            var result = await BookmarkApi.IsBookmarkedAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = result.Data;
+            }
+        }
+    }
+
+    private QuizListDto? GetQuizByRecommendationId(string quizId)
+    {
+        if (Guid.TryParse(quizId, out Guid parsedQuizId))
+        {
+            return _allAvailableQuizzes.FirstOrDefault(q => q.Id == parsedQuizId);
+        }
+        return null;
+    }
+
+    private void CalculateAnalysisStats()
+    {
+        if (_recommendations?.Any() != true)
+        {
+            _analysisStats = new AnalysisStats();
+            return;
+        }
+
+        // Calculate average predicted rating
+        var avgRating = _recommendations.Average(r => r.PredictedRating);
+
+        // Count of recommendations
+        var recommendationCount = _recommendations.Count;
+
+        // Find most common category (would need to get from Python response or fetch separately)
+        var highestRatedCategory = "Mixed Topics"; // Placeholder
+
+        _analysisStats = new AnalysisStats
+            {
+                AverageRating = avgRating,
+                RecommendedCount = recommendationCount,
+                HighestRatedCategory = highestRatedCategory
+            };
+    }
+
+    private async Task StartQuiz(Guid quizId)
+    {
+        // Get quiz details to pass to QuizState
+        var quizResult = await QuizApi.GetQuizByIdAsync(quizId.ToString());
+        if (quizResult.IsSuccessStatusCode && quizResult.Content != null)
+        {
+            var quizDetails = new QuizListDto
+                {
+                    Id = quizId,
+                    Name = quizResult.Content.Name,
+                    Description = quizResult.Content.Description,
+                    ImagePath = quizResult.Content.ImagePath,
+                    Level = quizResult.Content.Level,
+                    TimeInMinutes = quizResult.Content.TimeInMinutes,
+                    TotalQuestions = quizResult.Content.TotalQuestions,
+                    CategoryId = quizResult.Content.CategoryId,
+                    CategoryName = quizResult.Content.CategoryName,
+                    CreatedByName = quizResult.Content.CreatedByName,
+                    CreatedByAvatarPath = quizResult.Content.CreatedByAvatarPath,
+                    AverageRating = quizResult.Content.RecentRatings?.Any() == true ?
+                        quizResult.Content.RecentRatings.Average(r => Convert.ToDouble(r.Score)) : null
+                };
+
+            // Start the quiz via the API
+            var startResult = await StudentQuizApi.StartQuizAsync(quizId);
+            if (startResult.IsSuccess)
+            {
+                int studentQuizId = startResult.Data;
+                QuizState.StartQuiz(quizDetails, studentQuizId);
+                NavigationManager.NavigateTo("student/quiz");
+            }
+            else
+            {
+                NavigationManager.NavigateTo($"/student/quiz/{quizId}");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo($"/student/quiz/{quizId}");
+        }
+    }
+
+    private async Task StartQuizFromIdString(string quizIdString)
+    {
+        if (Guid.TryParse(quizIdString, out Guid quizId))
+        {
+            await StartQuiz(quizId);
+        }
+    }
+
+    private async Task RedirectToCreateRoom(string quizIdString)
+    {
+        if (Guid.TryParse(quizIdString, out Guid quizId))
+        {
+            NavigationManager.NavigateTo($"student/createroom?quizId={quizId}");
+        }
+    }
+
+    private void GoToMyQuizzes()
+    {
+        NavigationManager.NavigateTo("/student/my-quizes");
+    }
+
+    private void GoToPopularQuizzes()
+    {
+        NavigationManager.NavigateTo("/student/popular-quizes");
+    }
+
+    // For quiz details bottom sheet
+    private bool _showQuizDetails = false;
+    private QuizDetailsDto? _quizDetails;
+    private bool _loadingDetails = false;
+
+    private async Task ShowQuizDetails(string quizIdString)
+    {
+        if (Guid.TryParse(quizIdString, out Guid quizId))
+        {
+            await ShowQuizDetails(quizId);
+        }
+    }
+
+    private async Task ShowQuizDetails(Guid quizId)
+    {
+        _loadingDetails = true;
+        _quizDetails = null;
+        _showQuizDetails = true;
+
+        try
+        {
+            var response = await StudentQuizApi.GetQuizDetailsAsync(quizId);
+            if (response.IsSuccess && response.Data != null)
+            {
+                _quizDetails = response.Data;
+            }
+            else
+            {
+                AppState.ShowError(response.ErrorMessage ?? "Failed to load quiz details");
+                _showQuizDetails = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading quiz details: {ex.Message}");
+            _showQuizDetails = false;
+        }
+        finally
+        {
+            _loadingDetails = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnBottomSheetVisibilityChanged(bool isVisible)
+    {
+        _showQuizDetails = isVisible;
+        StateHasChanged();
+    }
+
+    private string GetRatingIcon(string? rating)
+    {
+        if (string.IsNullOrEmpty(rating)) return "😐";
+
+        return rating?.ToLower().Trim() switch
+        {
+            "very bad" => "😞",
+            "bad" => "😟",
+            "normal" => "😐",
+            "good" => "😄",
+            "very good" => "😁",
+            _ => "😐" // Default to neutral face for unknown ratings
+        };
+    }
+
+    private string GetRatingDisplayText(string? rating)
+    {
+        if (string.IsNullOrEmpty(rating)) return "";
+
+        return rating?.ToLower().Trim() switch
+        {
+            "very bad" => "Very Bad",
+            "bad" => "Bad",
+            "normal" => "Normal",
+            "good" => "Good",
+            "very good" => "Very Good",
+            _ => rating ?? "" // Default to original value for unknown ratings
+        };
+    }
+
+    private async Task ShowQuizTypeSelection(QuizListDto quiz)
+    {
+        AppState.ShowLoader("Preparing the quiz...");
+        try
+        {
+            QuizApiResponse<int> response = await StudentQuizApi.StartQuizAsync(quiz.Id);
+            if (!response.IsSuccess)
+            {
+                // Show error alert
+                return;
+            }
+            int studentQuizId = response.Data;
+
+            QuizState.StartQuiz(quiz, studentQuizId);
+
+            // Navigate to the default quiz type (MCQ)
+            NavigationManager.NavigateTo("student/quiz");
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError(ex.Message);
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private async Task ToggleBookmarkAsync(QuizListDto quiz)
+    {
+        if (!QuizAuthStateProvider.IsLoggedIn)
+        {
+            NavigationManager.NavigateTo("auth/login");
+            return;
+        }
+
+        var isBookmarked = _bookmarkedQuizes.ContainsKey(quiz.Id) && _bookmarkedQuizes[quiz.Id];
+
+        if (isBookmarked)
+        {
+            // Remove bookmark
+            var result = await BookmarkApi.RemoveBookmarkAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = false;
+            }
+        }
+        else
+        {
+            // Add bookmark
+            var bookmarkDto = new QuizBookmarkDto
+                {
+                    UserId = QuizAuthStateProvider.User.Id,
+                    QuizId = quiz.Id,
+                    QuizName = quiz.Name,
+                    CategoryName = quiz.CategoryName
+                };
+
+            var result = await BookmarkApi.AddBookmarkAsync(bookmarkDto);
+            if (result.IsSuccess)
+            {
+                _bookmarkedQuizes[quiz.Id] = true;
+            }
+        }
+        StateHasChanged();
+    }
+
+    private bool IsBookmarked(Guid quizId)
+    {
+        return _bookmarkedQuizes.ContainsKey(quizId) && _bookmarkedQuizes[quizId];
+    }
+
+    public class PythonRecommendationResponse
+    {
+        public int UserId { get; set; }
+        public List<PythonRecommendation> Recommendations { get; set; } = new();
+        public string Timestamp { get; set; } = string.Empty;
+    }
+
+    public class PythonRecommendation
+    {
+        [JsonPropertyName("quiz_id")]
+        public string QuizId { get; set; } = string.Empty;
+
+        [JsonPropertyName("predicted_rating")]
+        public double PredictedRating { get; set; }
+
+        [JsonPropertyName("similar_rated_quiz_ids")]
+        public List<SimilarRatedQuiz>? SimilarRatedQuizIds { get; set; }
+
+        public QuizDetailsDto? QuizDetails { get; set; }
+    }
+
+    public class SimilarRatedQuiz
+    {
+        [JsonPropertyName("quiz_id")]
+        public string QuizId { get; set; } = string.Empty;
+
+        [JsonPropertyName("similarity")]
+        public double Similarity { get; set; }
+    }
+
+    public class AnalysisStats
+    {
+        public double AverageRating { get; set; } = 0.0;
+        public int RecommendedCount { get; set; } = 0;
+        public string HighestRatedCategory { get; set; } = "Mixed Topics";
+    }
+}
+
+@if (_showQuizDetails)
+{
+    <BottomSheet IsOpen="@_showQuizDetails" Title="Quiz Details" IsOpenChanged="OnBottomSheetVisibilityChanged" OnCancelClick="() => _showQuizDetails = false" ShowFooter="false">
+        @if (_quizDetails != null)
+        {
+            <div class="quiz-details-content" style="max-height: 60vh; overflow-y: auto;">
+                <div class="quiz-info">
+                    <h5 class="fw-bold">@_quizDetails.Name</h5>
+                    @if (!string.IsNullOrEmpty(_quizDetails.Description))
+                    {
+                        <p><strong>Description:</strong> @_quizDetails.Description</p>
+                    }
+                    else
+                    {
+                        <p><em>No description provided</em></p>
+                    }
+
+                    <!-- Info boxes row -->
+                    <div class="row mb-3 mx-0">
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="info-box p-2 border rounded text-center">
+                                <strong>Created By</strong><br>
+                                <small>
+                                    @if (!string.IsNullOrEmpty(_quizDetails.CreatedByAvatarPath))
+                                    {
+                                        <img src="@QuizImageService.GetImageUrl(_quizDetails.CreatedByAvatarPath)"
+                                             alt="Avatar"
+                                             class="rounded-circle me-1"
+                                             style="width: 20px; height: 20px; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="rounded-circle me-1 d-inline-flex align-items-center justify-content-center bg-secondary text-white"
+                                             style="width: 20px; height: 20px; font-size: 10px;">
+                                            @_quizDetails.CreatedByName?.FirstOrDefault().ToString().ToUpper()
+                                        </div>
+                                    }
+                                    @_quizDetails.CreatedByName
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="info-box p-2 border rounded text-center">
+                                <strong>Questions</strong><br>
+                                <small>@_quizDetails.TotalQuestions</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="info-box p-2 border rounded text-center">
+                                <strong>Level</strong><br>
+                                <small>@(_quizDetails.Level ?? "Not specified")</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="info-box p-2 border rounded text-center">
+                                <strong>Time</strong><br>
+                                <small>@_quizDetails.TimeInMinutes minutes</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category section -->
+                    <div class="category-section mb-3">
+                        <h6><strong>Category</strong></h6>
+                        @if (_quizDetails.AllCategoryNames != null && _quizDetails.AllCategoryNames.Any())
+                        {
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var category in _quizDetails.AllCategoryNames)
+                                {
+                                    <span class="badge bg-primary">@category</span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p>No categories assigned</p>
+                        }
+                    </div>
+
+                    @if (_quizDetails.RecentRatings.Any())
+                    {
+                        <div class="recent-feedback mt-3">
+                            <h6>Recent Ratings</h6>
+                            @{
+                                // Sort ratings by date and take top 3
+                                var sortedRatings = _quizDetails.RecentRatings
+                                .OrderByDescending(f => f.CreatedOn)
+                                .Take(3)
+                                .ToList();
+                            }
+
+                            <div class="feedback-list">
+                                @foreach (var rating in sortedRatings)
+                                {
+                                    <div class="feedback-item p-3 mb-2 border rounded">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <strong>@rating.StudentName</strong>
+                                            @if (!string.IsNullOrEmpty(rating.Score))
+                                            {
+                                                <span class="badge bg-primary">@GetRatingIcon(rating.Score) @GetRatingDisplayText(rating.Score)</span>
+                                            }
+                                        </div>
+                                        <small class="text-muted">@rating.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else if (_loadingDetails)
+        {
+            <div class="text-center">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+    </BottomSheet>
+}
