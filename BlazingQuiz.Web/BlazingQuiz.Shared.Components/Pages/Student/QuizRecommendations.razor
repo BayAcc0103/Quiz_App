@@ -304,36 +304,62 @@
                 _allAvailableQuizzes = allQuizzesResult?.ToList() ?? new List<QuizListDto>();
 
                 // Call the Python service API to get recommendations
-                string apiUrl = string.Format("http://localhost:5000/api/recommendations/{0}?n=10", userId.Value);
+                string apiUrl = string.Format("https://4p2h4grz-5000.asse.devtunnels.ms/api/recommendations/{0}?n=10", userId.Value);
                 var response = await HttpClient.GetAsync(apiUrl);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var options = new System.Text.Json.JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        };
-                    var pythonResponse = System.Text.Json.JsonSerializer.Deserialize<PythonRecommendationResponse>(content, options);
 
-                    if (pythonResponse?.Recommendations != null)
+                    // Check if the response is valid JSON before deserializing
+                    // This handles cases where the Python service returns HTML error pages
+                    if (!string.IsNullOrEmpty(content) && content.TrimStart().StartsWith("<"))
                     {
-                        _recommendations = pythonResponse.Recommendations;
-
-                        // Calculate analysis statistics
-                        CalculateAnalysisStats();
-
-                        // Load bookmark status for each quiz
-                        await LoadBookmarkStatusAsync();
+                        // This is an HTML response (likely an error page), not JSON
+                        _hasError = true;
+                        _hasPythonServiceError = true;
+                        Console.WriteLine($"Python service returned HTML instead of JSON: {content.Substring(0, Math.Min(200, content.Length))}...");
                     }
                     else
                     {
-                        _hasError = true;
+                        var options = new System.Text.Json.JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        };
+
+                        try
+                        {
+                            var pythonResponse = System.Text.Json.JsonSerializer.Deserialize<PythonRecommendationResponse>(content, options);
+
+                            if (pythonResponse?.Recommendations != null)
+                            {
+                                _recommendations = pythonResponse.Recommendations;
+
+                                // Calculate analysis statistics
+                                CalculateAnalysisStats();
+
+                                // Load bookmark status for each quiz
+                                await LoadBookmarkStatusAsync();
+                            }
+                            else
+                            {
+                                _hasError = true;
+                            }
+                        }
+                        catch (System.Text.Json.JsonException ex)
+                        {
+                            _hasError = true;
+                            _hasPythonServiceError = true;
+                            Console.WriteLine($"Error deserializing JSON response from Python service: {ex.Message}");
+                            Console.WriteLine($"Response content: {content}");
+                        }
                     }
                 }
                 else
                 {
                     _hasError = true;
+                    _hasPythonServiceError = true;
+                    Console.WriteLine($"HTTP error from Python service: {response.StatusCode}");
                 }
             }
             else
