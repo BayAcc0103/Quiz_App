@@ -66,26 +66,36 @@
 
                 google.accounts.id.initialize({
                     client_id: "359773753837-b8869mrinifr1lb42mknpu0ieosrlcjp.apps.googleusercontent.com",
-                    callback: handleGoogleCredentialResponse
+                    callback: handleGoogleCredentialResponse,
+                    auto_select: false,
+                    cancel_on_tap_outside: true
                 });
 
-                // Create a temporary button for login
-                const buttonDiv = document.createElement('div');
-                buttonDiv.id = 'google-signin-button';
-                document.body.appendChild(buttonDiv);
+                // Show the Google account picker directly
+                google.accounts.id.prompt(notification => {
+                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                        // If the prompt is not displayed, fall back to the button method
+                        // Create a temporary button for login
+                        const buttonDiv = document.createElement('div');
+                        buttonDiv.id = 'google-signin-button';
+                        buttonDiv.style.position = 'absolute';
+                        buttonDiv.style.left = '-9999px'; // Hide the button off-screen
+                        document.body.appendChild(buttonDiv);
 
-                google.accounts.id.renderButton(
-                    document.getElementById('google-signin-button'),
-                    { theme: 'outline', size: 'large' }
-                );
+                        google.accounts.id.renderButton(
+                            document.getElementById('google-signin-button'),
+                            { theme: 'outline', size: 'large' }
+                        );
 
-                // Trigger the button click programmatically to show the Google login prompt
-                setTimeout(() => {
-                    const button = document.querySelector('#google-signin-button > iframe');
-                    if (button) {
-                        button.click(); // Trigger the button click to show Google login
+                        // Trigger the button click programmatically to show the Google login prompt
+                        setTimeout(() => {
+                            const button = document.querySelector('#google-signin-button > iframe');
+                            if (button) {
+                                button.click(); // Trigger the button click to show Google login
+                            }
+                        }, 300);
                     }
-                }, 500);
+                });
 
                 resolve();
             } catch (error) {
