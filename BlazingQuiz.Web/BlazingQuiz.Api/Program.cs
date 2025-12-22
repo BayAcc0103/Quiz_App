@@ -120,7 +120,8 @@ builder.Services.AddTransient<AuthService>()
                 .AddTransient<IAudioUploadService, AudioUploadService>()
                 .AddTransient<PasswordResetService>()
                 .AddTransient<OtpService>()
-                .AddTransient<GmailOtpService>();
+                .AddTransient<GmailOtpService>()
+                .AddTransient<GoogleAuthService>();
 
 // Add SignalR
 builder.Services.AddSignalR();

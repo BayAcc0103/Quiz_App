@@ -29,5 +29,8 @@ namespace BlazingQuiz.Shared.Components.Apis
 
         [Post("/api/auth/verify-otp")]
         Task<QuizApiResponse> VerifyOtpAsync(VerifyOtpDto dto);
+
+        [Post("/api/auth/google-login")]
+        Task<AuthResponseDto> GoogleLoginAsync(GoogleLoginDto dto);
     }
 }

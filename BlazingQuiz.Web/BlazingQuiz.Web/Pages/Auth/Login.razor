@@ -1,10 +1,12 @@
 @page "/auth/login"
 @layout EmptyLayout
 @using BlazingQuiz.Web.Apis
+@using BlazingQuiz.Shared.DTOs
 @inject NavigationManager NavigationManager
 @inject IAuthApi AuthApi
 @inject IAppState AppState
 @inject QuizAuthStateProvider QuizAuthStateProvider
+@inject IJSRuntime JSRuntime
 
 <div class="container">
     <div class="row justify-content-center">
@@ -100,6 +102,15 @@
                                     </button>
                                 }
                             </div>
+                            <div class="d-grid gap-2">
+                                <div class="d-flex flex-column align-items-center">
+                                    <div class="divider-text">or</div>
+                                    <button type="button" class="btn btn-3d btn-3d-outline-google" @onclick="GoogleLoginAsync">
+                                        <i class="fab fa-google me-2"></i>
+                                        <span>Login with Google</span>
+                                    </button>
+                                </div>
+                            </div>
                         </EditForm>
                     </div>
                     <!-- ReadyQuiz Image Container -->
@@ -185,4 +196,79 @@
 
         NavigationManager.NavigateTo(redirectTo, replace);
     }
+
+    private async Task GoogleLoginAsync()
+    {
+        try
+        {
+            AppState.ShowLoader("Logging in with Google...");
+            // Load Google SDK and initiate login
+            await JSRuntime.InvokeVoidAsync("loadGoogleSDK");
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    // Instance method that will be called by the static method
+    private async Task ProcessGoogleTokenInstance(string idToken)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(_model.Role.ToString()))
+            {
+                _errorMessage = "Please select a role before logging in with Google";
+                return;
+            }
+
+            var googleLoginDto = new GoogleLoginDto
+            {
+                GoogleIdToken = idToken,
+                Role = _model.Role.ToString()
+            };
+
+            AppState.ShowLoader("Verifying Google token...");
+            var authResponse = await AuthApi.GoogleLoginAsync(googleLoginDto);
+
+            if (authResponse.HasError)
+            {
+                _errorMessage = authResponse.ErrorMessage;
+                return;
+            }
+
+            // Set the token in the local storage
+            var loggedInUser = authResponse.User;
+            await QuizAuthStateProvider.SetLoginAsync(loggedInUser);
+            RedirectToHome();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Register this instance with JSInterop
+            await JSRuntime.InvokeVoidAsync("registerLoginComponent", DotNetObjectReference.Create(this));
+        }
+    }
+
+    [JSInvokable]
+    public async Task HandleGoogleToken(string idToken)
+    {
+        await ProcessGoogleTokenInstance(idToken);
+    }
+}
 }

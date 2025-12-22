@@ -1,9 +1,11 @@
 using BlazingQuiz.Api.Data;
 using BlazingQuiz.Api.Data.Entities;
 using BlazingQuiz.Api.Services;
+using BlazingQuiz.Shared;
 using BlazingQuiz.Shared.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace BlazingQuiz.Api.Endpoints
@@ -110,7 +112,62 @@ namespace BlazingQuiz.Api.Endpoints
                 }
             });
 
-            return app;       
+            app.MapPost("/api/auth/google-login", async (GoogleLoginDto dto, GoogleAuthService googleAuthService, AuthService authService, QuizContext context, IPasswordHasher<User> passwordHasher) =>
+            {
+                try
+                {
+                    // Verify the Google ID token
+                    var googlePayload = await googleAuthService.VerifyGoogleTokenAsync(dto.GoogleIdToken);
+
+                    // Find or create user based on Google email
+                    var user = await context.Users.FirstOrDefaultAsync(u => u.Email == googlePayload.Email);
+
+                    if (user == null)
+                    {
+                        // Create new user
+                        user = new User
+                        {
+                            Name = googlePayload.Name ?? googlePayload.GivenName + " " + googlePayload.FamilyName,
+                            Email = googlePayload.Email,
+                            Phone = "",
+                            Role = dto.Role,
+                            IsApproved = true, // Google authenticated users are automatically approved
+                            AvatarPath = googlePayload.Picture // Store Google profile picture URL
+                        };
+                        user.PasswordHash = passwordHasher.HashPassword(user, Guid.NewGuid().ToString()); // Generate a random password
+                        context.Users.Add(user);
+                        await context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        // Update user info if needed
+                        user.Name = googlePayload.Name ?? googlePayload.GivenName + " " + googlePayload.FamilyName;
+                        user.AvatarPath = googlePayload.Picture;
+                        user.Role = dto.Role; // Update role if needed
+                        await context.SaveChangesAsync();
+                    }
+
+                    // Generate JWT token
+                    var jwt = authService.GenerateJwtToken(user);
+
+                    var loggedInUser = new LoggedInUser(user.Id, user.Name, user.Email, user.Role, jwt, user.AvatarPath)
+                    {
+                        FullName = user.Name
+                    };
+
+                    return Results.Ok(new AuthResponseDto(loggedInUser));
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    return Results.Unauthorized();
+                }
+                catch (Exception ex)
+                {
+                    return Results.Problem($"An error occurred during Google login: {ex.Message}");
+                }
+            });
+
+            return app;
         }
     }
 }

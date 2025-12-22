@@ -37,9 +37,111 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="js/theme.js"></script>
+    <script>
+        window.loadGoogleSDK = () => {
+            return new Promise((resolve, reject) => {
+                // Initialize Google Identity Services
+                if (window.google) {
+                    initGoogleLogin(resolve, reject);
+                } else {
+                    // Wait for Google SDK to load
+                    window.addEventListener('google-loaded', () => {
+                        initGoogleLogin(resolve, reject);
+                    });
+                }
+            });
+        };
+
+        function initGoogleLogin(resolve, reject) {
+            try {
+                // Clean up any existing button first
+                const existingButton = document.getElementById('google-signin-button');
+                if (existingButton) {
+                    existingButton.remove();
+                }
+
+                google.accounts.id.initialize({
+                    client_id: "359773753837-b8869mrinifr1lb42mknpu0ieosrlcjp.apps.googleusercontent.com",
+                    callback: handleGoogleCredentialResponse
+                });
+
+                // Create a temporary button for login
+                const buttonDiv = document.createElement('div');
+                buttonDiv.id = 'google-signin-button';
+                document.body.appendChild(buttonDiv);
+
+                google.accounts.id.renderButton(
+                    document.getElementById('google-signin-button'),
+                    { theme: 'outline', size: 'large' }
+                );
+
+                // Trigger the button click programmatically to show the Google login prompt
+                setTimeout(() => {
+                    const button = document.querySelector('#google-signin-button > iframe');
+                    if (button) {
+                        button.click(); // Trigger the button click to show Google login
+                    }
+                }, 500);
+
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        }
+
+        function handleGoogleCredentialResponse(response) {
+            // Store the token in a global variable that can be accessed by Blazor
+            window.googleToken = response.credential;
+
+            // Try to call the registered login component
+            if (window.loginComponent) {
+                window.loginComponent.invokeMethodAsync('HandleGoogleToken', response.credential)
+                    .then(result => {
+                        console.log('Google login successful:', result);
+                    })
+                    .catch(error => {
+                        console.error('Google login error (component call):', error);
+                    });
+            } else {
+                console.error('Login component not registered. Blazor component may not be loaded yet.');
+                // Alternative: try to invoke directly if Blazor is available
+                if (window.DotNet) {
+                    DotNet.invokeMethodAsync('BlazingQuiz.Web', 'ProcessGoogleToken', response.credential)
+                        .then(result => {
+                            console.log('Google login successful:', result);
+                        })
+                        .catch(error => {
+                            console.error('Google login error (direct call):', error);
+                        });
+                }
+            }
+
+            // Clean up the temporary button
+            const buttonDiv = document.getElementById('google-signin-button');
+            if (buttonDiv) {
+                buttonDiv.remove();
+            }
+        }
+
+        // Add a global function to handle the token from Blazor
+        window.processGoogleToken = (token) => {
+            // This will be called from Blazor to handle the token
+            const response = { credential: token };
+            handleGoogleCredentialResponse(response);
+        };
+
+        // Global variable to store the login component reference
+        window.loginComponent = null;
+
+        // Function to register the login component
+        window.registerLoginComponent = (componentRef) => {
+            window.loginComponent = componentRef;
+        };
+    </script>
 </body>
 
 </html>

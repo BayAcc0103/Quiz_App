@@ -84,12 +84,13 @@ namespace BlazingQuiz.Api.Services
                 return QuizApiResponse.Failure(ex.Message);
             }
         }
-        private string GenerateJwtToken (User user)
+        public string GenerateJwtToken (User user)
         {
             Claim[] claims =
                 [
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Name, user.Name),
+                    new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.Role, user.Role),
                 ];
             var secretKey = _configuration.GetValue<string>("Jwt:Secret");
