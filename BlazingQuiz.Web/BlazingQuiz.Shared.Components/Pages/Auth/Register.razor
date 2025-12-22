@@ -9,106 +9,66 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
-            @if (!_roleSelected)
-            {
-                <div class="hanging-container">
-                    <div class="hanging-content">
-                        <h3>Select Role | Blazing Quiz</h3>
-                    </div>
-                    <div class="rope left-rope"></div>
-                    <div class="rope right-rope"></div>
+            <div class="hanging-container">
+                <div class="hanging-content">
+                    <h3>Register</h3>
                 </div>
-
-                <!-- Role Selection Cards -->
-                <div class="role-selection-container">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <div class="card card-3d-raised card-light role-card text-center role-teacher" @onclick="() => SelectRole(UserRole.Teacher)">
-                                <div class="card-body">
-                                    <div class="role-illustration">
-                                        <i class="fas fa-chalkboard-teacher"></i>
-                                    </div>
-                                    <h5 class="card-title mt-2">Teacher</h5>
-                                </div>
+                <div class="rope left-rope"></div>
+                <div class="rope right-rope"></div>
+            </div>
+            <div class="card card-3d-raised card-light">
+                <div class="card-body">
+                    <EditForm Model="_model" OnValidSubmit="RegisterAsync">
+                        <DataAnnotationsValidator />
+                        <div class="form-container">
+                            <div>
+                                <label for="name" class="form-label">Name</label>
+                                <input id="name" class="form-control form-control-lg" @bind="_model.Name" />
+                                <ValidationMessage For="() => _model.Name" class="validation-message" />
                             </div>
+                            <div>
+                                <label for="email" class="form-label">Email</label>
+                                <input id="email" class="form-control form-control-lg" @bind="_model.Email" />
+                                <ValidationMessage For="() => _model.Email" class="validation-message" />
+                            </div>
+                            <div>
+                                <label for="phone" class="form-label">Phone</label>
+                                <input id="phone" class="form-control form-control-lg" @bind="_model.Phone" />
+                                <ValidationMessage For="() => _model.Phone" class="validation-message" />
+                            </div>
+                            <div>
+                                <label for="password" class="form-label">Password</label>
+                                <input id="password" type="password" class="form-control form-control-lg" @bind="_model.Password" />
+                                <ValidationMessage For="() => _model.Password" class="validation-message" />
+                            </div>
+                            <!-- Hidden role field set to Student by default -->
+                            <input type="hidden" @bind="_model.Role" />
+                            @if (_errorMessage != null)
+                            {
+                                <div class="alert alert-danger error-message" role="alert">
+                                    @_errorMessage
+                                </div>
+                            }
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="card card-3d-raised card-light role-card text-center role-student" @onclick="() => SelectRole(UserRole.Student)">
-                                <div class="card-body">
-                                    <div class="role-illustration">
-                                        <i class="fas fa-graduation-cap"></i>
-                                    </div>
-                                    <h5 class="card-title mt-2">Student</h5>
-                                </div>
-                            </div>
+                        <div class="d-grid gap-2">
+                            @if (!_isBusy)
+                            {
+                                <button type="submit" class="btn btn-3d btn-3d-success">
+                                    <span>Register</span>
+                                </button>
+                                <a href="auth/login" class="btn btn-3d btn-3d-primary">Login</a>
+                            }
+                            else
+                            {
+                                <button type="button" disabled class="btn btn-3d btn-3d-secondary">
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    <span>Registering...</span>
+                                </button>
+                            }
                         </div>
-                    </div>
+                    </EditForm>
                 </div>
-            }
-            else
-            {
-                <div class="hanging-container">
-                    <div class="hanging-content">
-                        <h3>Register | Blazing Quiz</h3>
-                    </div>
-                    <div class="rope left-rope"></div>
-                    <div class="rope right-rope"></div>
-                </div>
-                <div class="card card-3d-raised card-light">
-                    <div class="card-body">
-                        <EditForm Model="_model" OnValidSubmit="RegisterAsync">
-                            <DataAnnotationsValidator />
-                            <div class="form-container">
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Name</label>
-                                    <input id="name" class="form-control form-control-lg" @bind="_model.Name" />
-                                    <ValidationMessage For="() => _model.Name" class="validation-message" />
-                                </div>
-                                <div class="mb-3">
-                                    <label for="email" class="form-label">Email</label>
-                                    <input id="email" class="form-control form-control-lg" @bind="_model.Email" />
-                                    <ValidationMessage For="() => _model.Email" class="validation-message" />
-                                </div>
-                                <div class="mb-3">
-                                    <label for="phone" class="form-label">Phone</label>
-                                    <input id="phone" class="form-control form-control-lg" @bind="_model.Phone" />
-                                    <ValidationMessage For="() => _model.Phone" class="validation-message" />
-                                </div>
-                                <div class="mb-3">
-                                    <label for="password" class="form-label">Password</label>
-                                    <input id="password" type="password" class="form-control form-control-lg" @bind="_model.Password" />
-                                    <ValidationMessage For="() => _model.Password" class="validation-message" />
-                                </div>
-                                <!-- Hidden role field since we already selected it -->
-                                <input type="hidden" @bind="_model.Role" />
-                                @if (_errorMessage != null)
-                                {
-                                    <div class="alert alert-danger error-message" role="alert">
-                                        @_errorMessage
-                                    </div>
-                                }
-                            </div>
-                            <div class="d-grid gap-2">
-                                @if (!_isBusy)
-                                {
-                                    <button type="submit" class="btn btn-3d btn-3d-success">
-                                        <span>Register</span>
-                                    </button>
-                                    <button type="button" class="btn btn-3d btn-3d-outline" @onclick="GoBackToRoleSelection">Back</button>
-                                    <a href="auth/login" class="text-link">Already have an account? Login</a>
-                                }
-                                else
-                                {
-                                    <button type="button" disabled class="btn btn-3d btn-3d-secondary">
-                                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                        <span>Registering...</span>
-                                    </button>
-                                }
-                            </div>
-                        </EditForm>
-                    </div>
-                </div>
-            }
+            </div>
         </div>
     </div>
 </div>
@@ -119,32 +79,22 @@
         <p class="h5 text-success">Your account has been created successfully.<br/>
             You will be able to login once Admin approves your account</p>
     </Modal>
-})
+}
 @code {
     private RegisterDto _model = new();
     private bool _isBusy;
     private string? _errorMessage;
     private bool _showSuccessAlert;
-    private bool _roleSelected = false;
 
     protected override void OnInitialized()
     {
+        // Set default role to Student
+        _model.Role = UserRole.Student;
+
         if(QuizAuthStateProvider.IsLoggedIn)
         {
             NavigationManager.NavigateTo("/", replace: true); // Redirect to home if already logged in
         }
-    }
-
-    private void SelectRole(UserRole role)
-    {
-        _model.Role = role;
-        _roleSelected = true;
-    }
-
-    private void GoBackToRoleSelection()
-    {
-        _roleSelected = false;
-        _errorMessage = null;
     }
 
     private async Task RegisterAsync()
