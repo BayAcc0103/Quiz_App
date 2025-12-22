@@ -345,8 +345,4 @@
         flex-direction: column;
         gap: 10px;
     }
-
-    .btn-3d {
-        width: 100% !important;
-    }
 }
