@@ -184,9 +184,46 @@
         box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.2) !important;
     }
 
-.btn-3d {
-    width: 50% !important;
-    margin: 5px !important;
+/* Enhanced login card container with readyquiz image */
+.login-card-container {
+    border: 3px solid #000 !important;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    min-height: 450px;
+    overflow: hidden; /* Hide the extended image initially */
+}
+
+.login-card-container:hover {
+    transform: perspective(500px) translateY(4px) scale(1.02);
+    box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+.readyquiz-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 0;
+    overflow: hidden;
+    transition: height 0.4s ease-out;
+    padding: 0 10px 10px 10px; /* Reduced padding to allow more space for the image */
+    width: calc(100% - 20px); /* Account for the padding */
+    margin: 0 auto;
+
+}
+
+.login-card-container:hover .readyquiz-image-container {
+    height: 300px; /* Adjust this value to show the desired amount of image */
+}
+
+.readyquiz-image {
+    width: 98%; /* Almost full width of the container */
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    display: block;
 }
 
 .alert {
@@ -199,7 +236,6 @@
 .d-grid {
     justify-items: center !important;
     align-content: center !important;
-    margin-top: 30px !important;
 }
 
 .form-control-lg {

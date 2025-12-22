@@ -17,6 +17,7 @@
     transform: translateY(0);
 }
 
+
 /* Press-down effect for 3D buttons */
 .btn-3d:active {
     transform: translateY(6px); /* Move button down to simulate pressing */
@@ -49,6 +50,9 @@
 
 .btn-3d-primary:active {
     background: linear-gradient(to bottom, #0a53be, #084298);
+}
+.btn:hover{
+    color :white;
 }
 
 /* Success 3D Button */

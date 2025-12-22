@@ -54,7 +54,7 @@
                     <div class="rope left-rope"></div>
                     <div class="rope right-rope"></div>
                 </div>
-                <div class="card card-3d-raised card-light">
+                <div class="card card-3d-raised card-light login-card-container">
                     <div class="card-body">
                         <EditForm Model="_model" OnValidSubmit="LoginAsync">
                             <DataAnnotationsValidator />
@@ -64,7 +64,7 @@
                                     <input id="username" class="form-control form-control-lg" @bind="_model.Username" />
                                     <ValidationMessage For="() => _model.Username" class="validation-message" />
                                 </div>
-                                <div class="mb-3">
+                                <div>
                                     <label for="password" class="form-label">Password</label>
                                     <input id="password" type="password" class="form-control form-control-lg" @bind="_model.Password" />
                                     <ValidationMessage For="() => _model.Password" class="validation-message" />
@@ -81,11 +81,16 @@
                             <div class="d-grid gap-2">
                                 @if (!_isBusy)
                                 {
-                                    <button type="submit" class="btn btn-3d btn-3d-success">
-                                        <span>Login</span>
-                                    </button>
-                                    <button type="button" class="btn btn-3d btn-3d-outline" @onclick="GoBackToRoleSelection">Back</button>
-                                    <a href="auth/forgot-password" class="text-link">Forgot Password?</a>
+                                    <div class="d-flex flex-column align-items-center">
+                                        <div class="d-flex gap-3 w-100 mb-3">
+                                            <button type="submit" class="btn btn-3d btn-3d-success flex-fill">
+                                                <span>Ready!</span>
+                                            </button>
+                                            <button type="button" class="btn btn-3d btn-3d-outline flex-fill" @onclick="GoToHome">Not Ready!</button>
+                                        </div>
+                                        <a href="auth/register" class="btn btn-3d btn-3d-primary">Register</a>
+                                        <a href="auth/forgot-password" class="text-link mt-3">Forgot Password?</a>
+                                    </div>
                                 }
                                 else
                                 {
@@ -96,6 +101,10 @@
                                 }
                             </div>
                         </EditForm>
+                    </div>
+                    <!-- ReadyQuiz Image Container -->
+                    <div class="readyquiz-image-container">
+                        <img src="/asset/readyquiz.jpg" alt="ReadyQuiz" class="readyquiz-image" />
                     </div>
                 </div>
             }
@@ -128,6 +137,11 @@
     {
         _roleSelected = false;
         _errorMessage = null;
+    }
+
+    private void GoToHome()
+    {
+        NavigationManager.NavigateTo("/", forceLoad: true);
     }
 
     private async Task LoginAsync()

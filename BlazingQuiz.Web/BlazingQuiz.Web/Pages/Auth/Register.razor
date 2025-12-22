@@ -59,22 +59,22 @@
                         <EditForm Model="_model" OnValidSubmit="RegisterAsync">
                             <DataAnnotationsValidator />
                             <div class="form-container">
-                                <div class="mb-3">
+                                <div>
                                     <label for="name" class="form-label">Name</label>
                                     <input id="name" class="form-control form-control-lg" @bind="_model.Name" />
                                     <ValidationMessage For="() => _model.Name" class="validation-message" />
                                 </div>
-                                <div class="mb-3">
+                                <div>
                                     <label for="email" class="form-label">Email</label>
                                     <input id="email" class="form-control form-control-lg" @bind="_model.Email" />
                                     <ValidationMessage For="() => _model.Email" class="validation-message" />
                                 </div>
-                                <div class="mb-3">
+                                <div>
                                     <label for="phone" class="form-label">Phone</label>
                                     <input id="phone" class="form-control form-control-lg" @bind="_model.Phone" />
                                     <ValidationMessage For="() => _model.Phone" class="validation-message" />
                                 </div>
-                                <div class="mb-3">
+                                <div>
                                     <label for="password" class="form-label">Password</label>
                                     <input id="password" type="password" class="form-control form-control-lg" @bind="_model.Password" />
                                     <ValidationMessage For="() => _model.Password" class="validation-message" />
@@ -91,11 +91,15 @@
                             <div class="d-grid gap-2">
                                 @if (!_isBusy)
                                 {
-                                    <button type="submit" class="btn btn-3d btn-3d-success">
-                                        <span>Register</span>
-                                    </button>
-                                    <button type="button" class="btn btn-3d btn-3d-outline" @onclick="GoBackToRoleSelection">Back</button>
-                                    <a href="auth/login" class="text-link">Already have an account? Login</a>
+                                    <div class="d-flex flex-column align-items-center">
+                                        <div class="d-flex gap-3 w-100 mb-3">
+                                            <button type="submit" class="btn btn-3d btn-3d-success flex-fill">
+                                                <span>Register</span>
+                                            </button>
+                                            <button type="button" class="btn btn-3d btn-3d-outline flex-fill" @onclick="GoBackToRoleSelection">Back</button>
+                                        </div>
+                                        <a href="auth/login" class="btn btn-3d btn-3d-primary">Login</a>
+                                    </div>
                                 }
                                 else
                                 {

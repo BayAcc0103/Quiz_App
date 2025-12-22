@@ -72,7 +72,6 @@
 }
 
 .btn-3d {
-    width: 50% !important; /* Reset width to auto since container will center them */
     margin: 5px !important;
 }
 
@@ -86,7 +85,7 @@
 .d-grid {
     justify-items: center !important;
     align-content: center !important;
-    margin-top: 50px !important;
+    margin-top: 30px !important;
 }
 
 .form-control-lg {
@@ -99,7 +98,7 @@
     font-size: 1.5rem !important;
     letter-spacing: 0.3rem !important;
     text-align: center !important;
-    width: 75% !important;
+    width: 70% !important;
     margin: 0 auto !important;
     display: block !important;
 }
@@ -137,4 +136,29 @@ textarea:focus {
             0px 0px 0px 0px rgba(0, 0, 0, 0.75),
             0px 0px 0px rgba(0, 0, 0, 0.3) !important;
     }
+}
+
+/* Do Not Enter Image Container */
+.donotenter-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 0;
+    overflow: hidden;
+    transition: height 0.4s ease-out;
+    padding: 0 10px 10px 10px;
+    width: calc(100% - 20px);
+    margin: 0 auto;
+}
+
+.card-3d-raised:hover .donotenter-image-container {
+    height: 250px; /* Adjust this value to show the desired amount of image */
+}
+
+.donotenter-image {
+    width: 98%; /* Almost full width of the container */
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    display: block;
 }
