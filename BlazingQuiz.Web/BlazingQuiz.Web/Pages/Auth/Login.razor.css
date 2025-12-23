@@ -215,7 +215,7 @@
 }
 
 .login-card-container:hover .readyquiz-image-container {
-    height: 300px; /* Adjust this value to show the desired amount of image */
+    height: 200px; /* Adjust this value to show the desired amount of image */
 }
 
 .readyquiz-image {
@@ -395,7 +395,6 @@
     align-items: center;
     text-align: center;
     color: #6c757d;
-    margin: 20px 0;
 }
 
 .divider-text::before,
@@ -421,7 +420,6 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     background-color: white;
     color: #555;
-    width: 85% !important;
     margin: 10px auto !important;
     display: flex !important;
     align-items: center !important;
