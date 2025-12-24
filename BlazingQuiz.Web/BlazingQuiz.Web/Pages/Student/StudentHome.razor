@@ -16,8 +16,46 @@
 
 <div class="student-home-background">
     <div class="container-fluid px-0">
+
+        <!-- Search Section -->
+        <div class="mb-4 px-5">
+            <div class="input-group">
+                <input type="text"
+                       class="form-control form-control-lg"
+                       placeholder="Search quizzes by name..."
+                       @bind="SearchTerm"
+                       @bind:event="oninput"
+                       @onkeydown="HandleSearchKeyDown" />
+                <button class="btn btn-outline-secondary search-btn"
+                        type="button"
+                        @onclick="HandleSearchIconClick">
+                    <i class="fas fa-search text-muted"></i>
+                </button>
+            </div>
+            @if (!string.IsNullOrEmpty(_searchTerm))
+            {
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <small class="text-muted">
+                        @if (_filteredQuizzes?.Length > 0)
+                        {
+                            <text>@_filteredQuizzes.Length quiz@(string.IsNullOrEmpty(_searchTerm) ? "" : _filteredQuizzes.Length != 1 ? "es" : "") found</text>
+                        }
+                        else
+                        {
+                            <text>No quizzes found matching "@_searchTerm"</text>
+                        }
+                    </small>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary search-btn"
+                            @onclick="ClearSearch">
+                        Clear
+                    </button>
+                </div>
+            }
+        </div>
+
     <!-- Category Section for Visible Categories -->
-    <div class="mb-3 category-section px-2">
+    <div class="mb-4 category-section px-2">
         <div class="card card-3d-raised card-light">
             <div class="card-body">
                 @if (_visibleCategories.Length > 0)
@@ -139,45 +177,8 @@
         </div>
     </div>
 
-    <!-- Search Section -->
-    <div class="mb-5 px-2">
-                <div class="input-group">
-                    <input type="text"
-                           class="form-control form-control-lg"
-                           placeholder="Search quizzes by name..."
-                           @bind="SearchTerm"
-                           @bind:event="oninput"
-                           @onkeydown="HandleSearchKeyDown" />
-                    <button class="btn btn-outline-secondary search-btn"
-                            type="button"
-                            @onclick="HandleSearchIconClick">
-                        <i class="fas fa-search text-muted"></i>
-                    </button>
-                </div>
-                @if (!string.IsNullOrEmpty(_searchTerm))
-                {
-                    <div class="d-flex justify-content-between align-items-center mt-2">
-                        <small class="text-muted">
-                            @if (_filteredQuizzes?.Length > 0)
-                            {
-                                <text>@_filteredQuizzes.Length quiz@(string.IsNullOrEmpty(_searchTerm) ? "" : _filteredQuizzes.Length != 1 ? "es" : "") found</text>
-                            }
-                            else
-                            {
-                                <text>No quizzes found matching "@_searchTerm"</text>
-                            }
-                        </small>
-                        <button type="button"
-                            class="btn btn-sm btn-outline-secondary search-btn"
-                                @onclick="ClearSearch">
-                            Clear
-                        </button>
-                    </div>
-                }
-    </div>
-
     <!-- Hero Section for Room Actions -->
-    <div class="row mb-5 px-3">
+    <div class="row mb-4 px-2">
         <div class="col-md-6">
             <div class="card card-3d-raised card-light position-relative">
                 <div class="card-body text-center mb-1 d-flex flex-column align-items-center justify-content-center">

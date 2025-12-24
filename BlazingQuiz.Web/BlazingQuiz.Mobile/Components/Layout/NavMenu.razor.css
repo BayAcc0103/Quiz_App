@@ -8,7 +8,7 @@
 /* NỀN CHUNG – MÀU XANH LÁ NHẸ */
 body {
     min-height: 100vh;
-    background: radial-gradient( circle at top left, #c0f03e 0, #aadb2d 40%, #d9f4a1 100% );
+    background: radial-gradient( circle at top left, #f2f7d5 0, #c0f03e 40%, #d9f4a1 100% );
 }
 
 /* SIDEBAR – TẤM PANEL 3D */
@@ -20,7 +20,7 @@ body {
     overflow-x: hidden;
     z-index: 1000;
     flex-direction: column;
-    background: linear-gradient(135deg, #c0f03e, #aadb2d);
+    background: linear-gradient(135deg, #f2f7d5, #c0f03e);
     padding: 5px 5px;
     border-radius: 0 18px 18px 0; /* Only right side border-radius */
     box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3);
@@ -137,7 +137,7 @@ body {
             text-decoration: none;
             border-radius: 999px;
             transition: background 0.22s ease, color 0.22s ease, transform 0.18s ease, box-shadow 0.18s ease, opacity 0.22s ease;
-            background: rgba(192, 240, 62, 0.4);
+            background: rgba(242, 247, 213, 0.4);
             backdrop-filter: blur(10px);
             box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3);
             opacity: 0.96;
@@ -160,7 +160,7 @@ body {
             /* HOVER – nổi mạnh + đổi màu chữ */
             .sidebar-links li a:hover {
                 color: #1a3d00; /* Darker text for better contrast */
-                background: rgba(192, 240, 62, 0.7);
+                background: rgba(242, 247, 213, 0.7);
                 transform: translateX(4px) translateY(-2px);
                 font-size: 1rem;
                 opacity: 1;
@@ -174,7 +174,7 @@ body {
             /* ACTIVE – đang chọn */
             .sidebar-links li a.active {
                 color: #1a3d00;
-                background: rgba(192, 240, 62, 0.8);
+                background: rgba(242, 247, 213, 0.8);
                 transform: translateX(2px) translateY(2px);
                 box-shadow: -3px 3px 0px 0px rgba(0, 0, 0, 0.8), 0px 3px 5px rgba(0, 0, 0, 0.4);
                 opacity: 0.95;
@@ -211,7 +211,7 @@ body {
     margin-right: -4px;
     border-radius: 0 14px 14px 0; /* Only right side border-radius */
     transition: all 0.25s ease;
-    background: rgba(192, 240, 62, 0.3);
+    background: rgba(242, 247, 213, 0.3);
     backdrop-filter: blur(10px);
     box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3);
     border: 2px solid #000;
@@ -252,7 +252,7 @@ body {
 }
 
 .sidebar:hover .user-account {
-    background: rgba(192, 240, 62, 0.5);
+    background: rgba(242, 247, 213, 0.5);
     box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.8), 0px 4px 6px rgba(0, 0, 0, 0.4);
     transform: translateY(-2px);
 }
@@ -362,7 +362,7 @@ body {
 
         .top-row .navbar-toggler {
             display: inline-block;
-            background: linear-gradient(135deg, rgba(192, 240, 62, 0.7), rgba(204, 255, 0, 0.5));
+            background: linear-gradient(135deg, rgba(242, 247, 213, 0.7), rgba(192, 240, 62, 0.5));
             border: 2px solid #000;
             border-radius: 4px;
             width: 36px;
@@ -380,7 +380,7 @@ body {
 
 .navbar-toggler, .raised-3d {
     display: inline-block;
-    background: linear-gradient(135deg, rgba(192, 240, 62, 0.4), rgba(204, 255, 0, 0.2));
+    background: linear-gradient(135deg, rgba(242, 247, 213, 0.4), rgba(192, 240, 62, 0.2));
     border: 2px solid #000;
     border-radius: 8px;
     width: 36px;
@@ -393,7 +393,7 @@ body {
 }
 
     .navbar-toggler:hover, .raised-3d:hover {
-        background: linear-gradient(135deg, rgba(192, 240, 62, 0.6), rgba(204, 255, 0, 0.3));
+        background: linear-gradient(135deg, rgba(242, 247, 213, 0.6), rgba(192, 240, 62, 0.3));
         box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.8), 0px 4px 6px rgba(0, 0, 0, 0.4);
         transform: translateY(-2px);
     }
