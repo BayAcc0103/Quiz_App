@@ -11,119 +11,213 @@
 
 <BackButton />
 
-<h3>Quiz Result</h3>
-
 @if (_quizResult == null)
 {
     <Loader />
 }
 else
 {
-    <div class="container-fluid">
-        <div class="row mb-3">
-            <div class="col-sm-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h4>@_quizResult.QuizName</h4>
-                    </div>
-                    <div class="card-body">
-                        <p>Total Questions: @_quizResult.TotalQuestions</p>
-                        <p class="text-success">Correct Answers: @_quizResult.CorrectAnswers</p>
-                        <p class="text-danger">Incorrect Answers: @_quizResult.IncorrectAnswers</p>
+    <!-- Slider Container -->
+    <div class="slider-container">
+        <div class="slider-track" style="transform: translateX(@(CurrentCardIndex * -100)%);">
+            <!-- Card 1: Quiz Information -->
+            <div class="slider-card">
+                <div class="card-header-3d">
+                    <h4 class="m-0">Quiz Result</h4>
+                </div>
+
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Left side: Quiz Title and Description -->
+                        <div class="col-md-6 border-end">
+                            <div class="mb-3">
+                                <h5>@_quizResult.QuizName</h5>
+                            </div>
+                            <div class="mb-3">
+                                <p><strong>Total Questions:</strong> @_quizResult.TotalQuestions</p>
+                                <p class="text-success"><strong>Correct Answers:</strong> @_quizResult.CorrectAnswers</p>
+                                <p class="text-danger"><strong>Incorrect Answers:</strong> @_quizResult.IncorrectAnswers</p>
+                            </div>
+                        </div>
+
+                        <!-- Right side: Quiz Statistics and Navigation -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <h6>Performance Summary</h6>
+                                <div class="progress mb-2" style="height: 30px;">
+                                    <div class="progress-bar bg-success" role="progressbar"
+                                         style="width: @(_quizResult.CorrectAnswers * 100.0 / _quizResult.TotalQuestions)%;"
+                                         aria-valuenow="@(_quizResult.CorrectAnswers * 100.0 / _quizResult.TotalQuestions)"
+                                         aria-valuemin="0" aria-valuemax="100">
+                                        @Math.Round(_quizResult.CorrectAnswers * 100.0 / _quizResult.TotalQuestions, 1)%
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <h6>Question Breakdown</h6>
+                                @for (int i = 0; i < _quizResult.Questions.Count; i++)
+                                {
+                                    var question = _quizResult.Questions[i];
+                                    var questionNumber = i + 1;
+                                    var isCorrect = question.IsTextAnswer ? question.IsTextAnswerCorrect : question.SelectedOptionId == question.CorrectOptionId;
+                                    var badgeClass = isCorrect ? "bg-success" : "bg-danger";
+
+                                    <span class="badge @badgeClass me-1 mb-1" style="cursor: pointer;" @onclick="() => GoToCard(i + 1)">
+                                        Q@(questionNumber) @(isCorrect ? "✓" : "✗")
+                                    </span>
+                                }
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="row">
-            <div class="col-sm-12">
-                @foreach (var question in _quizResult.Questions)
+                <!-- Navigation buttons -->
+                @if (_quizResult.Questions.Count > 0)
                 {
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            <h5>@question.Text</h5>
-                        </div>
-                        <div class="card-body">
-                            @if (!question.IsTextAnswer)
-                            {
-                                <!-- Multiple Choice Question -->
-                                @foreach (var option in question.Options)
-                                {
-                                    var isSelected = question.SelectedOptionId == option.Id;
-                                    var isCorrect = question.CorrectOptionId == option.Id;
+                    <button type="button" class="btn btn-3d btn-3d-primary next-btn" @onclick="() => GoToCard(1)">View Answers</button>
+                }
+            </div>
 
-                                    var optionClass = "";
-                                    if (isSelected && isCorrect)
-                                    {
-                                        optionClass = "bg-success text-white";
-                                    }
-                                    else if (isSelected && !isCorrect)
-                                    {
-                                        optionClass = "bg-danger text-white";
-                                    }
-                                    else if (isCorrect)
-                                    {
-                                        optionClass = "bg-info text-white";
-                                    }
+            <!-- Cards for Questions -->
+            @for (int i = 0; i < _quizResult.Questions.Count; i++)
+            {
+                var question = _quizResult.Questions[i];
+                var questionIndex = i;
 
-                                    <div class="p-2 mb-2 @optionClass">
-                                        @option.Text
-                                        @if (isSelected && isCorrect)
-                                        {
-                                            <span class="float-end">Your Answer (Correct)</span>
-                                        }
-                                        else if (isSelected && !isCorrect)
-                                        {
-                                            <span class="float-end">Your Answer (Incorrect)</span>
-                                        }
-                                        else if (isCorrect)
-                                        {
-                                            <span class="float-end">Correct Answer</span>
-                                        }
-                                    </div>
-                                }
-                            }
-                            else
-                            {
-                                <!-- Text Input Question -->
+                <div class="slider-card">
+                    <div class="card-header-3d d-flex justify-content-between align-items-center">
+                        <h4 class="m-0">Question @(i + 1)</h4>
+                        @{
+                            var isQuestionCorrect = question.IsTextAnswer ? question.IsTextAnswerCorrect : question.SelectedOptionId == question.CorrectOptionId;
+                            var statusClass = isQuestionCorrect ? "bg-success" : "bg-danger";
+                            var statusText = isQuestionCorrect ? "Correct" : "Incorrect";
+                        }
+                        <span class="badge @statusClass">@statusText</span>
+                    </div>
+
+                    <div class="question-card-content">
+                        <div class="row">
+                            <!-- Left side: Question Text -->
+                            <div class="col-md-6 border-end">
                                 <div class="mb-3">
-                                    <p><strong>Your Answer:</strong> @(string.IsNullOrWhiteSpace(question.SelectedTextAnswer) ? "(No answer provided)" : question.SelectedTextAnswer)</p>
-                                    <p><strong>Correct Answer(s):</strong> 
-                                        @if (question.TextAnswers != null && question.TextAnswers.Any())
+                                    <label class="form-label"><strong>Question:</strong></label>
+                                    <div class="question-text">@question.Text</div>
+                                </div>
+                            </div>
+
+                            <!-- Right side: Your Answer and Correct Answer -->
+                            <div class="col-md-6">
+                                @if (!question.IsTextAnswer)
+                                {
+                                    <!-- Multiple Choice Question -->
+                                    <div class="mb-3">
+                                        <label class="form-label"><strong>Your Answer:</strong></label>
+                                        @if (question.SelectedOptionId > 0)
                                         {
-                                            @question.AllCorrectTextAnswers
+                                            var selectedOption = question.Options.FirstOrDefault(o => o.Id == question.SelectedOptionId);
+                                            if (selectedOption != null)
+                                            {
+                                                var isSelectedCorrect = selectedOption.Id == question.CorrectOptionId;
+                                                var optionClass = isSelectedCorrect ? "bg-success text-white" : "bg-danger text-white";
+                                                <div class="p-2 mb-2 @optionClass">
+                                                    @selectedOption.Text
+                                                    <span class="float-end">@(isSelectedCorrect ? "Correct!" : "Incorrect")</span>
+                                                </div>
+                                            }
                                         }
                                         else
                                         {
-                                            <span>(No correct answers defined)</span>
+                                            <div class="p-2 mb-2 bg-warning text-dark">
+                                                No answer provided
+                                            </div>
                                         }
-                                    </p>
-                                    
-                                    @if (question.IsTextAnswerCorrect)
-                                    {
-                                        <span class="badge bg-success">Correct</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger">Incorrect</span>
-                                    }
-                                </div>
-                            }
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label"><strong>Correct Answer:</strong></label>
+                                        @{
+                                            var correctOption = question.Options.FirstOrDefault(o => o.Id == question.CorrectOptionId);
+                                            if (correctOption != null)
+                                            {
+                                                <div class="p-2 mb-2 bg-info text-white">
+                                                    @correctOption.Text
+                                                    <span class="float-end">Correct Answer</span>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <!-- Text Input Question -->
+                                    <div class="mb-3">
+                                        <label class="form-label"><strong>Your Answer:</strong></label>
+                                        @if (!string.IsNullOrWhiteSpace(question.SelectedTextAnswer))
+                                        {
+                                            var isTextCorrect = question.IsTextAnswerCorrect;
+                                            var textClass = isTextCorrect ? "bg-success text-white" : "bg-danger text-white";
+                                            <div class="p-2 mb-2 @textClass">
+                                                @question.SelectedTextAnswer
+                                                <span class="float-end">@(isTextCorrect ? "Correct!" : "Incorrect")</span>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="p-2 mb-2 bg-warning text-dark">
+                                                No answer provided
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label"><strong>Correct Answer(s):</strong></label>
+                                        @if (question.TextAnswers != null && question.TextAnswers.Any())
+                                        {
+                                            @foreach (var correctAnswer in question.TextAnswers)
+                                            {
+                                                <div class="p-2 mb-2 bg-info text-white">
+                                                    @correctAnswer.Text
+                                                    <span class="float-end">Correct Answer</span>
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <div class="p-2 mb-2 bg-secondary text-white">
+                                                No correct answers defined
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
                         </div>
                     </div>
-                }
-            </div>
+                </div>
+            }
         </div>
 
-        <div class="row mt-4">
-            <div class="col-sm-12 text-center">
-                <button class="btn btn-primary btn-lg me-3" @onclick="GoToRecommendations">
-                    <i class="bi bi-lightbulb"></i> View Recommended Quizzes
-                </button>
-                <button class="btn btn-outline-secondary btn-lg" @onclick="GoToMyQuizzes">
-                    <i class="bi bi-arrow-left"></i> Back to My Quizzes
-                </button>
-            </div>
+        <!-- Navigation buttons for the whole slider -->
+        @if (CurrentCardIndex > 0)
+        {
+            <button type="button" class="nav-btn prev-btn" @onclick="GoToPrevCard">❮</button>
+        }
+
+        @if (CurrentCardIndex < TotalCards - 1)
+        {
+            <button type="button" class="nav-btn next-btn" @onclick="GoToNextCard">❯</button>
+        }
+    </div>
+
+    <!-- Navigation buttons at the bottom -->
+    <div class="row mt-4">
+        <div class="col-sm-12 text-center">
+            <button class="btn btn-primary btn-lg me-3" @onclick="GoToRecommendations">
+                <i class="bi bi-lightbulb"></i> View Recommended Quizzes
+            </button>
+            <button class="btn btn-outline-secondary btn-lg" @onclick="GoToMyQuizzes">
+                <i class="bi bi-arrow-left"></i> Back to My Quizzes
+            </button>
         </div>
     </div>
 }
@@ -133,6 +227,9 @@ else
     public int StudentQuizId { get; set; }
 
     private QuizResultDto? _quizResult;
+    private int CurrentCardIndex { get; set; } = 0;
+
+    private int TotalCards => 1 + (_quizResult?.Questions.Count ?? 0); // 1 for quiz info + number of questions
 
     protected override async Task OnInitializedAsync()
     {
@@ -160,6 +257,24 @@ else
         {
             AppState.HideLoader();
         }
+    }
+
+    private void GoToCard(int index)
+    {
+        if (index >= 0 && index < TotalCards)
+            CurrentCardIndex = index;
+    }
+
+    private void GoToPrevCard()
+    {
+        if (CurrentCardIndex > 0)
+            CurrentCardIndex--;
+    }
+
+    private void GoToNextCard()
+    {
+        if (CurrentCardIndex < TotalCards - 1)
+            CurrentCardIndex++;
     }
 
     private void GoToRecommendations()
