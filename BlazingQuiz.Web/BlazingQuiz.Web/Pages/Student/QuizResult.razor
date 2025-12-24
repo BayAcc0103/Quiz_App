@@ -8,6 +8,8 @@
 @inject IStudentQuizApi StudentQuizApi
 @inject QuizAuthStateProvider QuizAuthStateProvider
 @inject NavigationManager NavigationManager
+@inject QuizImageService QuizImageService
+@inject QuestionImageService QuestionImageService
 
 <BackButton />
 
@@ -27,12 +29,31 @@ else
                 </div>
 
                 <div class="card-body">
+                    <!-- Quiz Image -->
+                    @if (!string.IsNullOrEmpty(_quizResult.QuizImagePath))
+                    {
+                        <div class="text-center mb-3">
+                            <img src="@QuizImageService.GetImageUrl(_quizResult.QuizImagePath)" alt="Quiz Image" class="img-fluid rounded quiz-image" style="max-height: 200px; object-fit: cover;" />
+                        </div>
+                    }
+
                     <div class="row">
                         <!-- Left side: Quiz Title and Description -->
                         <div class="col-md-6 border-end">
                             <div class="mb-3">
                                 <h5>@_quizResult.QuizName</h5>
                             </div>
+
+                            <!-- Time Information -->
+                            <div class="mb-3">
+                                <p><strong>Start Time:</strong> @_quizResult.StartedOn.ToString("g")</p>
+                                @if (_quizResult.CompletedOn.HasValue)
+                                {
+                                    <p><strong>Completion Time:</strong> @_quizResult.CompletedOn.Value.ToString("g")</p>
+                                    <p><strong>Duration:</strong> @_quizResult.Duration?.ToString(@"hh\:mm\:ss")</p>
+                                }
+                            </div>
+
                             <div class="mb-3">
                                 <p><strong>Total Questions:</strong> @_quizResult.TotalQuestions</p>
                                 <p class="text-success"><strong>Correct Answers:</strong> @_quizResult.CorrectAnswers</p>
@@ -98,8 +119,16 @@ else
 
                     <div class="question-card-content">
                         <div class="row">
-                            <!-- Left side: Question Text -->
+                            <!-- Left side: Question Text and Image -->
                             <div class="col-md-6 border-end">
+                                <!-- Question Image -->
+                                @if (!string.IsNullOrEmpty(question.ImagePath))
+                                {
+                                    <div class="mb-3 text-center">
+                                        <img src="@QuestionImageService.GetImageUrl(question.ImagePath)" alt="Question Image" class="img-fluid rounded question-image" style="max-height: 150px; object-fit: cover;" />
+                                    </div>
+                                }
+
                                 <div class="mb-3">
                                     <label class="form-label"><strong>Question:</strong></label>
                                     <div class="question-text">@question.Text</div>
@@ -212,10 +241,10 @@ else
     <!-- Navigation buttons at the bottom -->
     <div class="row mt-4">
         <div class="col-sm-12 text-center">
-            <button class="btn btn-primary btn-lg me-3" @onclick="GoToRecommendations">
+            <button class="btn btn-3d btn-3d-primary me-3" @onclick="GoToRecommendations">
                 <i class="bi bi-lightbulb"></i> View Recommended Quizzes
             </button>
-            <button class="btn btn-outline-secondary btn-lg" @onclick="GoToMyQuizzes">
+            <button class="btn btn-3d btn-3d-secondary" @onclick="GoToMyQuizzes">
                 <i class="bi bi-arrow-left"></i> Back to My Quizzes
             </button>
         </div>

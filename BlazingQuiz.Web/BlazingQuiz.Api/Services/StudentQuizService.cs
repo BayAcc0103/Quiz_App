@@ -361,6 +361,9 @@ namespace BlazingQuiz.Api.Services
             {
                 Id = studentQuiz.Id,
                 QuizName = studentQuiz.Quiz.Name,
+                QuizImagePath = studentQuiz.Quiz.ImagePath,
+                StartedOn = studentQuiz.StartedOn,
+                CompletedOn = studentQuiz.CompletedOn,
                 TotalQuestions = studentQuiz.Quiz.Questions.Count,
                 CorrectAnswers = studentQuiz.Total,
                 IncorrectAnswers = studentQuiz.Quiz.Questions.Count - studentQuiz.Total,
@@ -368,6 +371,7 @@ namespace BlazingQuiz.Api.Services
                 {
                     Id = q.Id,
                     Text = q.Text,
+                    ImagePath = q.ImagePath,
                     IsTextAnswer = q.IsTextAnswer,
                     Options = q.Options.Select(o => new QuizResultOptionDto
                     {

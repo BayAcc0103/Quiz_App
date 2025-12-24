@@ -4,9 +4,13 @@ namespace BlazingQuiz.Shared.DTOs
     {
         public int Id { get; set; }
         public string QuizName { get; set; }
+        public string? QuizImagePath { get; set; }
         public int TotalQuestions { get; set; }
         public int CorrectAnswers { get; set; }
         public int IncorrectAnswers { get; set; }
+        public DateTime StartedOn { get; set; }
+        public DateTime? CompletedOn { get; set; }
+        public TimeSpan? Duration => CompletedOn.HasValue ? CompletedOn.Value - StartedOn : (TimeSpan?)null;
         public List<QuizResultQuestionDto> Questions { get; set; } = new();
     }
 
@@ -14,6 +18,7 @@ namespace BlazingQuiz.Shared.DTOs
     {
         public int Id { get; set; }
         public string Text { get; set; }
+        public string? ImagePath { get; set; }
         public List<QuizResultOptionDto> Options { get; set; } = new();
         public List<TextAnswerDto> TextAnswers { get; set; } = new();
         public int SelectedOptionId { get; set; }
@@ -22,24 +27,24 @@ namespace BlazingQuiz.Shared.DTOs
         public bool IsTextAnswer { get; set; }
         public string? CorrectTextAnswer => TextAnswers.FirstOrDefault()?.Text;
         public string AllCorrectTextAnswers => TextAnswers.Any() ? string.Join(" | ", TextAnswers.Select(ta => ta.Text)) : "";
-        public bool IsTextAnswerCorrect { 
-            get 
+        public bool IsTextAnswerCorrect {
+            get
             {
                 // If this is not a text answer question, return false
                 if (!IsTextAnswer) return false;
-                
+
                 // If no answer was provided, return false (not correct)
                 if (string.IsNullOrWhiteSpace(SelectedTextAnswer))
                 {
                     return false;
                 }
-                
+
                 // Compare the selected answer with all correct text answers (case-insensitive and trimmed)
                 var trimmedSelected = SelectedTextAnswer.Trim();
-                return TextAnswers.Any(textAnswer => 
+                return TextAnswers.Any(textAnswer =>
                     string.Equals(trimmedSelected, textAnswer.Text.Trim(), StringComparison.OrdinalIgnoreCase)
                 );
-            } 
+            }
         }
     }
 
