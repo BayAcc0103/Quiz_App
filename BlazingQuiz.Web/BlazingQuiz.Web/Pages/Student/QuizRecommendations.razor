@@ -306,7 +306,7 @@
                 _allAvailableQuizzes = allQuizzesResult?.ToList() ?? new List<QuizListDto>();
 
                 // Call the Python service API to get recommendations
-                string apiUrl = string.Format("http://localhost:5000/api/recommendations/{0}?n=10", userId.Value);
+                string apiUrl = string.Format("http://localhost:5000/api/recommendations/{0}?n=10&method=hybrid", userId.Value);
                 var response = await HttpClient.GetAsync(apiUrl);
 
                 if (response.IsSuccessStatusCode)

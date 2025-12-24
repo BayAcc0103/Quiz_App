@@ -304,7 +304,9 @@
                 _allAvailableQuizzes = allQuizzesResult?.ToList() ?? new List<QuizListDto>();
 
                 // Call the Python service API to get recommendations
-                string apiUrl = string.Format("https://4p2h4grz-5000.asse.devtunnels.ms/api/recommendations/{0}?n=10", userId.Value);
+                string baseUrl = "http://localhost:5000"; // Default to local service
+                // You can change this to your actual deployed service URL
+                string apiUrl = string.Format($"{baseUrl}/api/recommendations/{0}?n=10&method=hybrid", userId.Value);
                 var response = await HttpClient.GetAsync(apiUrl);
 
                 if (response.IsSuccessStatusCode)

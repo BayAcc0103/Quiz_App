@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.neighbors import NearestNeighbors
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sqlalchemy import create_engine, text
 from flask import Flask, jsonify, request, abort
 from flask_cors import CORS
@@ -284,7 +285,8 @@ class QuizRecommendationSystem:
             recommendations.append({
                 'quiz_id': str(row['quiz_id']),
                 'predicted_rating': round(float(row['avg_rating']), 2),
-                'rating_count': int(row['rating_count'])
+                'rating_count': int(row['rating_count']),
+                'method': 'popular'  # Add method field for consistency
             })
 
         # Log the popular quiz IDs
@@ -527,6 +529,286 @@ class QuizRecommendationSystem:
         # Default fallback
         return 4.0
 
+    def get_user_played_quizzes(self, user_id: int) -> list:
+        """
+        Get quizzes that the user has played from the StudentQuizzes table
+        """
+        logger.info(f"Getting played quizzes for user {user_id}")
+
+        # Query to get quizzes the user has started or completed
+        query = """
+        SELECT DISTINCT
+            sq.QuizId as quiz_id
+        FROM StudentQuizzes sq
+        WHERE sq.StudentId = ?
+        AND sq.Status IN ('Completed', 'Started', 'Exited', 'AutoSubmitted')
+        """
+
+        try:
+            # Use pandas' parameter format which works with both SQLite and SQL Server
+            df = pd.read_sql_query(query, self.engine, params=(user_id,))
+            played_quiz_ids = df['quiz_id'].tolist() if not df.empty else []
+            logger.info(f"User {user_id} has played {len(played_quiz_ids)} quizzes: {played_quiz_ids}")
+            return played_quiz_ids
+        except Exception as e:
+            logger.error(f"Error getting played quizzes for user {user_id}: {str(e)}")
+            return []
+
+    def get_quiz_categories(self, quiz_ids: list) -> dict:
+        """
+        Get categories for given quiz IDs from QuizCategory and Categories tables
+        """
+        if not quiz_ids:
+            return {}
+
+        # Create parameterized query to get quiz categories
+        # Use a more SQL-agnostic approach since we can't easily parameterize IN clauses
+        placeholders = ','.join([f"'{qid}'" for qid in quiz_ids])
+        query = f"""
+        SELECT
+            qc.QuizId as quiz_id,
+            c.Id as category_id,
+            c.Name as category_name
+        FROM QuizCategories qc
+        JOIN Categories c ON qc.CategoryId = c.Id
+        WHERE qc.QuizId IN ({placeholders})
+        """
+
+        try:
+            df = pd.read_sql(text(query), self.engine)
+            quiz_categories = {}
+            for _, row in df.iterrows():
+                quiz_id = str(row['quiz_id'])
+                if quiz_id not in quiz_categories:
+                    quiz_categories[quiz_id] = []
+                quiz_categories[quiz_id].append({
+                    'id': row['category_id'],
+                    'name': row['category_name']
+                })
+            return quiz_categories
+        except Exception as e:
+            logger.error(f"Error getting quiz categories: {str(e)}")
+            return {}
+
+    def get_all_quizzes_with_content(self) -> pd.DataFrame:
+        """
+        Get all quizzes with their content features for vectorization
+        """
+        logger.info("Loading all quizzes with content features...")
+
+        query = """
+        SELECT
+            q.Id as quiz_id,
+            q.Name as name,
+            q.Description as description,
+            q.Level as level,
+            q.TotalQuestions,
+            q.TimeInMinutes,
+            q.CreatedAt
+        FROM Quizzes q
+        WHERE q.IsActive = 1
+        """
+
+        try:
+            quizzes_df = pd.read_sql(text(query), self.engine)
+            logger.info(f"Loaded {len(quizzes_df)} quizzes with content features")
+            return quizzes_df
+        except Exception as e:
+            logger.error(f"Error loading quizzes with content: {str(e)}")
+            return pd.DataFrame()
+
+    def get_all_quiz_categories(self) -> dict:
+        """
+        Get all quiz categories efficiently in one query
+        """
+        query = """
+        SELECT
+            qc.QuizId as quiz_id,
+            c.Id as category_id,
+            c.Name as category_name
+        FROM QuizCategories qc
+        JOIN Categories c ON qc.CategoryId = c.Id
+        """
+
+        try:
+            df = pd.read_sql_query(query, self.engine)
+            quiz_categories = {}
+            for _, row in df.iterrows():
+                quiz_id = str(row['quiz_id'])
+                if quiz_id not in quiz_categories:
+                    quiz_categories[quiz_id] = []
+                quiz_categories[quiz_id].append({
+                    'id': row['category_id'],
+                    'name': row['category_name']
+                })
+            return quiz_categories
+        except Exception as e:
+            logger.error(f"Error getting all quiz categories: {str(e)}")
+            return {}
+
+    def vectorize_quizzes_content(self, quizzes_df: pd.DataFrame) -> tuple:
+        """
+        Create content-based feature vectors for quizzes based on their content
+        """
+        if quizzes_df.empty:
+            return np.array([]), []
+
+        # Get all categories efficiently in one query
+        all_quiz_categories = self.get_all_quiz_categories()
+
+        # Create a combined content string for each quiz
+        content_strings = []
+        quiz_ids = []
+
+        for _, row in quizzes_df.iterrows():
+            quiz_id = str(row['quiz_id'])
+            quiz_ids.append(quiz_id)
+
+            # Combine all content features into a single string for TF-IDF vectorization
+            name = str(row['name']) if row['name'] is not None else ''
+            description = str(row['description']) if row['description'] is not None else ''
+            level = str(row['level']) if row['level'] is not None else ''
+            total_questions = str(row['TotalQuestions']) if row['TotalQuestions'] is not None else ''
+            time_minutes = str(row['TimeInMinutes']) if row['TimeInMinutes'] is not None else ''
+
+            # Get categories for this quiz from pre-loaded data
+            category_names = [cat['name'] for cat in all_quiz_categories.get(quiz_id, [])]
+            categories_str = ' '.join(category_names)
+
+            # Combine all features
+            content = f"{name} {description} {level} {total_questions} {time_minutes} {categories_str}".lower()
+            content_strings.append(content)
+
+        # Use TF-IDF to vectorize the content
+        if content_strings:
+            tfidf = TfidfVectorizer(stop_words='english', max_features=100)
+            content_matrix = tfidf.fit_transform(content_strings)
+            return content_matrix.toarray(), quiz_ids
+        else:
+            return np.array([]), []
+
+    def content_based_recommend(self, user_id: int, n_recommendations: int = 5) -> list:
+        """
+        Content-based recommendation algorithm
+        """
+        logger.info(f"Generating content-based recommendations for user {user_id}")
+
+        # 1. Get quizzes the user has played
+        played_quiz_ids = self.get_user_played_quizzes(user_id)
+        if not played_quiz_ids:
+            logger.info(f"User {user_id} has not played any quizzes, returning popular quizzes")
+            return self.get_popular_quizzes(n_recommendations)
+
+        # 2. Get categories of the played quizzes
+        played_quiz_categories = self.get_quiz_categories(played_quiz_ids)
+        logger.info(f"Found categories for {len(played_quiz_categories)} played quizzes")
+
+        # 3. Get all quizzes with content features
+        all_quizzes_df = self.get_all_quizzes_with_content()
+        if all_quizzes_df.empty:
+            logger.warning("No quizzes found for content-based recommendation")
+            return []
+
+        # 4. Vectorize all quizzes based on content
+        content_vectors, quiz_ids = self.vectorize_quizzes_content(all_quizzes_df)
+        if content_vectors.size == 0:
+            logger.warning("No content vectors generated for content-based recommendation")
+            return []
+
+        # 5. Get vectors for played quizzes
+        played_quiz_vectors = []
+        played_quiz_vector_indices = []
+        for i, quiz_id in enumerate(quiz_ids):
+            if quiz_id in played_quiz_ids:
+                played_quiz_vectors.append(content_vectors[i])
+                played_quiz_vector_indices.append(i)
+
+        if not played_quiz_vectors:
+            logger.warning("No content vectors found for played quizzes")
+            return []
+
+        # 6. Calculate average vector of played quizzes to represent user's preferences
+        user_profile = np.mean(played_quiz_vectors, axis=0).reshape(1, -1)
+
+        # 7. Calculate cosine similarity between user profile and all quizzes
+        similarities = cosine_similarity(user_profile, content_vectors)[0]
+
+        # 8. Create similarity scores for all quizzes
+        quiz_similarities = [(quiz_ids[i], similarities[i]) for i in range(len(quiz_ids))]
+
+        # 9. Sort by similarity score (highest first)
+        quiz_similarities.sort(key=lambda x: x[1], reverse=True)
+
+        # 10. Filter out quizzes the user has already played and take top N
+        recommendations = []
+        for quiz_id, similarity_score in quiz_similarities:
+            if quiz_id not in played_quiz_ids and len(recommendations) < n_recommendations:
+                recommendations.append({
+                    'quiz_id': quiz_id,
+                    'predicted_rating': round(similarity_score * 5.0, 2),  # Scale similarity to rating range
+                    'similarity_score': round(similarity_score, 3),
+                    'method': 'content_based'
+                })
+
+        logger.info(f"Generated {len(recommendations)} content-based recommendations for user {user_id}")
+        return recommendations
+
+    def hybrid_recommend(self, user_id: int, n_recommendations: int = 5, content_weight: float = 0.5) -> dict:
+        """
+        Hybrid recommendation combining content-based and collaborative filtering
+        """
+        logger.info(f"Generating hybrid recommendations for user {user_id}")
+
+        # Get content-based recommendations
+        content_recs = self.content_based_recommend(user_id, n_recommendations * 2)  # Get more to have options
+
+        # Get collaborative filtering recommendations
+        cf_recs = self.recommend_for_user(user_id, n_recommendations * 2)
+
+        # Create a set of quiz IDs to avoid duplicates
+        recommended_quiz_ids = set()
+        final_recommendations = []
+
+        # Combine recommendations with weighting
+        all_recs = []
+
+        # Add content-based recommendations with content_weight
+        for rec in content_recs:
+            all_recs.append({
+                'quiz_id': rec['quiz_id'],
+                'predicted_rating': rec['predicted_rating'] * content_weight,
+                'method': 'content_based',
+                'original_rating': rec['predicted_rating']
+            })
+
+        # Add collaborative filtering recommendations with (1 - content_weight)
+        for rec in cf_recs:
+            all_recs.append({
+                'quiz_id': rec['quiz_id'],
+                'predicted_rating': rec['predicted_rating'] * (1 - content_weight),
+                'method': 'collaborative_filtering',
+                'original_rating': rec['predicted_rating']
+            })
+
+        # Sort by predicted rating and remove duplicates
+        all_recs.sort(key=lambda x: x['predicted_rating'], reverse=True)
+
+        for rec in all_recs:
+            if rec['quiz_id'] not in recommended_quiz_ids and len(final_recommendations) < n_recommendations:
+                final_recommendations.append({
+                    'quiz_id': rec['quiz_id'],
+                    'predicted_rating': rec['original_rating'],
+                    'method': rec['method']
+                })
+                recommended_quiz_ids.add(rec['quiz_id'])
+
+        logger.info(f"Generated {len(final_recommendations)} hybrid recommendations for user {user_id}")
+        return {
+            'user_id': user_id,
+            'recommendations': final_recommendations,
+            'timestamp': datetime.now().isoformat()
+        }
+
 
 # Flask app setup
 app = Flask(__name__)
@@ -563,8 +845,24 @@ def get_recommendations(user_id):
     """Get quiz recommendations for a specific user"""
     try:
         n_recommendations = int(request.args.get('n', 5))  # Number of recommendations, default 5
+        method = request.args.get('method', 'hybrid')  # Method: hybrid, content_based, collaborative_filtering
 
-        recommendations_data = rec_system.get_user_recommendations_with_knn(user_id, n_recommendations)
+        # Use the appropriate recommendation method
+        if method == 'content_based':
+            recommendations_data = rec_system.content_based_recommend(user_id, n_recommendations)
+            # Format the response to match expected structure
+            recommendations_data = {
+                'user_id': user_id,
+                'recommendations': recommendations_data,
+                'timestamp': datetime.now().isoformat()
+            }
+        elif method == 'collaborative_filtering':
+            recommendations_data = rec_system.get_user_recommendations_with_knn(user_id, n_recommendations)
+        elif method == 'hybrid':
+            recommendations_data = rec_system.hybrid_recommend(user_id, n_recommendations)
+        else:
+            # Default to hybrid method
+            recommendations_data = rec_system.hybrid_recommend(user_id, n_recommendations)
 
         # Add detailed quiz information to recommendations
         if 'recommendations' in recommendations_data:
@@ -596,10 +894,26 @@ def get_batch_recommendations():
         data = request.get_json()
         user_ids = data.get('user_ids', [])
         n_recommendations = data.get('n', 5)
+        method = data.get('method', 'hybrid')  # Method: hybrid, content_based, collaborative_filtering
 
         batch_recommendations = {}
         for user_id in user_ids:
-            recommendations = rec_system.get_user_recommendations_with_knn(user_id, n_recommendations)
+            # Use the appropriate recommendation method
+            if method == 'content_based':
+                recommendations = rec_system.content_based_recommend(user_id, n_recommendations)
+                # Format the response to match expected structure
+                recommendations = {
+                    'user_id': user_id,
+                    'recommendations': recommendations,
+                    'timestamp': datetime.now().isoformat()
+                }
+            elif method == 'collaborative_filtering':
+                recommendations = rec_system.get_user_recommendations_with_knn(user_id, n_recommendations)
+            elif method == 'hybrid':
+                recommendations = rec_system.hybrid_recommend(user_id, n_recommendations)
+            else:
+                # Default to hybrid method
+                recommendations = rec_system.hybrid_recommend(user_id, n_recommendations)
 
             # Add detailed quiz information to recommendations
             if 'recommendations' in recommendations:
