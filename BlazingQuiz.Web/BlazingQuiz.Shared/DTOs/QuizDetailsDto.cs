@@ -18,6 +18,9 @@
         public string? CreatedByAvatarPath { get; set; }
         public DateTime CreatedOn { get; set; }
 
+        // Average rating from QuizFeedback
+        public double? AverageRating { get; set; }
+
         public List<RatingDto> RecentRatings { get; set; } = new List<RatingDto>();
         public List<CommentDto> RecentComments { get; set; } = new List<CommentDto>();
     }

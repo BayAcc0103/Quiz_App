@@ -520,11 +520,18 @@ namespace BlazingQuiz.Api.Services
             try
             {
                 // Get the quiz with its details
-                var quiz = await _context.Quizzes
+                var quizQuery = _context.Quizzes
                     .Include(q => q.CreatedByUser)
                     .Include(q => q.QuizCategories)
                     .ThenInclude(qc => qc.Category)
-                    .Where(q => q.Id == quizId && q.IsActive)
+                    .Where(q => q.Id == quizId && q.IsActive);
+
+                // Calculate average rating for the quiz
+                var averageRating = await _context.QuizFeedbacks
+                    .Where(f => f.QuizId == quizId && f.Score.HasValue)
+                    .AverageAsync(f => (double?)f.Score);
+
+                var quiz = await quizQuery
                     .Select(q => new QuizDetailsDto
                     {
                         Id = q.Id,
@@ -545,7 +552,8 @@ namespace BlazingQuiz.Api.Services
                         AudioPath = q.AudioPath,
                         CreatedByName = q.CreatedByUser != null ? q.CreatedByUser.Name : "Unknown",
                         CreatedByAvatarPath = q.CreatedByUser != null ? q.CreatedByUser.AvatarPath : null,
-                        CreatedOn = DateTime.UtcNow // Using current time since User entity doesn't have a CreatedOn property
+                        CreatedOn = DateTime.UtcNow, // Using current time since User entity doesn't have a CreatedOn property
+                        AverageRating = averageRating
                     })
                     .FirstOrDefaultAsync();
 

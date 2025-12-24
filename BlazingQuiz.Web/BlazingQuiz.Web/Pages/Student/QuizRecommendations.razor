@@ -486,6 +486,11 @@
     private QuizDetailsDto? _quizDetails;
     private bool _loadingDetails = false;
 
+    // For all feedback bottom sheet
+    private bool _showAllFeedback = false;
+    private QuizAllFeedbackDto? _allFeedback;
+    private bool _loadingAllFeedback = false;
+
     private async Task ShowQuizDetails(string quizIdString)
     {
         if (Guid.TryParse(quizIdString, out Guid quizId))
@@ -528,6 +533,43 @@
     private void OnBottomSheetVisibilityChanged(bool isVisible)
     {
         _showQuizDetails = isVisible;
+        StateHasChanged();
+    }
+
+    private async Task ShowAllFeedback(Guid quizId)
+    {
+        _loadingAllFeedback = true;
+        _allFeedback = null;
+        _showAllFeedback = true;
+
+        try
+        {
+            var response = await StudentQuizApi.GetAllFeedbackAsync(quizId);
+            if (response.IsSuccess && response.Data != null)
+            {
+                _allFeedback = response.Data;
+            }
+            else
+            {
+                AppState.ShowError(response.ErrorMessage ?? "Failed to load feedback");
+                _showAllFeedback = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading feedback: {ex.Message}");
+            _showAllFeedback = false;
+        }
+        finally
+        {
+            _loadingAllFeedback = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnAllFeedbackBottomSheetVisibilityChanged(bool isVisible)
+    {
+        _showAllFeedback = isVisible;
         StateHasChanged();
     }
 
@@ -750,10 +792,58 @@
                         }
                     </div>
 
+                    <!-- Average Rating Section -->
+                    <div class="average-rating-section mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6>Average Rating</h6>
+                            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => ShowAllFeedback(_quizDetails.Id)">View All Feedback</button>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="d-flex me-2">
+                                @if (_quizDetails.AverageRating.HasValue && _quizDetails.AverageRating > 0)
+                                {
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= Math.Floor(_quizDetails.AverageRating.Value))
+                                        {
+                                            <span class="material-symbols-outlined text-warning">star</span>
+                                        }
+                                        else if (i - 0.5 <= _quizDetails.AverageRating.Value)
+                                        {
+                                            <span class="material-symbols-outlined text-warning">star_half</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="material-symbols-outlined text-muted">star_outline</span>
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <span class="material-symbols-outlined text-muted">star_outline</span>
+                                    }
+                                }
+                            </div>
+                            @if (_quizDetails.AverageRating.HasValue)
+                            {
+                                <span class="fs-5 fw-bold">@(_quizDetails.AverageRating.Value.ToString("F1"))</span>
+                            }
+                            else
+                            {
+                                <span class="fs-5 fw-bold text-muted">0.0</span>
+                            }
+                        </div>
+                    </div>
+
                     @if (_quizDetails.RecentRatings.Any())
                     {
                         <div class="recent-feedback mt-3">
-                            <h6>Recent Ratings</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6>Recent Ratings</h6>
+                                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => ShowAllFeedback(_quizDetails.Id)">View All Feedback</button>
+                            </div>
                             @{
                                 // Sort ratings by date and take top 3
                                 var sortedRatings = _quizDetails.RecentRatings
@@ -785,6 +875,44 @@
         else if (_loadingDetails)
         {
             <div class="text-center">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+    </BottomSheet>
+
+    <BottomSheet IsOpen="@_showAllFeedback" Title="All Feedback" IsOpenChanged="OnAllFeedbackBottomSheetVisibilityChanged" OnCancelClick="() => _showAllFeedback = false" ShowFooter="false">
+        @if (_allFeedback != null)
+        {
+            <div class="quiz-details-content" style="max-height: 60vh; overflow-y: auto;">
+                @if (_allFeedback.CombinedFeedback.Any())
+                {
+                    <div class="feedback-list">
+                        @foreach (var feedback in _allFeedback.CombinedFeedback)
+                        {
+                            <div class="feedback-item p-3 mb-3 border rounded">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <strong>@feedback.StudentName</strong>
+                                    @if (!string.IsNullOrEmpty(feedback.Score))
+                                    {
+                                        <span class="badge bg-primary">@GetRatingIcon(feedback.Score) @GetRatingDisplayText(feedback.Score)</span>
+                                    }
+                                </div>
+                                <small class="text-muted">@feedback.CreatedOn.ToString("MMM dd, yyyy HH:mm")</small>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No feedback yet for this quiz</p>
+                }
+            </div>
+        }
+        else if (_loadingAllFeedback)
+        {
+            <div class="text-center py-3">
                 <div class="spinner-border" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
