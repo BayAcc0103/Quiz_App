@@ -39,5 +39,8 @@ namespace BlazingQuiz.Web.Apis
 
         [Get("/api/quizes/{quizId}")]
         Task<ApiResponse<QuizDetailsDto>> GetQuizByIdAsync(string quizId);
+
+        [Get("/api/quizes/{quizId}/students")]
+        Task<TeacherQuizStudentListDto> GetQuizStudentsAsync(Guid quizId, int startIndex, int pageSize, bool fetchQuizInfo);
     }
 }
