@@ -468,6 +468,28 @@
             return;
         }
 
+        // If this is a new quiz (we can tell because the original quiz had an empty ID),
+        // we need to get the quiz after saving to get its new ID for image upload
+        if (_quiz.Id == Guid.Empty)
+        {
+            // For a new quiz, we need to retrieve the quiz with the new ID after it's been saved
+            // This is a workaround since the SaveQuizAsync API doesn't return the updated quiz with ID
+            // We'll use the fact that we just saved it and get the most recently created quiz
+            // with matching name and description
+            var allQuizzes = await QuizApi.GetQuizesAsync();
+            var newlyCreatedQuiz = allQuizzes
+                .Where(q => q.Name == _quiz.Name
+                            && q.Description == _quiz.Description
+                            && q.CreatedAt >= DateTime.UtcNow.AddSeconds(-30)) // Recently created
+                .OrderByDescending(q => q.CreatedAt)
+                .FirstOrDefault();
+
+            if (newlyCreatedQuiz != null)
+            {
+                _quiz.Id = newlyCreatedQuiz.Id;
+            }
+        }
+
         // If we have a new image to upload, do it after saving the quiz
         if (_selectedImageFile != null && _quiz.Id != Guid.Empty)
         {
