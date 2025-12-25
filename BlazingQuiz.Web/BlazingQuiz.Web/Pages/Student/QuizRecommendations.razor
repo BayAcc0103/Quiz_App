@@ -22,7 +22,6 @@
     <div class="row">
         <div class="col-12">
             <h3>Recommended Quizzes for You</h3>
-            <p class="text-muted">Based on your quiz performance and preferences</p>
         </div>
     </div>
 
@@ -69,7 +68,7 @@
     else
     {
         <!-- Analysis Summary Section -->
-        <div class="row mb-4">
+       @*  <div class="row mb-4">
             <div class="col-12">
                 <div class="card analysis-card">
                     <div class="card-body">
@@ -97,12 +96,11 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> *@
 
         <!-- Recommendations Section -->
         @if (_recommendations?.Any() == true)
         {
-            <h4>Recommended For You</h4>
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
                 @foreach (var recommendation in _recommendations)
                 {

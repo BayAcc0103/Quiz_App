@@ -20,7 +20,6 @@
     <div class="row">
         <div class="col-12">
             <h3>Recommended Quizzes for You</h3>
-            <p class="text-muted">Based on your quiz performance and preferences</p>
         </div>
     </div>
 
@@ -67,7 +66,7 @@
     else
     {
         <!-- Analysis Summary Section -->
-        <div class="row mb-4">
+       @*  <div class="row mb-4">
             <div class="col-12">
                 <div class="card analysis-card">
                     <div class="card-body">
@@ -95,12 +94,11 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> *@
 
         <!-- Recommendations Section -->
         @if (_recommendations?.Any() == true)
         {
-            <h4>Recommended For You</h4>
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
                 @foreach (var recommendation in _recommendations)
                 {
@@ -304,9 +302,8 @@
                 _allAvailableQuizzes = allQuizzesResult?.ToList() ?? new List<QuizListDto>();
 
                 // Call the Python service API to get recommendations
-                string baseUrl = "http://localhost:5000"; // Default to local service
-                // You can change this to your actual deployed service URL
-                string apiUrl = string.Format($"{baseUrl}/api/recommendations/{0}?n=10&method=hybrid", userId.Value);
+                string baseUrl = "https://n2nthr35-5000.asse.devtunnels.ms";
+                string apiUrl = string.Format("https://n2nthr35-5000.asse.devtunnels.ms/api/recommendations/{0}?n=10&method=hybrid", userId.Value);
                 var response = await HttpClient.GetAsync(apiUrl);
 
                 if (response.IsSuccessStatusCode)
