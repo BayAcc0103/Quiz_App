@@ -496,6 +496,41 @@
                     </div>
                 }
             </div>
+
+            <!-- Best Rated Quizzes Section -->
+            <div class="mb-2 d-none d-md-block">
+                <h2>Best Rating</h2>
+                @if (_bestRatedQuizzes.Length > 0)
+                {
+                    <QuizSlider QuizList="_bestRatedQuizzes"
+                                OnQuizTypeSelection="ShowQuizTypeSelection"
+                                OnQuizDetails="ShowQuizDetails"
+                                OnBookmarkToggle="OnBookmarkToggled" />
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <p class="text-muted">No highly rated quizzes available at the moment.</p>
+                    </div>
+                }
+            </div>
+
+            <div class="mb-2 d-block d-md-none">
+                <h2>Best Rating</h2>
+                @if (_bestRatedQuizzes.Length > 0)
+                {
+                    <MobileQuizSlider AllQuizzes="_bestRatedQuizzes"
+                                      OnQuizTypeSelection="ShowQuizTypeSelection"
+                                      OnQuizDetails="ShowQuizDetails"
+                                      OnBookmarkToggle="OnBookmarkToggled" />
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <p class="text-muted">No highly rated quizzes available at the moment.</p>
+                    </div>
+                }
+            </div>
 @*         } *@
     </div>
 
@@ -743,6 +778,7 @@
     private QuizListDto[] _randomEasyQuizzes = [];
     private QuizListDto[] _randomHardQuizzes = [];
     private QuizListDto[] _recentQuizzes = [];
+    private QuizListDto[] _bestRatedQuizzes = [];
     private int _selectedCategoryId;
     private bool _isLoading;
     private QuizListDto? _selectedQuizForType;
@@ -797,6 +833,8 @@
             await LoadRandomHardQuizzesAsync();
             // Load recent quizzes for the slider
             await LoadRecentQuizzesAsync();
+            // Load best rated quizzes for the slider
+            await LoadBestRatedQuizzesAsync();
 
             // Load bookmark status for each quiz
             await LoadBookmarkStatusAsync();
@@ -1154,6 +1192,35 @@
         {
             AppState.ShowError($"Error loading recent quizzes: {ex.Message}");
             _recentQuizzes = []; // Initialize as empty array to avoid null reference
+        }
+        finally
+        {
+            AppState.HideLoader();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadBestRatedQuizzesAsync()
+    {
+        AppState.ShowLoader("Loading best rated quizzes...");
+        try
+        {
+            // Get all active quizzes
+            var allQuizzes = await StudentQuizApi.GetActiveQuizesAsync(0); // 0 means all categories
+
+            // Filter for quizzes with average rating >= 4 and order by rating descending
+            var bestRatedQuizzes = allQuizzes
+                .Where(q => q.AverageRating.HasValue && q.AverageRating.Value >= 4.0)
+                .OrderByDescending(q => q.AverageRating) // Order by highest rating first
+                .Take(20) // Take up to 20 for the slider
+                .ToArray();
+
+            _bestRatedQuizzes = bestRatedQuizzes;
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading best rated quizzes: {ex.Message}");
+            _bestRatedQuizzes = []; // Initialize as empty array to avoid null reference
         }
         finally
         {
