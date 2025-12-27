@@ -306,6 +306,86 @@ namespace BlazingQuiz.Api.Endpoints
                 return Results.Ok(QuizApiResponse<QuestionDto[]>.Success(questions));
             }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
 
+            questionGroup.MapGet("{questionId:int}", async (int questionId, QuizService service, HttpContext httpContext) =>
+            {
+                // Check user role to determine if they have permission to view questions
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Admin) && userRole != nameof(UserRole.Teacher))
+                {
+                    return Results.Forbid();
+                }
+
+                var question = await service.GetQuestionByIdAsync(questionId);
+                if (question == null)
+                {
+                    return Results.NotFound(QuizApiResponse<QuestionDto>.Failure("Question not found"));
+                }
+
+                // Check if the user is the creator of the question (if they're not an admin)
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest(QuizApiResponse<QuestionDto>.Failure("Invalid user ID"));
+                }
+
+                if (userRole != nameof(UserRole.Admin) && question.CreatedBy != userId)
+                {
+                    return Results.Forbid();
+                }
+
+                return Results.Ok(QuizApiResponse<QuestionDto>.Success(question));
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+
+            questionGroup.MapPost("", async (QuestionDto questionDto, QuizService service, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest(QuizApiResponse.Failure("Invalid user ID"));
+                }
+
+                // Check user role to determine if they have permission to create questions
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Admin) && userRole != nameof(UserRole.Teacher))
+                {
+                    return Results.Forbid();
+                }
+
+                var result = await service.SaveQuestionAsync(questionDto, userId);
+                if (!result)
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Failed to save question"));
+                }
+
+                return Results.Ok(QuizApiResponse.Success());
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+
+            questionGroup.MapPut("{questionId:int}", async (int questionId, QuestionDto questionDto, QuizService service, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Invalid user ID"));
+                }
+
+                // Check user role to determine if they have permission to update questions
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Admin) && userRole != nameof(UserRole.Teacher))
+                {
+                    return Results.Forbid();
+                }
+
+                var result = await service.UpdateQuestionAsync(questionId, questionDto, userId, userRole == nameof(UserRole.Admin));
+                if (!result)
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Failed to update question or you don't have permission to update it."));
+                }
+
+                return Results.Ok(QuizApiResponse.Success());
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+
 
             return app;
         }

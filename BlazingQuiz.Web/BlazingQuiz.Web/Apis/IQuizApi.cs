@@ -48,5 +48,14 @@ namespace BlazingQuiz.Web.Apis
 
         [Get("/api/questions/created-by/{userId}")]
         Task<QuizApiResponse<QuestionDto[]>> GetQuestionsCreatedByAsync(int userId);
+
+        [Get("/api/questions/{questionId}")]
+        Task<QuizApiResponse<QuestionDto>> GetQuestionByIdAsync(int questionId);
+
+        [Post("/api/questions")]
+        Task<QuizApiResponse> SaveQuestionAsync(QuestionDto question);
+
+        [Put("/api/questions/{questionId}")]
+        Task<QuizApiResponse> UpdateQuestionAsync(int questionId, QuestionDto question);
     }
 }

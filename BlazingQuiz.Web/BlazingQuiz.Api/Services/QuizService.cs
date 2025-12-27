@@ -635,5 +635,140 @@ namespace BlazingQuiz.Api.Services
                 })
                 .ToArrayAsync();
         }
+
+        public async Task<QuestionDto> GetQuestionByIdAsync(int questionId)
+        {
+            return await _context.Questions
+                .Include(q => q.Options)
+                .Include(q => q.TextAnswers)
+                .Include(q => q.Quiz)
+                .Where(q => q.Id == questionId)
+                .Select(q => new QuestionDto
+                {
+                    Id = q.Id,
+                    Text = q.Text,
+                    AnswerExplanation = q.AnswerExplanation,
+                    ImagePath = q.ImagePath,
+                    AudioPath = q.AudioPath,
+                    IsTextAnswer = q.IsTextAnswer,
+                    Options = q.Options.Select(o => new OptionDto
+                    {
+                        Id = o.Id,
+                        Text = o.Text,
+                        IsCorrect = o.IsCorrect
+                    }).ToList(),
+                    TextAnswers = q.IsTextAnswer ? q.TextAnswers.Select(ta => new TextAnswerDto
+                    {
+                        Id = ta.Id,
+                        Text = ta.Text
+                    }).ToList() : new List<TextAnswerDto>(),
+                    CreatedAt = q.CreatedAt,
+                    CreatedBy = q.CreatedBy
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> SaveQuestionAsync(QuestionDto questionDto, int userId)
+        {
+            try
+            {
+                // Create a new Question entity from the DTO
+                var question = new Question
+                {
+                    Text = questionDto.Text,
+                    AnswerExplanation = questionDto.AnswerExplanation,
+                    ImagePath = questionDto.ImagePath,
+                    AudioPath = questionDto.AudioPath,
+                    IsTextAnswer = questionDto.IsTextAnswer,
+                    CreatedBy = userId, // Set the creator
+                    CreatedAt = DateTime.UtcNow, // Set creation timestamp
+                    Options = questionDto.Options?.Select(o => new Option
+                    {
+                        Text = o.Text,
+                        IsCorrect = o.IsCorrect
+                    }).ToArray() ?? Array.Empty<Option>(),
+                    TextAnswers = questionDto.TextAnswers?.Select(ta => new TextAnswer
+                    {
+                        Text = ta.Text
+                    }).ToArray() ?? Array.Empty<TextAnswer>()
+                };
+
+                _context.Questions.Add(question);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                Console.WriteLine($"Error saving question: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateQuestionAsync(int questionId, QuestionDto questionDto, int userId, bool isAdmin)
+        {
+            try
+            {
+                // Find the existing question
+                var existingQuestion = await _context.Questions
+                    .Include(q => q.Options)
+                    .Include(q => q.TextAnswers)
+                    .FirstOrDefaultAsync(q => q.Id == questionId);
+
+                if (existingQuestion == null)
+                {
+                    return false;
+                }
+
+                // Check if the user is the creator of this question (skip for admin)
+                if (!isAdmin && existingQuestion.CreatedBy != userId)
+                {
+                    return false; // User can only update questions they created
+                }
+
+                // Update the question properties
+                existingQuestion.Text = questionDto.Text;
+                existingQuestion.AnswerExplanation = questionDto.AnswerExplanation;
+                existingQuestion.ImagePath = questionDto.ImagePath;
+                existingQuestion.AudioPath = questionDto.AudioPath;
+                existingQuestion.IsTextAnswer = questionDto.IsTextAnswer;
+
+                // Update options
+                if (questionDto.Options != null)
+                {
+                    // Remove existing options
+                    _context.Options.RemoveRange(existingQuestion.Options);
+
+                    // Add new options
+                    existingQuestion.Options = questionDto.Options.Select(o => new Option
+                    {
+                        Text = o.Text,
+                        IsCorrect = o.IsCorrect
+                    }).ToArray();
+                }
+
+                // Update text answers
+                if (questionDto.TextAnswers != null)
+                {
+                    // Remove existing text answers
+                    _context.TextAnswers.RemoveRange(existingQuestion.TextAnswers);
+
+                    // Add new text answers
+                    existingQuestion.TextAnswers = questionDto.TextAnswers.Select(ta => new TextAnswer
+                    {
+                        Text = ta.Text
+                    }).ToArray();
+                }
+
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                Console.WriteLine($"Error updating question: {ex.Message}");
+                return false;
+            }
+        }
     }
 }

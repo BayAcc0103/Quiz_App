@@ -206,6 +206,13 @@ namespace BlazingQuiz.Api.Data
                 .HasForeignKey(rq => rq.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            // Configure Question entity - Quiz relationship
+            modelBuilder.Entity<Question>()
+                .HasOne(q => q.Quiz)
+                .WithMany(q => q.Questions)
+                .HasForeignKey(q => q.QuizId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Configure Question entity - CreatedBy relationship
             modelBuilder.Entity<Question>()
                 .HasOne(q => q.CreatedByUser)

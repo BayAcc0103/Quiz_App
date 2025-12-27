@@ -1,0 +1,521 @@
+/* Card with bold black border and box shadow - matching SaveQuiz style */
+.slider-card {
+    border: 3px solid #000 !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+    background-color: #ffffff;
+    color: #333;
+    min-width: 100%;
+    height: 80vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Card header matching SaveQuiz style */
+.card-header-3d {
+    background: linear-gradient(135deg, #4a90e2, #357abd) !important;
+    padding: 15px 20px !important;
+    border-radius: 12px 12px 0 0 !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    text-align: center !important;
+    z-index: 2 !important;
+    color: white !important;
+    font-weight: bold !important;
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Slider Container */
+.slider-container {
+    position: relative;
+    width: 100%;
+    height: 80vh;
+    overflow: hidden;
+    border-radius: 15px;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background: #f8f9fa;
+    margin: 20px auto;
+}
+
+.slider-track {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s ease-in-out;
+}
+
+/* Form control styling to match SaveQuiz */
+.form-control {
+    border: 3px solid #000 !important;
+    border-radius: 12px !important;
+    box-shadow: -2px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 0px 0px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff;
+    transition: all 0.3s ease;
+    padding: 0.375rem 0.75rem;
+    transform: perspective(500px) rotateY(0deg);
+}
+
+.form-control:focus {
+    border: 3px solid #000 !important;
+    outline: none;
+    box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.2) !important; /* Similar to card hover effect */
+    transform: perspective(500px) translateY(4px) !important; /* Move down like card on hover */
+}
+
+/* Matching SaveQuiz input styling */
+.form-control-lg {
+    border: 3px solid #000 !important;
+    border-radius: 50px !important;
+    box-shadow: -2px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff;
+    font-size: 1.5rem !important;
+    letter-spacing: 0.3rem !important;
+    text-align: center !important;
+    transition: all 0.3s ease;
+}
+
+.form-control-centered {
+    border: 3px solid #000 !important;
+    border-radius: 12px !important;
+    box-shadow: -2px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff;
+    font-size: 1.1rem !important;
+    letter-spacing: 0.1rem !important;
+    text-align: center !important;
+    transition: all 0.3s ease;
+}
+
+/* Custom input group text styling for option checkboxes */
+.custom-input-group-text {
+    border: 3px solid #000 !important;
+    border-right: none !important; /* Remove right border */
+    border-top-left-radius: 12px !important;
+    border-bottom-left-radius: 12px !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff;
+    padding: 0.375rem 0.75rem !important;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.custom-input-group-text:focus-within {
+    border: 3px solid #000 !important;
+    border-right: none !important; /* Remove right border when focused */
+    outline: none;
+    box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Remove left border from option text inputs to connect with checkbox */
+.form-control.no-border-radius {
+    border-left: none !important; /* Remove left border */
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border: 3px solid #000 !important;
+    border-top-right-radius: 0px !important;
+    border-bottom-right-radius: 0px !important;
+    box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff;
+    padding: 0.375rem 0.75rem !important;
+    transition: all 0.3s ease;
+}
+
+/* Background color when option is selected (correct) */
+.input-group.correct-option .custom-input-group-text {
+    background-color: #d4edda !important; /* Light green background */
+    border-color: #28a745 !important;
+}
+
+.input-group.correct-option .form-control.no-border-radius {
+    background-color: #d4edda !important; /* Light green background */
+    border-color: #28a745 !important;
+}
+
+.toggle-checkbox {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+}
+
+.toggle-label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* Remove border radius for option text inputs */
+.no-border-radius {
+    border-radius: 0 !important;
+}
+
+/* Style for option delete button */
+.option-delete-btn {
+    border: 3px solid #000 !important;
+    border-top-right-radius: 12px !important;
+    border-bottom-right-radius: 12px !important;
+    box-shadow: -2px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #dc3545 !important;
+    color: white !important;
+    padding: 0.375rem 0.75rem !important;
+    font-size: 1rem !important;
+    transition: all 0.3s ease !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.025rem !important;
+}
+
+.option-delete-btn:hover {
+    background-color: #c82333 !important;
+    transform: translateY(2px);
+    box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* InputSelect component styling */
+select.form-control {
+    border: 3px solid #000 !important;
+    border-radius: 12px !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff;
+    transition: all 0.3s ease;
+    padding: 0.375rem 0.75rem;
+    transform: perspective(500px) rotateY(0deg);
+}
+
+select.form-control:focus {
+    border: 3px solid #000 !important;
+    outline: none;
+    box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.2) !important;
+    transform: perspective(500px) translateY(4px) !important;
+}
+
+/* Category dropdown styling to match input fields */
+.category-dropdown-container {
+    position: relative;
+}
+
+.category-select-btn {
+    border: 3px solid #000 !important;
+    border-radius: 12px !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff !important;
+    color: #333 !important;
+    transition: all 0.3s ease;
+    padding: 0.375rem 0.75rem;
+    transform: perspective(500px) rotateY(0deg);
+    font-size: 1.1rem !important;
+    letter-spacing: 0.1rem !important;
+    text-align: start !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+.category-select-btn:hover,
+.category-select-btn:focus {
+    border: 3px solid #000 !important;
+    outline: none;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff !important;
+}
+
+.category-select-btn:focus {
+    box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.2) !important;
+    transform: perspective(500px) translateY(4px) !important;
+}
+
+.category-select-btn::after {
+    display: inline-block;
+    margin-left: 0.255em;
+    vertical-align: 0.255em;
+    content: "";
+    border-top: 0.3em solid;
+    border-right: 0.3em solid transparent;
+    border-bottom: 0;
+    border-left: 0.3em solid transparent;
+    transition: transform 0.15s ease-in-out;
+}
+
+.dropdown-toggle.show::after {
+    transform: rotate(180deg);
+}
+
+.category-dropdown-menu {
+    border: 3px solid #000 !important;
+    border-radius: 12px !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 100% !important;
+    transform: perspective(500px) rotateY(0deg);
+    padding: 5px 0;
+}
+
+.category-dropdown-item {
+    padding: 0.5rem 1rem !important;
+    transition: background-color 0.2s ease;
+}
+
+.category-dropdown-item:hover {
+    background-color: #e9ecef !important;
+}
+
+.category-checkbox {
+    margin-right: 0.75rem;
+}
+
+.category-label {
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+/* Style for checkbox form switch to match input fields */
+.form-switch .form-check-input {
+    border: 3px solid #000 !important;
+    border-radius: 12px !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff !important;
+    width: 3.5rem !important;
+    height: 1.75rem !important;
+    transition: all 0.3s ease;
+    transform: perspective(500px) rotateY(0deg);
+}
+
+.form-switch .form-check-input:focus {
+    border: 3px solid #000 !important;
+    box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.2) !important;
+    outline: none;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.form-switch .form-check-input:active {
+    transform: perspective(500px) translateY(4px) !important;
+}
+
+/* Style for regular checkboxes and radio buttons to match input fields */
+.form-check-input {
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff !important;
+    transition: all 0.3s ease;
+    transform: perspective(500px) rotateY(0deg);
+}
+
+.form-check-input:focus {
+    border: 3px solid #000 !important;
+    box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.2) !important;
+    outline: none;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.form-check-input:active {
+    transform: perspective(500px) translateY(4px) !important;
+}
+
+/* Add Question Button - positioned on the right side with space for navigation buttons */
+.add-question-btn {
+    position: fixed;
+    right: 30px; /* Adjusted to original position since navigation buttons are now positioned differently */
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1000;
+    background: linear-gradient(135deg, #28a745, #218838);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    font-size: 24px;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.add-question-btn:hover {
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, #218838, #1e7e34);
+}
+
+/* Save Question Button - positioned at the bottom similar to Save Quiz button */
+.save-question-btn {
+    position: fixed;
+    right: 30px;
+    bottom: 30px; /* Positioned at the bottom of the screen */
+    z-index: 1000;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    width: 120px;
+    height: 50px;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.save-question-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, #0056b3, #004085);
+}
+
+/* Button styling matching SaveQuiz */
+.btn-3d {
+    position: relative;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    border-radius: 25px;
+    cursor: pointer;
+    outline: none;
+    box-shadow:
+        0 6px 0 0 var(--shadow-color, #0d5c22),
+        0 5px 10px rgba(0, 0, 0, 0.3);
+    transform: translateY(0);
+}
+
+.btn-3d:active {
+    transform: translateY(6px);
+    box-shadow:
+        0 0 0 0 var(--shadow-color, #0d5c22),
+        0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-3d:hover:not(:active) {
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 0 0 var(--shadow-color, #0d5c22),
+        0 7px 15px rgba(0, 0, 0, 0.35);
+}
+
+.btn-3d-primary {
+    --shadow-color: #0a58ca;
+    background: linear-gradient(to bottom, #0d6efd, #0b5ed7);
+    color: white;
+    border: none;
+}
+
+.btn-3d-primary:hover:not(:active) {
+    background: linear-gradient(to bottom, #0b5ed7, #0a53be);
+}
+
+.btn-3d-primary:active {
+    background: linear-gradient(to bottom, #0a53be, #084298);
+}
+
+.btn-3d-success {
+    --shadow-color: #0d5c22;
+    background: linear-gradient(to bottom, #198754, #157347);
+    color: white;
+    border: none;
+}
+
+.btn-3d-success:hover:not(:active) {
+    background: linear-gradient(to bottom, #157347, #146c43);
+}
+
+.btn-3d-success:active {
+    background: linear-gradient(to bottom, #146c43, #12643f);
+}
+
+.btn-3d-danger {
+    --shadow-color: #a71e2a;
+    background: linear-gradient(to bottom, #dc3545, #bb2d3b);
+    color: white;
+    border: none;
+}
+
+.btn-3d-danger:hover:not(:active) {
+    background: linear-gradient(to bottom, #bb2d3b, #a92734);
+}
+
+.btn-3d-danger:active {
+    background: linear-gradient(to bottom, #a92734, #98222d);
+}
+
+/* Navigation buttons - positioned at bottom corners of the slider card */
+.nav-btn {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.prev-btn {
+    bottom: 20px; /* Positioned at the bottom of the card */
+    left: 20px; /* Positioned at the left corner of the card */
+}
+
+.next-btn {
+    bottom: 20px; /* Positioned at the bottom of the card */
+    right: 20px; /* Positioned at the right corner of the card */
+}
+
+/* Question card specific styling */
+.question-card-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.question-card-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.question-card-content::-webkit-scrollbar-thumb {
+    background: #c0c0c0;
+    border-radius: 4px;
+}
+
+.question-card-content::-webkit-scrollbar-thumb:hover {
+    background: #a0a0a0;
+}
