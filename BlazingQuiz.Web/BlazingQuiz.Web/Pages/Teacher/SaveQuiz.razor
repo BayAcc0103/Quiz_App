@@ -341,6 +341,11 @@
     Import
 </button>
 
+<!-- Import Question from Quiz Button positioned on the right side, below the Import button -->
+<button type="button" class="import-question-from-quiz-btn" @onclick="OpenQuizSelectionModal" title="Import Question from Quiz">
+    Import from Quiz
+</button>
+
 <!-- Save Quiz Button positioned at the bottom like the Add Question button -->
 <button type="button" class="save-quiz-btn" title="Save Quiz" @onclick="HandleSaveQuizClick">
     Save Quiz
@@ -358,6 +363,18 @@
                      IsVisible="@_isImportQuestionModalVisible"
                      IsVisibleChanged="OnImportQuestionModalChanged"
                      OnQuestionsImported="OnQuestionsImported" />
+
+<QuizSelectionFromQuizModal @ref="QuizSelectionModalRef"
+                    IsVisible="@_isQuizSelectionModalVisible"
+                    IsVisibleChanged="OnQuizSelectionModalChanged"
+                    OnQuizSelected="OnQuizSelected" />
+
+<QuizQuestionsFromQuizModal @ref="QuizQuestionsSelectionModalRef"
+                             IsVisible="@_isQuizQuestionsSelectionModalVisible"
+                             IsVisibleChanged="OnQuizQuestionsSelectionModalChanged"
+                             QuizId="@_selectedQuizId"
+                             QuizName="@_selectedQuizName"
+                             OnQuestionsImported="OnQuestionsImportedFromQuiz" />
 
 @code {
     [Parameter]
@@ -975,9 +992,24 @@
     private ImportQuestionModal? ImportQuestionModalRef;
     private bool _isImportQuestionModalVisible = false;
 
+    // Quiz Selection Modal
+    private QuizSelectionFromQuizModal? QuizSelectionModalRef;
+    private bool _isQuizSelectionModalVisible = false;
+    private Guid _selectedQuizId = Guid.Empty;
+    private string _selectedQuizName = string.Empty;
+
+    // Quiz Questions Selection Modal
+    private QuizQuestionsFromQuizModal? QuizQuestionsSelectionModalRef;
+    private bool _isQuizQuestionsSelectionModalVisible = false;
+
     private void OpenImportQuestionModal()
     {
         _isImportQuestionModalVisible = true;
+    }
+
+    private void OpenQuizSelectionModal()
+    {
+        _isQuizSelectionModalVisible = true;
     }
 
     private async Task OnImportQuestionModalChanged(bool isVisible)
@@ -986,7 +1018,43 @@
         StateHasChanged();
     }
 
+    private async Task OnQuizSelectionModalChanged(bool isVisible)
+    {
+        _isQuizSelectionModalVisible = isVisible;
+        StateHasChanged();
+    }
+
+    private async Task OnQuizQuestionsSelectionModalChanged(bool isVisible)
+    {
+        _isQuizQuestionsSelectionModalVisible = isVisible;
+        StateHasChanged();
+    }
+
+    private async Task OnQuizSelected(QuizListDto quiz)
+    {
+        _selectedQuizId = quiz.Id;
+        _selectedQuizName = quiz.Name;
+        _isQuizSelectionModalVisible = false;
+        _isQuizQuestionsSelectionModalVisible = true;
+        StateHasChanged();
+    }
+
     private async Task OnQuestionsImported(List<QuestionDto> questions)
+    {
+        foreach (var question in questions)
+        {
+            // Add the imported question to the quiz
+            _quiz.Questions.Add(question);
+        }
+
+        // Update TotalQuestions to reflect the actual count
+        _quiz.TotalQuestions = _quiz.Questions.Count;
+
+        // Update the UI
+        StateHasChanged();
+    }
+
+    private async Task OnQuestionsImportedFromQuiz(List<QuestionDto> questions)
     {
         foreach (var question in questions)
         {

@@ -1,0 +1,119 @@
+@using BlazingQuiz.Shared.DTOs
+
+<div class="modal fade @(IsVisible ? "show d-block" : "d-none")"
+     style="background-color: rgba(0,0,0,0.5); @(IsVisible ? "" : "display: none;")"
+     tabindex="-1"
+     @onclick="CloseModal">
+    <div class="modal-dialog modal-lg modal-dialog-centered" @onclick:stopPropagation="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Select a Quiz</h5>
+                <button type="button" class="btn-close" @onclick="CloseModal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="quizSearchInput" class="form-label">Search Quizzes</label>
+                    <input type="text"
+                           class="form-control"
+                           id="quizSearchInput"
+                           @bind="SearchTerm"
+                           placeholder="Enter keywords to search quizzes..." />
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Questions</th>
+                                <th>Level</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (FilteredQuizzes.Any())
+                            {
+                                @foreach (var quiz in FilteredQuizzes)
+                                {
+                                    <tr>
+                                        <td>@quiz.Name</td>
+                                        <td>@quiz.TotalQuestions</td>
+                                        <td>@quiz.Level</td>
+                                        <td>
+                                            <button type="button" class="btn btn-3d btn-3d-primary btn-sm" @onclick="() => SelectQuiz(quiz)">
+                                                Select
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center">No quizzes found</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-3d btn-3d-danger" @onclick="CloseModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+    [Parameter] public EventCallback<QuizListDto> OnQuizSelected { get; set; }
+
+    [Inject] public IQuizApi QuizApi { get; set; } = default!;
+    [Inject] public IAppState AppState { get; set; } = default!;
+
+    private List<QuizListDto> Quizzes { get; set; } = new();
+    private string SearchTerm { get; set; } = string.Empty;
+
+    private List<QuizListDto> FilteredQuizzes
+    {
+        get
+        {
+            var filtered = Quizzes.AsEnumerable();
+
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                filtered = filtered.Where(q => q.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return filtered.ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        AppState.ShowLoader("Loading quizzes...");
+        try
+        {
+            var quizzes = await QuizApi.GetQuizesAsync();
+            Quizzes = quizzes.ToList();
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private async Task SelectQuiz(QuizListDto quiz)
+    {
+        await OnQuizSelected.InvokeAsync(quiz);
+        await CloseModal();
+    }
+
+    private async Task CloseModal()
+    {
+        IsVisible = false;
+        await IsVisibleChanged.InvokeAsync(false);
+    }
+}
