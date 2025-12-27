@@ -6,6 +6,7 @@
 @using BlazingQuiz.Shared.Enums
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = nameof(UserRole.Admin))]
+@using BlazingQuiz.Web.Components
 
 @inject NavigationManager NavigationManager
 @inject IQuizApi QuizApi
@@ -334,6 +335,11 @@
     +
 </button>
 
+<!-- Import Question Button positioned on the right side -->
+<button type="button" class="import-question-btn" @onclick="OpenImportQuestionModal" title="Import Question">
+    Import
+</button>
+
 <!-- Save Quiz Button positioned at the bottom like the Add Question button -->
 <button type="button" class="save-quiz-btn" title="Save Quiz" @onclick="HandleSaveQuizClick">
     Save Quiz
@@ -346,6 +352,11 @@
         Delete Quiz
     </button>
 } *@
+
+<ImportQuestionModal @ref="ImportQuestionModalRef"
+                     IsVisible="@_isImportQuestionModalVisible"
+                     IsVisibleChanged="OnImportQuestionModalChanged"
+                     OnQuestionsImported="OnQuestionsImported" />
 
 @code {
     [Parameter]
@@ -487,6 +498,82 @@
             if (newlyCreatedQuiz != null)
             {
                 _quiz.Id = newlyCreatedQuiz.Id;
+            }
+        }
+
+        // Handle imported questions: if a question has an existing ID (from another quiz),
+        // we need to create a copy of it for this new quiz
+        if (_quiz.Id != Guid.Empty)
+        {
+            AppState.ShowLoader("Processing imported questions...");
+            try
+            {
+                // Process each question to handle imported questions properly
+                for (int i = 0; i < _quiz.Questions.Count; i++)
+                {
+                    var question = _quiz.Questions[i];
+
+                    // If the question has an ID, it means it was imported from another quiz
+                    // We need to save it as a new question for this quiz
+                    if (question.Id != 0) // Existing question from another quiz
+                    {
+                        // Create a copy of the question with the same content but without the ID
+                        var newQuestion = new QuestionDto
+                        {
+                            Text = question.Text,
+                            AnswerExplanation = question.AnswerExplanation,
+                            ImagePath = question.ImagePath,
+                            AudioPath = question.AudioPath,
+                            IsTextAnswer = question.IsTextAnswer,
+                            Options = new List<OptionDto>(),
+                            TextAnswers = new List<TextAnswerDto>(),
+                            CreatedAt = DateTime.UtcNow,
+                            CreatedBy = question.CreatedBy
+                        };
+
+                        // Copy options
+                        foreach (var option in question.Options)
+                        {
+                            newQuestion.Options.Add(new OptionDto
+                            {
+                                Text = option.Text,
+                                IsCorrect = option.IsCorrect
+                            });
+                        }
+
+                        // Copy text answers
+                        if (question.TextAnswers != null)
+                        {
+                            foreach (var textAnswer in question.TextAnswers)
+                            {
+                                newQuestion.TextAnswers.Add(new TextAnswerDto
+                                {
+                                    Text = textAnswer.Text
+                                });
+                            }
+                        }
+
+                        // Save the new question to the current quiz
+                        var saveQuestionResponse = await QuizApi.SaveQuestionAsync(newQuestion);
+                        if (saveQuestionResponse.IsSuccess)
+                        {
+                            // Update the question in the quiz with the new ID
+                            _quiz.Questions[i] = newQuestion;
+                        }
+                        else
+                        {
+                            await ShowAlertAsync($"Failed to save imported question: {saveQuestionResponse.ErrorMessage}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await ShowAlertAsync($"Error processing imported questions: {ex.Message}");
+            }
+            finally
+            {
+                AppState.HideLoader();
             }
         }
 
@@ -882,6 +969,36 @@
 
     private Dictionary<QuestionDto, IBrowserFile?> _questionImageFiles = new();
     private Dictionary<QuestionDto, IBrowserFile?> _questionAudioFiles = new();
+
+    // Import Question Modal
+    private ImportQuestionModal? ImportQuestionModalRef;
+    private bool _isImportQuestionModalVisible = false;
+
+    private void OpenImportQuestionModal()
+    {
+        _isImportQuestionModalVisible = true;
+    }
+
+    private async Task OnImportQuestionModalChanged(bool isVisible)
+    {
+        _isImportQuestionModalVisible = isVisible;
+        StateHasChanged();
+    }
+
+    private async Task OnQuestionsImported(List<QuestionDto> questions)
+    {
+        foreach (var question in questions)
+        {
+            // Add the imported question to the quiz
+            _quiz.Questions.Add(question);
+        }
+
+        // Update TotalQuestions to reflect the actual count
+        _quiz.TotalQuestions = _quiz.Questions.Count;
+
+        // Update the UI
+        StateHasChanged();
+    }
 
     private void GoToCard(int index)
     {

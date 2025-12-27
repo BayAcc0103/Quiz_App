@@ -359,6 +359,36 @@ select.form-control:focus {
     background: linear-gradient(135deg, #218838, #1e7e34);
 }
 
+/* Import Question Button - positioned on the right side below the Add Question button */
+.import-question-btn {
+    position: fixed;
+    right: 30px;
+    top: calc(50% + 60px); /* Positioned below the Add Question button */
+    z-index: 1000;
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    color: #212529;
+    border: none;
+    border-radius: 50px;
+    width: 100px;
+    height: 50px;
+    font-size: 14px;
+    font-weight: bold;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.import-question-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, #e0a800, #d39e00);
+}
+
 /* Save Quiz Button - positioned at the bottom similar to Add Question button */
 .save-quiz-btn {
     position: fixed;

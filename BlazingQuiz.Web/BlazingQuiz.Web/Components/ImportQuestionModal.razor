@@ -1,0 +1,335 @@
+@using BlazingQuiz.Shared.DTOs
+@using BlazingQuiz.Shared.Enums
+
+<div class="modal fade @(IsVisible ? "show d-block" : "d-none")" 
+     style="background-color: rgba(0,0,0,0.5); @(IsVisible ? "" : "display: none;")" 
+     tabindex="-1" 
+     @onclick="CloseModal">
+    <div class="modal-dialog modal-xl modal-dialog-centered" @onclick:stopPropagation="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Questions</h5>
+                <button type="button" class="btn-close" @onclick="CloseModal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="searchInput" class="form-label">Search Questions</label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="searchInput" 
+                           @bind="SearchTerm" 
+                           placeholder="Enter keywords to search questions..." />
+                </div>
+                
+                @* Category filter is currently not functional since we can't determine which quiz a question belongs to *@
+                @* <div class="mb-3">
+                    <label class="form-label">Filter by Category</label>
+                    <select class="form-select" @bind="SelectedCategoryId">
+                        <option value="0">All Categories</option>
+                        @foreach (var category in Categories)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    </select>
+                </div> *@
+                
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Select</th>
+                                <th>Question</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (FilteredQuestions.Any())
+                            {
+                                @foreach (var question in FilteredQuestions)
+                                {
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox"
+                                                   class="form-check-input"
+                                                   @checked="question.IsSelected"
+                                                   @onchange="e => OnQuestionSelectionChangedWithArgs(question, e)" />
+                                        </td>
+                                        <td>
+                                            <div class="question-text">@question.Text</div>
+                                            @if (!question.IsTextAnswer)
+                                            {
+                                                <div class="options-list mt-2">
+                                                    @foreach (var option in question.Options)
+                                                    {
+                                                        <div class="option-item">
+                                                            <span class="option-marker">@(option.IsCorrect ? "✓" : "•")</span>
+                                                            @option.Text
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="answers-list mt-2">
+                                                    @if (question.TextAnswers != null && question.TextAnswers.Any())
+                                                    {
+                                                        <div><strong>Answers:</strong> @string.Join(", ", question.TextAnswers.Select(a => a.Text))</div>
+                                                    }
+                                                </div>
+                                            }
+                                        </td>
+                                        <td>@(question.IsTextAnswer ? "Text Input" : "Multiple Choice")</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-center">No questions found</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        Showing @FilteredQuestions.Count of @Questions.Count questions
+                    </div>
+                    <div>
+                        <button class="btn btn-3d btn-3d-primary" @onclick="SelectAllQuestions">
+                            Select All
+                        </button>
+                        <button class="btn btn-3d btn-3d-danger ms-2" @onclick="ClearAllSelections">
+                            Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-3d btn-3d-danger" @onclick="CloseModal">Cancel</button>
+                <button type="button" class="btn btn-3d btn-3d-primary" @onclick="ImportSelectedQuestions" disabled="@(SelectedQuestions.Count == 0)">
+                    Import (@SelectedQuestions.Count selected)
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .question-text {
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+    
+    .option-item {
+        margin-bottom: 4px;
+        padding-left: 20px;
+    }
+    
+    .option-marker {
+        margin-right: 8px;
+        font-weight: bold;
+    }
+    
+    .options-list {
+        font-size: 0.9em;
+    }
+    
+    .answers-list {
+        font-size: 0.9em;
+    }
+</style>
+
+@code {
+    public class ExtendedQuestionDto
+    {
+        public QuestionDto Question { get; set; }
+        public Guid QuizId { get; set; }
+        public bool IsSelected { get; set; } = false;
+        
+        // Delegating properties to the QuestionDto for easier access
+        public int Id => Question.Id;
+        public string Text { get => Question.Text; set => Question.Text = value; }
+        public string? AnswerExplanation { get => Question.AnswerExplanation; set => Question.AnswerExplanation = value; }
+        public string? ImagePath { get => Question.ImagePath; set => Question.ImagePath = value; }
+        public string? AudioPath { get => Question.AudioPath; set => Question.AudioPath = value; }
+        public List<OptionDto> Options { get => Question.Options; set => Question.Options = value; }
+        public List<TextAnswerDto> TextAnswers { get => Question.TextAnswers; set => Question.TextAnswers = value; }
+        public bool IsTextAnswer { get => Question.IsTextAnswer; set => Question.IsTextAnswer = value; }
+        public DateTime? CreatedAt { get => Question.CreatedAt; set => Question.CreatedAt = value; }
+        public int? CreatedBy { get => Question.CreatedBy; set => Question.CreatedBy = value; }
+    }
+
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+    [Parameter] public EventCallback<List<QuestionDto>> OnQuestionsImported { get; set; }
+
+    [Inject] public IQuizApi QuizApi { get; set; } = default!;
+    [Inject] public ICategoryApi CategoryApi { get; set; } = default!;
+    [Inject] public IAppState AppState { get; set; } = default!;
+
+    private List<ExtendedQuestionDto> ExtendedQuestions { get; set; } = new();
+    private List<CategoryDto> Categories { get; set; } = new();
+    private string SearchTerm { get; set; } = string.Empty;
+    private int SelectedCategoryId { get; set; } = 0; // Not currently used since we can't filter by category
+    private List<ExtendedQuestionDto> SelectedQuestions { get; set; } = new();
+
+    private List<ExtendedQuestionDto> FilteredQuestions
+    {
+        get
+        {
+            var filtered = ExtendedQuestions.AsEnumerable();
+
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                filtered = filtered.Where(q => q.Question.Text.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Note: Category filtering is not currently possible since we can't determine which quiz a question belongs to
+            // The API doesn't provide a direct way to get the quiz ID for a question
+
+            return filtered.ToList();
+        }
+    }
+
+    private List<QuestionDto> Questions => ExtendedQuestions.Select(eq => eq.Question).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        AppState.ShowLoader("Loading questions and categories...");
+        try
+        {
+            // Load all questions
+            var questionsResponse = await QuizApi.GetQuestionsAsync();
+            var allQuestions = questionsResponse.IsSuccess ? questionsResponse.Data : new QuestionDto[0];
+
+            // Create extended questions
+            ExtendedQuestions = new List<ExtendedQuestionDto>();
+            foreach (var question in allQuestions)
+            {
+                var extendedQuestion = new ExtendedQuestionDto
+                {
+                    Question = question,
+                    QuizId = Guid.Empty, // We can't determine the quiz ID from the available data
+                    IsSelected = false
+                };
+                ExtendedQuestions.Add(extendedQuestion);
+            }
+
+            // Load all categories
+            Categories = (await CategoryApi.GetCategoriesAsync()).ToList();
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private async Task OnQuestionSelectionChanged(ExtendedQuestionDto question)
+    {
+        if (question.IsSelected)
+        {
+            if (!SelectedQuestions.Contains(question))
+            {
+                SelectedQuestions.Add(question);
+            }
+        }
+        else
+        {
+            SelectedQuestions.Remove(question);
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnQuestionSelectionChangedWithArgs(ExtendedQuestionDto question, ChangeEventArgs e)
+    {
+        question.IsSelected = (bool)(e.Value ?? false);
+        await OnQuestionSelectionChanged(question);
+    }
+
+    private void SelectAllQuestions()
+    {
+        foreach (var question in FilteredQuestions)
+        {
+            question.IsSelected = true;
+            if (!SelectedQuestions.Contains(question))
+            {
+                SelectedQuestions.Add(question);
+            }
+        }
+        StateHasChanged();
+    }
+
+    private void ClearAllSelections()
+    {
+        foreach (var question in FilteredQuestions)
+        {
+            question.IsSelected = false;
+        }
+        SelectedQuestions.Clear();
+        StateHasChanged();
+    }
+
+    private async Task ImportSelectedQuestions()
+    {
+        if (SelectedQuestions.Any())
+        {
+            // Create copies of the selected questions to avoid reference issues
+            var questionsToImport = new List<QuestionDto>();
+            foreach (var extendedQuestion in SelectedQuestions)
+            {
+                var question = extendedQuestion.Question;
+                var newQuestion = new QuestionDto
+                {
+                    Text = question.Text,
+                    IsTextAnswer = question.IsTextAnswer,
+                    AnswerExplanation = question.AnswerExplanation,
+                    ImagePath = question.ImagePath,
+                    AudioPath = question.AudioPath,
+                    Options = new List<OptionDto>(),
+                    TextAnswers = new List<TextAnswerDto>()
+                };
+
+                if (!question.IsTextAnswer)
+                {
+                    // Copy options
+                    foreach (var option in question.Options)
+                    {
+                        newQuestion.Options.Add(new OptionDto
+                        {
+                            Text = option.Text,
+                            IsCorrect = option.IsCorrect
+                        });
+                    }
+                }
+                else
+                {
+                    // Copy text answers
+                    if (question.TextAnswers != null)
+                    {
+                        foreach (var textAnswer in question.TextAnswers)
+                        {
+                            newQuestion.TextAnswers.Add(new TextAnswerDto
+                            {
+                                Text = textAnswer.Text
+                            });
+                        }
+                    }
+                }
+
+                questionsToImport.Add(newQuestion);
+            }
+
+            await OnQuestionsImported.InvokeAsync(questionsToImport);
+            await CloseModal();
+        }
+    }
+
+    private async Task CloseModal()
+    {
+        IsVisible = false;
+        await IsVisibleChanged.InvokeAsync(false);
+    }
+}
