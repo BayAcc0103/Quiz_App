@@ -15,28 +15,30 @@ namespace BlazingQuiz.Api.Services
         }
         public async Task<QuizApiResponse> SaveQuizAsync(QuizSaveDto dto, int userId)
         {
-            var questions = dto.Questions.Select(q => new Question
-            {
-                Id = q.Id,
-                Text = q.Text,
-                AnswerExplanation = q.AnswerExplanation,
-                ImagePath = q.ImagePath,
-                AudioPath = q.AudioPath,
-                IsTextAnswer = q.IsTextAnswer,
-                Options = q.Options.Select(o => new Option
-                {
-                    Id = o.Id,
-                    Text = o.Text,
-                    IsCorrect = o.IsCorrect
-                }).ToArray(),
-                TextAnswers = q.TextAnswers.Select(ta => new TextAnswer
-                {
-                    Id = ta.Id,
-                    Text = ta.Text
-                }).ToArray()
-            }).ToArray();
             if (dto.Id == Guid.Empty)
             {
+                // Creating a new quiz
+                var questions = dto.Questions.Select(q => new Question
+                {
+                    Id = q.Id,
+                    Text = q.Text,
+                    AnswerExplanation = q.AnswerExplanation,
+                    ImagePath = q.ImagePath,
+                    AudioPath = q.AudioPath,
+                    IsTextAnswer = q.IsTextAnswer,
+                    Options = q.Options.Select(o => new Option
+                    {
+                        Id = o.Id,
+                        Text = o.Text,
+                        IsCorrect = o.IsCorrect
+                    }).ToArray(),
+                    TextAnswers = q.TextAnswers.Select(ta => new TextAnswer
+                    {
+                        Id = ta.Id,
+                        Text = ta.Text
+                    }).ToArray()
+                }).ToArray();
+
                 var quiz = new Quiz
                 {
                     Name = dto.Name,
@@ -48,8 +50,8 @@ namespace BlazingQuiz.Api.Services
                     Level = dto.Level,
                     CreatedBy = userId,
                     ImagePath = dto.ImagePath,
-                    AudioPath = dto.AudioPath, 
-                    CreatedAt = DateTime.UtcNow, 
+                    AudioPath = dto.AudioPath,
+                    CreatedAt = DateTime.UtcNow,
                     Questions = questions
                 };
                 _context.Quizzes.Add(quiz);
@@ -65,9 +67,13 @@ namespace BlazingQuiz.Api.Services
             }
             else
             {
-                // Update existing quiz - check if the current user is the creator (if they're not an admin)
+                // Editing existing quiz - check if the current user is the creator (if they're not an admin)
                 var dbQuiz = await _context.Quizzes
                     .Include(q => q.QuizCategories) // Include existing quiz-category relationships
+                    .Include(q => q.Questions)
+                        .ThenInclude(qq => qq.Options)
+                    .Include(q => q.Questions)
+                        .ThenInclude(qq => qq.TextAnswers)
                     .FirstOrDefaultAsync(q => q.Id == dto.Id);
                 if (dbQuiz == null)
                 {
@@ -81,32 +87,98 @@ namespace BlazingQuiz.Api.Services
                     return QuizApiResponse.Failure("You can only edit quizzes that you created.");
                 }
 
-                dbQuiz.Name = dto.Name;
-                dbQuiz.Description = dto.Description;
-                dbQuiz.CategoryId = dto.CategoryIds != null && dto.CategoryIds.Any() ? dto.CategoryIds.First() : (int?)null; // Keep first as primary for backward compatibility
-                dbQuiz.TotalQuestions = dto.TotalQuestions;
-                dbQuiz.TimeInMinutes = dto.TimeInMinutes;
-                dbQuiz.IsActive = dto.IsActive;
-                dbQuiz.Level = dto.Level; // Set the level
-                dbQuiz.ImagePath = dto.ImagePath; // Set the image path
-                dbQuiz.AudioPath = dto.AudioPath; // Set the audio path
-                dbQuiz.Questions = questions;
+                // Determine if questions/answers have changed by comparing with the existing quiz
+                bool questionsOrAnswersChanged = QuestionsOrAnswersChanged(dbQuiz, dto);
 
-                // Update quiz-category relationships
-                if (dbQuiz.QuizCategories != null)
+                if (questionsOrAnswersChanged)
                 {
-                    _context.QuizCategories.RemoveRange(dbQuiz.QuizCategories);
-                }
-
-                if (dto.CategoryIds != null && dto.CategoryIds.Any())
-                {
-                    var quizCategories = dto.CategoryIds.Select(catId => new QuizCategory
+                    // Create a new quiz with updated questions/answers and set old quiz as inactive
+                    var newQuiz = new Quiz
                     {
-                        QuizId = dbQuiz.Id,
-                        CategoryId = catId
-                    }).ToList();
+                        Name = dto.Name,
+                        Description = dto.Description,
+                        CategoryId = dto.CategoryIds != null && dto.CategoryIds.Any() ? dto.CategoryIds.First() : (int?)null, // Keep first as primary for backward compatibility
+                        TotalQuestions = dto.TotalQuestions,
+                        TimeInMinutes = dto.TimeInMinutes,
+                        IsActive = dto.IsActive,
+                        Level = dto.Level,
+                        CreatedBy = userId,
+                        ImagePath = dto.ImagePath,
+                        AudioPath = dto.AudioPath,
+                        CreatedAt = DateTime.UtcNow,
+                        Questions = dto.Questions.Select(q => new Question
+                        {
+                            Text = q.Text,
+                            AnswerExplanation = q.AnswerExplanation,
+                            ImagePath = q.ImagePath,
+                            AudioPath = q.AudioPath,
+                            IsTextAnswer = q.IsTextAnswer,
+                            Options = q.Options.Select(o => new Option
+                            {
+                                Text = o.Text,
+                                IsCorrect = o.IsCorrect
+                            }).ToArray(),
+                            TextAnswers = q.TextAnswers.Select(ta => new TextAnswer
+                            {
+                                Text = ta.Text
+                            }).ToArray()
+                        }).ToArray()
+                    };
 
-                    _context.QuizCategories.AddRange(quizCategories);
+                    _context.Quizzes.Add(newQuiz);
+
+                    // Add category relationships for the new quiz
+                    if (dto.CategoryIds != null && dto.CategoryIds.Any())
+                    {
+                        var quizCategories = dto.CategoryIds.Select(catId => new QuizCategory
+                        {
+                            Quiz = newQuiz,
+                            CategoryId = catId
+                        }).ToList();
+                        _context.QuizCategories.AddRange(quizCategories);
+                    }
+
+                    // Save the new quiz first to get its ID
+                    await _context.SaveChangesAsync();
+
+                    // Set the old quiz as inactive
+                    dbQuiz.IsActive = false;
+
+                    // Copy bookmarks from old quiz to new quiz
+                    await CopyBookmarksToNewQuiz(dbQuiz.Id, newQuiz.Id);
+
+                    // Update the quiz ID in the DTO to return the new quiz ID
+                    dto.Id = newQuiz.Id;
+                }
+                else
+                {
+                    // Only quiz information changed, update the existing quiz
+                    dbQuiz.Name = dto.Name;
+                    dbQuiz.Description = dto.Description;
+                    dbQuiz.CategoryId = dto.CategoryIds != null && dto.CategoryIds.Any() ? dto.CategoryIds.First() : (int?)null; // Keep first as primary for backward compatibility
+                    dbQuiz.TotalQuestions = dto.TotalQuestions;
+                    dbQuiz.TimeInMinutes = dto.TimeInMinutes;
+                    dbQuiz.IsActive = dto.IsActive;
+                    dbQuiz.Level = dto.Level; // Set the level
+                    dbQuiz.ImagePath = dto.ImagePath; // Set the image path
+                    dbQuiz.AudioPath = dto.AudioPath; // Set the audio path
+
+                    // Update quiz-category relationships
+                    if (dbQuiz.QuizCategories != null)
+                    {
+                        _context.QuizCategories.RemoveRange(dbQuiz.QuizCategories);
+                    }
+
+                    if (dto.CategoryIds != null && dto.CategoryIds.Any())
+                    {
+                        var quizCategories = dto.CategoryIds.Select(catId => new QuizCategory
+                        {
+                            QuizId = dbQuiz.Id,
+                            CategoryId = catId
+                        }).ToList();
+
+                        _context.QuizCategories.AddRange(quizCategories);
+                    }
                 }
             }
 
@@ -119,6 +191,137 @@ namespace BlazingQuiz.Api.Services
             {
                 // Handle concurrency exception
                 return QuizApiResponse.Failure(ex.Message);
+            }
+        }
+
+        private bool QuestionsOrAnswersChanged(Quiz existingQuiz, QuizSaveDto newQuizDto)
+        {
+            // Compare questions and their options/answers
+            if (existingQuiz.Questions.Count() != newQuizDto.Questions.Count())
+            {
+                return true;
+            }
+
+            // Create dictionaries for quick lookup by question text (or other unique identifier)
+            var existingQuestionsDict = existingQuiz.Questions.ToDictionary(q => q.Id, q => q);
+            var newQuestionsDict = newQuizDto.Questions.ToDictionary(q => q.Id, q => q);
+
+            foreach (var newQuestion in newQuizDto.Questions)
+            {
+                if (!existingQuestionsDict.ContainsKey(newQuestion.Id))
+                {
+                    // New question added
+                    return true;
+                }
+
+                var existingQuestion = existingQuestionsDict[newQuestion.Id];
+
+                // Compare question properties
+                if (existingQuestion.Text != newQuestion.Text ||
+                    existingQuestion.AnswerExplanation != newQuestion.AnswerExplanation ||
+                    existingQuestion.ImagePath != newQuestion.ImagePath ||
+                    existingQuestion.AudioPath != newQuestion.AudioPath ||
+                    existingQuestion.IsTextAnswer != newQuestion.IsTextAnswer)
+                {
+                    return true;
+                }
+
+                // Compare options if it's not a text answer question
+                if (!newQuestion.IsTextAnswer)
+                {
+                    if (existingQuestion.Options.Count() != newQuestion.Options.Count())
+                    {
+                        return true;
+                    }
+
+                    var existingOptionsDict = existingQuestion.Options.ToDictionary(o => o.Id, o => o);
+                    var newOptionsDict = newQuestion.Options.ToDictionary(o => o.Id, o => o);
+
+                    foreach (var newOption in newQuestion.Options)
+                    {
+                        if (!existingOptionsDict.ContainsKey(newOption.Id))
+                        {
+                            // New option added
+                            return true;
+                        }
+
+                        var existingOption = existingOptionsDict[newOption.Id];
+                        if (existingOption.Text != newOption.Text || existingOption.IsCorrect != newOption.IsCorrect)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                else
+                {
+                    // Compare text answers if it's a text answer question
+                    if (existingQuestion.TextAnswers.Count() != newQuestion.TextAnswers.Count())
+                    {
+                        return true;
+                    }
+
+                    var existingTextAnswersDict = existingQuestion.TextAnswers.ToDictionary(ta => ta.Id, ta => ta);
+                    var newTextAnswersDict = newQuestion.TextAnswers.ToDictionary(ta => ta.Id, ta => ta);
+
+                    foreach (var newTextAnswer in newQuestion.TextAnswers)
+                    {
+                        if (!existingTextAnswersDict.ContainsKey(newTextAnswer.Id))
+                        {
+                            // New text answer added
+                            return true;
+                        }
+
+                        var existingTextAnswer = existingTextAnswersDict[newTextAnswer.Id];
+                        if (existingTextAnswer.Text != newTextAnswer.Text)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            // Check if any questions were removed
+            if (existingQuestionsDict.Keys.Except(newQuestionsDict.Keys).Any())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private async Task CopyBookmarksToNewQuiz(Guid oldQuizId, Guid newQuizId)
+        {
+            // Get all bookmarks for the old quiz
+            var oldBookmarks = await _context.QuizBookmarks
+                .Where(b => b.QuizId == oldQuizId)
+                .ToListAsync();
+
+            if (oldBookmarks.Any())
+            {
+                // Get the new quiz details to use its name and category
+                var newQuizDetails = await _context.Quizzes
+                    .Where(q => q.Id == newQuizId)
+                    .Select(q => new {
+                        Name = q.Name,
+                        CategoryName = q.CategoryId.HasValue ?
+                            q.QuizCategories.Any(qc => qc.CategoryId == q.CategoryId) ?
+                                q.QuizCategories.First(qc => qc.CategoryId == q.CategoryId).Category.Name :
+                                q.QuizCategories.Any() ? q.QuizCategories.First().Category.Name : "No Category" :
+                            q.QuizCategories.Any() ? q.QuizCategories.First().Category.Name : "No Category"
+                    })
+                    .FirstOrDefaultAsync();
+
+                // Create new bookmarks for the new quiz
+                var newBookmarks = oldBookmarks.Select(oldBookmark => new QuizBookmark
+                {
+                    UserId = oldBookmark.UserId,
+                    QuizId = newQuizId,
+                    QuizName = newQuizDetails?.Name ?? oldBookmark.QuizName, // Use new quiz name if available
+                    CategoryName = newQuizDetails?.CategoryName ?? oldBookmark.CategoryName, // Use new category name if available
+                    BookmarkedOn = DateTime.UtcNow
+                }).ToList();
+
+                _context.QuizBookmarks.AddRange(newBookmarks);
             }
         }
 
