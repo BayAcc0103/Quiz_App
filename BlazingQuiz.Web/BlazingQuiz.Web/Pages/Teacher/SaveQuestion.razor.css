@@ -359,8 +359,8 @@ select.form-control:focus {
     background: linear-gradient(135deg, #218838, #1e7e34);
 }
 
-/* Save Question Button - positioned at the bottom similar to Save Quiz button */
-.save-question-btn {
+/* Save Questions Button - positioned at the bottom similar to Save Quiz button */
+.save-quiz-btn {
     position: fixed;
     right: 30px;
     bottom: 30px; /* Positioned at the bottom of the screen */
@@ -381,7 +381,7 @@ select.form-control:focus {
     transition: all 0.3s ease;
 }
 
-.save-question-btn:hover {
+.save-quiz-btn:hover {
     transform: scale(1.05);
     box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
     background: linear-gradient(135deg, #0056b3, #004085);
