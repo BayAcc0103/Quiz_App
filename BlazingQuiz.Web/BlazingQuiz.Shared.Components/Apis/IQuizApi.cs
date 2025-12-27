@@ -33,5 +33,11 @@ namespace BlazingQuiz.Shared.Components.Apis
 
         [Get("/api/quizes/{quizId}/students")]
         Task<TeacherQuizStudentListDto> GetQuizStudentsAsync(Guid quizId, int startIndex, int pageSize, bool fetchQuizInfo);
+
+        [Get("/api/questions")]
+        Task<QuizApiResponse<QuestionDto[]>> GetQuestionsAsync();
+
+        [Get("/api/questions/created-by/{userId}")]
+        Task<QuizApiResponse<QuestionDto[]>> GetQuestionsCreatedByAsync(int userId);
     }
 }

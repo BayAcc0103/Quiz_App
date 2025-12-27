@@ -565,5 +565,75 @@ namespace BlazingQuiz.Api.Services
             result.Students = pageResult;
             return result;
         }
+
+        public async Task<QuestionDto[]> GetQuestionsAsync(int userId, bool isAdmin)
+        {
+            IQueryable<Question> query = _context.Questions
+                .Include(q => q.Options)
+                .Include(q => q.TextAnswers)
+                .Include(q => q.Quiz);
+
+            // If the user is not an admin, only return questions created by this user
+            if (!isAdmin)
+            {
+                query = query.Where(q => q.CreatedBy == userId && q.CreatedBy.HasValue);
+            }
+
+            return await query.Select(q => new QuestionDto
+            {
+                Id = q.Id,
+                Text = q.Text,
+                AnswerExplanation = q.AnswerExplanation,
+                ImagePath = q.ImagePath,
+                AudioPath = q.AudioPath,
+                IsTextAnswer = q.IsTextAnswer,
+                Options = q.Options.Select(o => new OptionDto
+                {
+                    Id = o.Id,
+                    Text = o.Text,
+                    IsCorrect = o.IsCorrect
+                }).ToList(),
+                TextAnswers = q.IsTextAnswer ? q.TextAnswers.Select(ta => new TextAnswerDto
+                {
+                    Id = ta.Id,
+                    Text = ta.Text
+                }).ToList() : new List<TextAnswerDto>(),
+                CreatedAt = q.CreatedAt,
+                CreatedBy = q.CreatedBy
+            })
+            .ToArrayAsync();
+        }
+
+        public async Task<QuestionDto[]> GetQuestionsCreatedByAsync(int userId)
+        {
+            return await _context.Questions
+                .Include(q => q.Options)
+                .Include(q => q.TextAnswers)
+                .Include(q => q.Quiz)
+                .Where(q => q.CreatedBy == userId && q.CreatedBy.HasValue)
+                .Select(q => new QuestionDto
+                {
+                    Id = q.Id,
+                    Text = q.Text,
+                    AnswerExplanation = q.AnswerExplanation,
+                    ImagePath = q.ImagePath,
+                    AudioPath = q.AudioPath,
+                    IsTextAnswer = q.IsTextAnswer,
+                    Options = q.Options.Select(o => new OptionDto
+                    {
+                        Id = o.Id,
+                        Text = o.Text,
+                        IsCorrect = o.IsCorrect
+                    }).ToList(),
+                    TextAnswers = q.IsTextAnswer ? q.TextAnswers.Select(ta => new TextAnswerDto
+                    {
+                        Id = ta.Id,
+                        Text = ta.Text
+                    }).ToList() : new List<TextAnswerDto>(),
+                    CreatedAt = q.CreatedAt,
+                    CreatedBy = q.CreatedBy
+                })
+                .ToArrayAsync();
+        }
     }
 }

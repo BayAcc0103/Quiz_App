@@ -13,5 +13,7 @@ namespace BlazingQuiz.Shared.DTOs
         public List<OptionDto> Options { get; set; } = [];
         public List<TextAnswerDto> TextAnswers { get; set; } = [];
         public bool IsTextAnswer { get; set; } = false;
+        public DateTime? CreatedAt { get; set; } // Timestamp when the question was created
+        public int? CreatedBy { get; set; } // User ID of who created the question
     }
 }

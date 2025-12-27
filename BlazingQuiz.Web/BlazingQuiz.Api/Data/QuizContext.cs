@@ -206,6 +206,13 @@ namespace BlazingQuiz.Api.Data
                 .HasForeignKey(rq => rq.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            // Configure Question entity - CreatedBy relationship
+            modelBuilder.Entity<Question>()
+                .HasOne(q => q.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(q => q.CreatedBy)
+                .OnDelete(DeleteBehavior.NoAction);
+
             base.OnModelCreating(modelBuilder);
             var adminUser = new User
             {

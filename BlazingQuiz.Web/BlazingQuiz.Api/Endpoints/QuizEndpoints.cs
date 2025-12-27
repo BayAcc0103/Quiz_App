@@ -270,6 +270,42 @@ namespace BlazingQuiz.Api.Endpoints
                 return Results.Ok(result);
             }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
 
+            // Add new endpoints for questions
+            var questionGroup = app.MapGroup("/api/questions").RequireAuthorization();
+            questionGroup.MapGet("", async (QuizService service, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest(QuizApiResponse<QuestionDto[]>.Failure("Invalid user ID"));
+                }
+
+                // Check user role to determine if they should see all questions or just their own
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Admin) && userRole != nameof(UserRole.Teacher))
+                {
+                    return Results.Forbid();
+                }
+
+                var questions = await service.GetQuestionsAsync(userId, userRole == nameof(UserRole.Admin));
+                return Results.Ok(QuizApiResponse<QuestionDto[]>.Success(questions));
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+
+            questionGroup.MapGet("created-by/{userId:int}", async (int userId, QuizService service, HttpContext httpContext) =>
+            {
+                // Check user role to determine if they have permission to view questions
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Admin) &&
+                    (userRole != nameof(UserRole.Teacher) || userId != int.Parse(httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0")))
+                {
+                    return Results.Forbid();
+                }
+
+                var questions = await service.GetQuestionsCreatedByAsync(userId);
+                return Results.Ok(QuizApiResponse<QuestionDto[]>.Success(questions));
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+
 
             return app;
         }
