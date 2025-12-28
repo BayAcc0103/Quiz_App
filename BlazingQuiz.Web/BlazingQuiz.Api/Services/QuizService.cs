@@ -691,6 +691,33 @@ namespace BlazingQuiz.Api.Services
                 }
             }
 
+            // Delete all related records in the following tables:
+            // 1. QuizBookmark - bookmarks for this quiz
+            var quizBookmarks = await _context.QuizBookmarks.Where(b => b.QuizId == quizId).ToListAsync();
+            _context.QuizBookmarks.RemoveRange(quizBookmarks);
+
+            // 2. QuizFeedback - feedback for this quiz
+            var quizFeedbacks = await _context.QuizFeedbacks.Where(f => f.QuizId == quizId).ToListAsync();
+            _context.QuizFeedbacks.RemoveRange(quizFeedbacks);
+
+            // 3. Room - rooms that use this quiz (and their related data)
+            var rooms = await _context.Rooms.Where(r => r.QuizId == quizId).ToListAsync();
+            foreach (var room in rooms)
+            {
+                // Delete RoomAnswers associated with these rooms
+                var roomAnswers = await _context.RoomAnswers.Where(ra => ra.RoomId == room.Id).ToListAsync();
+                _context.RoomAnswers.RemoveRange(roomAnswers);
+            }
+            _context.Rooms.RemoveRange(rooms);
+
+            // 4. StudentQuizzes - student attempts for this quiz
+            var studentQuizzes = await _context.StudentQuizzes.Where(sq => sq.QuizId == quizId).ToListAsync();
+            _context.StudentQuizzes.RemoveRange(studentQuizzes);
+
+            // 5. StudentQuizzesForRoom - student attempts for this quiz in rooms
+            var studentQuizzesForRoom = await _context.StudentQuizzesForRoom.Where(sqfr => sqfr.QuizId == quizId).ToListAsync();
+            _context.StudentQuizzesForRoom.RemoveRange(studentQuizzesForRoom);
+
             // Delete all related data due to foreign key constraints
             foreach (var question in quiz.Questions)
             {

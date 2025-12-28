@@ -51,5 +51,8 @@ namespace BlazingQuiz.Shared.Components.Apis
 
         [Delete("/api/quizes/questions/{questionId}")]
         Task<QuizApiResponse> DeleteQuestionAsync(int questionId);
+
+        [Delete("/api/quizes/{quizId:guid}")]
+        Task<QuizApiResponse> DeleteQuizAsync(Guid quizId);
     }
 }

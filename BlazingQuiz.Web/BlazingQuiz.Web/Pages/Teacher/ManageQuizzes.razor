@@ -188,6 +188,7 @@
                                         <a href="teacher/edit-quiz/@quiz.Id" class="btn btn-3d btn-3d-primary btn-sm flex-fill">Edit</a>
                                         <button type="button" class="btn btn-3d btn-3d-warning btn-sm flex-fill" @onclick="() => ShowQuizFeedbackAsync(quiz)">View Rate</button>
                                         <a href="teacher/createroom?quizId=@quiz.Id" class="btn btn-3d btn-3d-warning btn-sm flex-fill">Create Room</a>
+                                        <button type="button" class="btn btn-3d btn-3d-danger btn-sm flex-fill" @onclick="() => ShowDeleteConfirmation(quiz)">Delete</button>
                                     </div>
                                 </div>
                             </div> <!-- Close the quiz-card-3d div -->
@@ -330,12 +331,24 @@
 
 @if (_showDeleteConfirmation)
 {
-    <Modal Title="Confirm Deletion" 
-           OnActionButtonClick="ExecuteDeleteFeedback" 
+    <Modal Title="Confirm Deletion"
+           OnActionButtonClick="ExecuteDeleteFeedback"
            OnCancelClick="() => _showDeleteConfirmation = false"
-           ActionButtonText="Delete" 
+           ActionButtonText="Delete"
            CancelText="Cancel">
         <p>Are you sure you want to delete this @_feedbackTypeToDelete?</p>
+    </Modal>
+}
+
+@if (_showQuizDeleteConfirmation && _quizToDelete != null)
+{
+    <Modal Title="Confirm Quiz Deletion"
+           OnActionButtonClick="ExecuteQuizDeletion"
+           OnCancelClick="() => _showQuizDeleteConfirmation = false"
+           ActionButtonText="Delete"
+           CancelText="Cancel">
+        <p>Are you sure you want to delete the quiz "<strong>@_quizToDelete.Name</strong>"?</p>
+        <p class="text-danger">This will also delete all related data including student attempts, feedback, bookmarks, and rooms associated with this quiz.</p>
     </Modal>
 }
 
@@ -360,6 +373,10 @@
     private bool _showDeleteConfirmation = false;
     private int _feedbackIdToDelete = 0;
     private string _feedbackTypeToDelete = "";
+
+    // For quiz deletion
+    private QuizListDto? _quizToDelete;
+    private bool _showQuizDeleteConfirmation = false;
 
     private QuizListDto[] FinalFilteredQuizes
     {
@@ -515,12 +532,12 @@
     private async Task ExecuteDeleteFeedback()
     {
         _showDeleteConfirmation = false;
-        
+
         try
         {
             AppState.ShowLoader($"Deleting {_feedbackTypeToDelete}...");
             QuizApiResponse response = null;
-            
+
             if (_feedbackTypeToDelete == "rating")
             {
                 response = await QuizApi.DeleteRatingAsync(_feedbackIdToDelete);
@@ -533,7 +550,7 @@
             {
                 response = await QuizApi.DeleteQuizFeedbackAsync(_feedbackIdToDelete);
             }
-            
+
             if (response.IsSuccess)
             {
                 // Refresh the feedback list to reflect the deletion
@@ -547,7 +564,7 @@
                         _quizFeedback = response2.Data;
                     }
                 }
-                
+
                 AppState.ShowAlert($"{char.ToUpper(_feedbackTypeToDelete[0]) + _feedbackTypeToDelete.Substring(1)} deleted successfully.", AlertType.Success);
             }
             else
@@ -558,6 +575,51 @@
         catch (Exception ex)
         {
             AppState.ShowError($"Error deleting {_feedbackTypeToDelete}: {ex.Message}");
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private void ShowDeleteConfirmation(QuizListDto quiz)
+    {
+        _quizToDelete = quiz;
+        _showQuizDeleteConfirmation = true;
+    }
+
+    private async Task ExecuteQuizDeletion()
+    {
+        _showQuizDeleteConfirmation = false;
+
+        if (_quizToDelete == null)
+        {
+            AppState.ShowAlert("Quiz not found.", AlertType.Error);
+            return;
+        }
+
+        try
+        {
+            AppState.ShowLoader("Deleting quiz...");
+            var response = await QuizApi.DeleteQuizAsync(_quizToDelete.Id);
+
+            if (response.IsSuccess)
+            {
+                // Remove the quiz from the local list
+                _quizes = _quizes.Where(q => q.Id != _quizToDelete.Id).ToArray();
+                _filteredQuizesByCategory = _filteredQuizesByCategory.Where(q => q.Id != _quizToDelete.Id).ToArray();
+
+                AppState.ShowAlert($"Quiz '{_quizToDelete.Name}' deleted successfully.", AlertType.Success);
+                _quizToDelete = null;
+            }
+            else
+            {
+                AppState.ShowAlert(response.ErrorMessage ?? "Failed to delete quiz.", AlertType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error deleting quiz: {ex.Message}");
         }
         finally
         {
