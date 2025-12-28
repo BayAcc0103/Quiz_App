@@ -185,9 +185,17 @@
                                     <div class="quiz-actions-section d-flex gap-1">
                                         <button type="button" class="btn btn-3d btn-3d-info btn-sm flex-fill" @onclick="() => ViewQuestionsAsync(quiz)">View Qs</button>
                                         <a href="teacher/quizes/@quiz.Id/view-students" class="btn btn-3d btn-3d-success btn-sm flex-fill">Attempts</a>
-                                        <a href="teacher/edit-quiz/@quiz.Id" class="btn btn-3d btn-3d-primary btn-sm flex-fill">Edit</a>
+                                        @if (!quiz.IsBan)
+                                        {
+                                            <a href="teacher/edit-quiz/@quiz.Id" class="btn btn-3d btn-3d-primary btn-sm flex-fill">Edit</a>
+                                            <a href="teacher/createroom?quizId=@quiz.Id" class="btn btn-3d btn-3d-warning btn-sm flex-fill">Create Room</a>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-3d btn-3d-primary btn-sm flex-fill" disabled>Blocked</button>
+                                            <button type="button" class="btn btn-3d btn-3d-warning btn-sm flex-fill" disabled>Blocked</button>
+                                        }
                                         <button type="button" class="btn btn-3d btn-3d-warning btn-sm flex-fill" @onclick="() => ShowQuizFeedbackAsync(quiz)">View Rate</button>
-                                        <a href="teacher/createroom?quizId=@quiz.Id" class="btn btn-3d btn-3d-warning btn-sm flex-fill">Create Room</a>
                                         <button type="button" class="btn btn-3d btn-3d-danger btn-sm flex-fill" @onclick="() => ShowDeleteConfirmation(quiz)">Delete</button>
                                     </div>
                                 </div>

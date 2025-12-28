@@ -57,5 +57,11 @@ namespace BlazingQuiz.Web.Apis
 
         [Put("/api/questions/{questionId}")]
         Task<QuizApiResponse> UpdateQuestionAsync(int questionId, QuestionDto question);
+
+        [Post("/api/quizes/{quizId}/ban")]
+        Task<QuizApiResponse> BanQuizAsync(Guid quizId);
+
+        [Post("/api/quizes/{quizId}/unban")]
+        Task<QuizApiResponse> UnbanQuizAsync(Guid quizId);
     }
 }

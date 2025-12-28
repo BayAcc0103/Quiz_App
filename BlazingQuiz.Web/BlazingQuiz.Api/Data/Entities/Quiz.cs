@@ -14,6 +14,7 @@ namespace BlazingQuiz.Api.Data.Entities
         public int TotalQuestions { get; set; }
         public int TimeInMinutes { get; set; }
         public bool IsActive { get; set; }
+        public bool IsBan { get; set; } = false;
         public int? CreatedBy { get; set; } // Teacher ID who created the quiz (nullable for existing quizzes)
         public string? ImagePath { get; set; } // Path to the quiz image
         public string? AudioPath { get; set; } // Path to the quiz audio

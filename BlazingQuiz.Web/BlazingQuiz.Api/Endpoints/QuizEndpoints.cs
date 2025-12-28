@@ -386,6 +386,57 @@ namespace BlazingQuiz.Api.Endpoints
                 return Results.Ok(QuizApiResponse.Success());
             }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
 
+            // Add ban/unban endpoints
+            quizGroup.MapPost("{quizId:guid}/ban", async (Guid quizId, QuizService service, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Invalid user ID"));
+                }
+
+                // Check user role - only admins can ban quizzes
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Admin))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("You don't have permission to ban quizzes."));
+                }
+
+                var result = await service.BanQuizAsync(quizId, userId, true); // isAdmin is true for admin
+                if (!result.IsSuccess)
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Quiz not found or failed to ban quiz."));
+                }
+
+                return Results.Ok(QuizApiResponse.Success());
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin)));
+
+            quizGroup.MapPost("{quizId:guid}/unban", async (Guid quizId, QuizService service, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Invalid user ID"));
+                }
+
+                // Check user role - only admins can unban quizzes
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Admin))
+                {
+                    return Results.Ok(QuizApiResponse.Failure("You don't have permission to unban quizzes."));
+                }
+
+                var result = await service.UnbanQuizAsync(quizId, userId, true); // isAdmin is true for admin
+                if (!result.IsSuccess)
+                {
+                    return Results.Ok(QuizApiResponse.Failure("Quiz not found or failed to unban quiz."));
+                }
+
+                return Results.Ok(QuizApiResponse.Success());
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin)));
+
 
             return app;
         }

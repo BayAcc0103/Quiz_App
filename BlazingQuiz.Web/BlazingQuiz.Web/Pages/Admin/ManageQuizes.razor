@@ -196,6 +196,14 @@
                                             <button type="button" class="btn btn-3d btn-3d-danger btn-sm flex-fill" disabled>Delete</button>
                                         }
                                         <button type="button" class="btn btn-3d btn-3d-warning btn-sm flex-fill" @onclick="() => ShowQuizFeedbackAsync(quiz)">View Rate</button>
+                                        @if (quiz.IsBan)
+                                        {
+                                            <button type="button" class="btn btn-3d btn-3d-success btn-sm flex-fill" @onclick="() => UnbanQuizAsync(quiz)">Unban</button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-3d btn-3d-danger btn-sm flex-fill" @onclick="() => BanQuizAsync(quiz)">Ban</button>
+                                        }
                                     </div>
                                 </div>
                             </div> <!-- Close the quiz-card-3d div -->
@@ -539,6 +547,86 @@
         catch (Exception ex)
         {
             AppState.ShowError($"Error deleting quiz: {ex.Message}");
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private async Task BanQuizAsync(QuizListDto quiz)
+    {
+        try
+        {
+            AppState.ShowLoader("Banning quiz...");
+            var response = await QuizApi.BanQuizAsync(quiz.Id);
+
+            if (response.IsSuccess)
+            {
+                // Update the quiz in the local list
+                var quizToUpdate = _quizes.FirstOrDefault(q => q.Id == quiz.Id);
+                if (quizToUpdate != null)
+                {
+                    quizToUpdate.IsBan = true;
+                    quizToUpdate.IsActive = false; // Also set IsActive to false when banned
+                }
+
+                var filteredQuiz = _filteredQuizesByCategory.FirstOrDefault(q => q.Id == quiz.Id);
+                if (filteredQuiz != null)
+                {
+                    filteredQuiz.IsBan = true;
+                    filteredQuiz.IsActive = false;
+                }
+
+                AppState.ShowAlert($"Quiz '{quiz.Name}' has been banned successfully.", AlertType.Success);
+            }
+            else
+            {
+                AppState.ShowAlert(response.ErrorMessage ?? "Failed to ban quiz.", AlertType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error banning quiz: {ex.Message}");
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private async Task UnbanQuizAsync(QuizListDto quiz)
+    {
+        try
+        {
+            AppState.ShowLoader("Unbanning quiz...");
+            var response = await QuizApi.UnbanQuizAsync(quiz.Id);
+
+            if (response.IsSuccess)
+            {
+                // Update the quiz in the local list
+                var quizToUpdate = _quizes.FirstOrDefault(q => q.Id == quiz.Id);
+                if (quizToUpdate != null)
+                {
+                    quizToUpdate.IsBan = false;
+                }
+
+                var filteredQuiz = _filteredQuizesByCategory.FirstOrDefault(q => q.Id == quiz.Id);
+                if (filteredQuiz != null)
+                {
+                    filteredQuiz.IsBan = false;
+                }
+
+                AppState.ShowAlert($"Quiz '{quiz.Name}' has been unbanned successfully.", AlertType.Success);
+            }
+            else
+            {
+                AppState.ShowAlert(response.ErrorMessage ?? "Failed to unban quiz.", AlertType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error unbanning quiz: {ex.Message}");
         }
         finally
         {

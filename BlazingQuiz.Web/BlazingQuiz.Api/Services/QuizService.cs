@@ -1,4 +1,4 @@
-﻿using BlazingQuiz.Api.Data;
+using BlazingQuiz.Api.Data;
 using BlazingQuiz.Api.Data.Entities;
 using BlazingQuiz.Shared.DTOs;
 using Microsoft.EntityFrameworkCore;
@@ -47,6 +47,7 @@ namespace BlazingQuiz.Api.Services
                     TotalQuestions = dto.TotalQuestions,
                     TimeInMinutes = dto.TimeInMinutes,
                     IsActive = dto.IsActive,
+                    IsBan = false, // New quizzes are not banned by default
                     Level = dto.Level,
                     CreatedBy = userId,
                     ImagePath = dto.ImagePath,
@@ -101,6 +102,7 @@ namespace BlazingQuiz.Api.Services
                         TotalQuestions = dto.TotalQuestions,
                         TimeInMinutes = dto.TimeInMinutes,
                         IsActive = dto.IsActive,
+                        IsBan = dbQuiz.IsBan, // Preserve the ban status
                         Level = dto.Level,
                         CreatedBy = userId,
                         ImagePath = dto.ImagePath,
@@ -143,6 +145,7 @@ namespace BlazingQuiz.Api.Services
 
                     // Set the old quiz as inactive
                     dbQuiz.IsActive = false;
+                    dbQuiz.IsBan = true; // Also ban the old quiz when creating a new version
 
                     // Copy bookmarks from old quiz to new quiz
                     await CopyBookmarksToNewQuiz(dbQuiz.Id, newQuiz.Id);
@@ -351,6 +354,7 @@ namespace BlazingQuiz.Api.Services
                 TotalQuestions = q.TotalQuestions,
                 TimeInMinutes = q.TimeInMinutes,
                 IsActive = q.IsActive,
+                IsBan = q.IsBan, // Include the ban status
                 Level = q.Level, // Include the level
                 CategoryId = q.CategoryId,
                 ImagePath = q.ImagePath,
@@ -392,7 +396,7 @@ namespace BlazingQuiz.Api.Services
             var quiz = await _context.Quizzes
                 .Include(q => q.QuizCategories)
                 .Where(q => q.Id == quizId)
-            
+
                 // If the user is not an admin, ensure they can only access their own quizzes
                 .Where(q => isAdmin || (q.CreatedBy == userId && q.CreatedBy.HasValue))
                 .Select(qz => new QuizSaveDto
@@ -428,7 +432,7 @@ namespace BlazingQuiz.Api.Services
                         }).ToList() : new List<TextAnswerDto>()
                     }).ToList()
                 }).FirstOrDefaultAsync();
-            
+
             return quiz;
         }
 
@@ -438,13 +442,13 @@ namespace BlazingQuiz.Api.Services
             {
                 // First, check if the quiz exists and if the user has permission to view it
                 var quizQuery = _context.Quizzes.Where(q => q.Id == quizId);
-                
+
                 // If the user is not an admin, ensure they can only access feedback for their own quizzes
                 if (!isAdmin)
                 {
                     quizQuery = quizQuery.Where(q => q.CreatedBy == userId && q.CreatedBy.HasValue);
                 }
-                
+
                 var quizExists = await quizQuery.AnyAsync();
                 if (!quizExists)
                 {
@@ -568,10 +572,10 @@ namespace BlazingQuiz.Api.Services
                 }
             }
 
-            // For ratings, we'll also perform a soft delete by clearing the score
+            // For ratings, we'll also perform a soft delete by ...
             // but keeping the record (in case it also has a comment)
             feedback.Score = null;
-            
+
             await _context.SaveChangesAsync();
             return true;
         }
@@ -1013,6 +1017,49 @@ namespace BlazingQuiz.Api.Services
                 Console.WriteLine($"Error updating question: {ex.Message}");
                 return false;
             }
+        }
+
+        public async Task<QuizApiResponse> BanQuizAsync(Guid quizId, int userId, bool isAdmin)
+        {
+            var quiz = await _context.Quizzes.FindAsync(quizId);
+            if (quiz == null)
+            {
+                return QuizApiResponse.Failure("Quiz not found");
+            }
+
+            // Only admins can ban quizzes
+            if (!isAdmin)
+            {
+                return QuizApiResponse.Failure("You don't have permission to ban quizzes.");
+            }
+
+            quiz.IsBan = true;
+            quiz.IsActive = false; // Also set IsActive to false when banned
+
+            await _context.SaveChangesAsync();
+            return QuizApiResponse.Success();
+        }
+
+        public async Task<QuizApiResponse> UnbanQuizAsync(Guid quizId, int userId, bool isAdmin)
+        {
+            var quiz = await _context.Quizzes.FindAsync(quizId);
+            if (quiz == null)
+            {
+                return QuizApiResponse.Failure("Quiz not found");
+            }
+
+            // Only admins can unban quizzes
+            if (!isAdmin)
+            {
+                return QuizApiResponse.Failure("You don't have permission to unban quizzes.");
+            }
+
+            quiz.IsBan = false;
+            // Note: We don't automatically set IsActive back to true when unbanning
+            // The quiz creator may want to keep it inactive for other reasons
+
+            await _context.SaveChangesAsync();
+            return QuizApiResponse.Success();
         }
     }
 }
