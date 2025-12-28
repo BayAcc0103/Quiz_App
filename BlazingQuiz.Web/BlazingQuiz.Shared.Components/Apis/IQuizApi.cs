@@ -48,5 +48,8 @@ namespace BlazingQuiz.Shared.Components.Apis
 
         [Put("/api/questions/{questionId}")]
         Task<QuizApiResponse> UpdateQuestionAsync(int questionId, QuestionDto question);
+
+        [Delete("/api/quizes/questions/{questionId}")]
+        Task<QuizApiResponse> DeleteQuestionAsync(int questionId);
     }
 }

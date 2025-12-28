@@ -629,6 +629,10 @@ namespace BlazingQuiz.Api.Services
         {
             var question = await _context.Questions
                 .Include(q => q.Quiz)
+                .Include(q => q.Options)
+                .Include(q => q.TextAnswers)
+                .Include(q => q.StudentQuizQuestions)
+                .Include(q => q.StudentQuizQuestionsForRoom)
                 .FirstOrDefaultAsync(q => q.Id == questionId);
 
             if (question == null)
@@ -636,16 +640,25 @@ namespace BlazingQuiz.Api.Services
                 return false;
             }
 
-            // If the user is not an admin, ensure they can only delete questions for quizzes they created
+            // If the user is not an admin, ensure they can only delete questions they created
             if (!isAdmin)
             {
-                if (question.Quiz.CreatedBy != userId)
+                if (question.CreatedBy != userId)
                 {
-                    return false; // Teacher didn't create this quiz, so can't delete its question
+                    return false; // Teacher can only delete questions they created
                 }
             }
 
-            // Delete associated options and text answers first due to foreign key constraints
+            // Delete all related data due to foreign key constraints
+            // First, delete related student quiz questions
+            _context.StudentQuizQuestions.RemoveRange(question.StudentQuizQuestions);
+            _context.StudentQuizQuestionsForRoom.RemoveRange(question.StudentQuizQuestionsForRoom);
+
+            // Then delete related room answers that reference this question
+            var roomAnswers = await _context.RoomAnswers.Where(ra => ra.QuestionId == questionId).ToListAsync();
+            _context.RoomAnswers.RemoveRange(roomAnswers);
+
+            // Then delete options and text answers
             _context.Options.RemoveRange(question.Options);
             _context.TextAnswers.RemoveRange(question.TextAnswers);
 
