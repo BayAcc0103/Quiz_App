@@ -354,6 +354,7 @@ namespace BlazingQuiz.Api.Services
                 Level = q.Level, // Include the level
                 CategoryId = q.CategoryId,
                 ImagePath = q.ImagePath,
+                CreatedBy = q.CreatedBy, // Include the creator ID
                 CreatedAt = q.CreatedAt,
                 AllCategoryNames = q.QuizCategories.Select(qc => qc.Category.Name).ToList()
             })

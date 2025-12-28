@@ -22,6 +22,7 @@ namespace BlazingQuiz.Shared.DTOs
         public string? AudioPath { get; set; }
         public string? CreatedByName { get; set; }
         public string? CreatedByAvatarPath { get; set; }
+        public int? CreatedBy { get; set; } // User ID of the creator
         public DateTime? CreatedAt { get; set; }
 
         // Average rating from QuizFeedback
