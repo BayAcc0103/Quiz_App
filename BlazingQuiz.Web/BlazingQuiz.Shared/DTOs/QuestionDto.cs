@@ -15,5 +15,6 @@ namespace BlazingQuiz.Shared.DTOs
         public bool IsTextAnswer { get; set; } = false;
         public DateTime? CreatedAt { get; set; } // Timestamp when the question was created
         public int? CreatedBy { get; set; } // User ID of who created the question
+        public int Points { get; set; } = 1; // Points for the question
     }
 }

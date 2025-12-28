@@ -930,6 +930,7 @@ namespace BlazingQuiz.Api.Services
                     IsTextAnswer = questionDto.IsTextAnswer,
                     CreatedBy = userId, // Set the creator
                     CreatedAt = DateTime.UtcNow, // Set creation timestamp
+                    Points = questionDto.Points, // Set points for the question
                     Options = questionDto.Options?.Select(o => new Option
                     {
                         Text = o.Text,
@@ -980,6 +981,7 @@ namespace BlazingQuiz.Api.Services
                 existingQuestion.ImagePath = questionDto.ImagePath;
                 existingQuestion.AudioPath = questionDto.AudioPath;
                 existingQuestion.IsTextAnswer = questionDto.IsTextAnswer;
+                existingQuestion.Points = questionDto.Points; // Update points for the question
 
                 // Update options
                 if (questionDto.Options != null)

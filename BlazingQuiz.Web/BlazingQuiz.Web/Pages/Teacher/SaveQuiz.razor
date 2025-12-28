@@ -304,6 +304,16 @@
                                     </div>
                                 }
 
+                                <!-- Points Section -->
+                                <div class="mb-3">
+                                    <label class="form-label">Points</label>
+                                    <div class="input-group">
+                                        <button type="button" class="btn btn-spinner-down" @onclick="() => DecrementQuestionPoints(question)">-</button>
+                                        <input type="number" class="form-control form-control-centered custom-number-input" @bind="question.Points" min="1" style="font-size: 1.1rem; letter-spacing: 0.1rem;" />
+                                        <button type="button" class="btn btn-spinner-up" @onclick="() => IncrementQuestionPoints(question)">+</button>
+                                    </div>
+                                </div>
+
                                 <!-- Answer Explanation Section -->
                                 <div class="mb-3">
                                     <label class="form-label">Answer Explanation</label>
@@ -982,6 +992,24 @@
         {
             // Clear text answers when switching to multiple choice
             question.TextAnswers.Clear();
+        }
+    }
+
+    private void IncrementQuestionPoints(QuestionDto question)
+    {
+        if (question.Points < 100) // Set a reasonable maximum
+        {
+            question.Points++;
+            StateHasChanged();
+        }
+    }
+
+    private void DecrementQuestionPoints(QuestionDto question)
+    {
+        if (question.Points > 1) // Minimum points is 1
+        {
+            question.Points--;
+            StateHasChanged();
         }
     }
 

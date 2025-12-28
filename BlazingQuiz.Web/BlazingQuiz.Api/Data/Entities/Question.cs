@@ -16,6 +16,7 @@ namespace BlazingQuiz.Api.Data.Entities
         public Guid? QuizId { get; set; }
         public DateTime? CreatedAt { get; set; } // Timestamp when the question was created
         public int? CreatedBy { get; set; } // User ID of who created the question
+        public int Points { get; set; } = 1; // Points for the question
 
         [ForeignKey(nameof(QuizId))]
         public virtual Quiz Quiz { get; set; }
