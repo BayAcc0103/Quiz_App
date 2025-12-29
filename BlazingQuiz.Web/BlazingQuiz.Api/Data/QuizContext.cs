@@ -33,7 +33,8 @@ namespace BlazingQuiz.Api.Data
         public DbSet<RoomAnswer> RoomAnswers { get; set; }
         public DbSet<TextAnswer> TextAnswers { get; set; }
         public DbSet<QuizCategory> QuizCategories { get; set; }
-        public DbSet<RecommendedQuiz> RecommendedQuizzes { get; set; } 
+        public DbSet<RecommendedQuiz> RecommendedQuizzes { get; set; }
+        public DbSet<Notification> Notifications { get; set; } 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -219,6 +220,13 @@ namespace BlazingQuiz.Api.Data
                 .WithMany()
                 .HasForeignKey(q => q.CreatedBy)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure Notification entity
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);
             var adminUser = new User
