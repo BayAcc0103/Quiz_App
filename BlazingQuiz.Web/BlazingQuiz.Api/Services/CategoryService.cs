@@ -8,9 +8,12 @@ namespace BlazingQuiz.Api.Services
     public class CategoryService
     {
         private readonly QuizContext _context;
-        public CategoryService(QuizContext context)
+        private readonly NotificationService _notificationService;
+
+        public CategoryService(QuizContext context, NotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
         public async Task<QuizApiResponse<CategoryDto>> SaveCategoryAsync(CategoryDto dto, int? createdByUserId = null)
         {
@@ -34,6 +37,23 @@ namespace BlazingQuiz.Api.Services
                 };
                 _context.Categories.Add(category);
                 await _context.SaveChangesAsync(); // Save to get the new ID
+
+                // Get the teacher who created the category
+                var teacherUser = await _context.Users.FindAsync(createdByUserId.Value);
+
+                // Create notification for all admins
+                if (teacherUser != null)
+                {
+                    var adminUsers = await _context.Users
+                        .Where(u => u.Role == nameof(Shared.UserRole.Admin))
+                        .ToListAsync();
+
+                    foreach (var adminUser in adminUsers)
+                    {
+                        string notificationContent = $"Teacher {teacherUser.Name} đã tạo category {category.Name}";
+                        await _notificationService.CreateNotificationAsync(adminUser.Id, notificationContent, null, NotificationType.Category);
+                    }
+                }
 
                 // Return the created category with its new ID
                 return QuizApiResponse<CategoryDto>.Success(new CategoryDto

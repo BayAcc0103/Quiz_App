@@ -107,9 +107,8 @@ namespace BlazingQuiz.Api.Data.Migrations
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Url")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");

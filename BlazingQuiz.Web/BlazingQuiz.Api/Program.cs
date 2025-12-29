@@ -125,7 +125,8 @@ builder.Services.AddTransient<AuthService>()
 
 // Add SignalR
 builder.Services.AddSignalR();
-builder.Services.AddTransient<RoomService>();
+builder.Services.AddTransient<RoomService>()
+                .AddTransient<NotificationService>();
 var app = builder.Build();
 
 #if DEBUG

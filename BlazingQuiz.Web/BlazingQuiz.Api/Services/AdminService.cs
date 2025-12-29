@@ -4,33 +4,61 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using BlazingQuiz.Api.Data;
 using BlazingQuiz.Api.Data.Entities;
+using System.Linq;
 
 namespace BlazingQuiz.Api.Services
 {
     public class AdminService
     {
         private readonly IDbContextFactory<QuizContext> _contextFactory;
+        private readonly NotificationService _notificationService;
 
-        public AdminService(IDbContextFactory<QuizContext> contextFactory)
+        public AdminService(IDbContextFactory<QuizContext> contextFactory, NotificationService notificationService)
         {
             _contextFactory = contextFactory;
+            _notificationService = notificationService;
         }
 
         public async Task<AdminHomeDataDto> GetAdminHomeDataAsync()
         {
-            var totalCategoriesTask =  _contextFactory.CreateDbContext().Categories.CountAsync();
-            var totalStudentsTask = _contextFactory.CreateDbContext().Users.Where(u => u.Role == nameof(UserRole.Student)).CountAsync();
-            var approvedStudentsTask = _contextFactory.CreateDbContext().Users.Where(u => u.Role == nameof(UserRole.Student) && u.IsApproved).CountAsync();
-            var totalQuizesTask =  _contextFactory.CreateDbContext().Quizzes.CountAsync();
-            var activeQuizesTask = _contextFactory.CreateDbContext().Quizzes.Where(q => q.IsActive).CountAsync();
+            using var context = _contextFactory.CreateDbContext();
 
-            var totalCategories = await totalCategoriesTask;
-            var totalStudents = await totalStudentsTask;
-            var approvedStudents = await approvedStudentsTask;
-            var totalQuizes = await totalQuizesTask;
-            var activeQuizes = await activeQuizesTask;
+            var totalCategories = await context.Categories.CountAsync();
+            var totalStudents = await context.Users.Where(u => u.Role == nameof(UserRole.Student)).CountAsync();
+            var approvedStudents = await context.Users.Where(u => u.Role == nameof(UserRole.Student) && u.IsApproved).CountAsync();
+            var totalQuizes = await context.Quizzes.CountAsync();
+            var activeQuizes = await context.Quizzes.Where(q => q.IsActive).CountAsync();
 
-            return new AdminHomeDataDto(totalCategories, totalStudents, totalQuizes, approvedStudents, activeQuizes);
+            // Temporarily filter by content to distinguish notification types until Type column is available
+            var allNotifications = await context.Notifications
+                .Include(n => n.User)
+                .OrderByDescending(n => n.CreatedAt)
+                .Take(20) // Get more to filter afterwards
+                .Select(n => new NotificationDto
+                {
+                    Id = n.Id,
+                    UserId = n.UserId,
+                    Content = n.Content,
+                    IsRead = n.IsRead,
+                    Type = n.Content.Contains("đã tạo category") ? "Category" : "Feedback", // Temporary classification
+                    CreatedAt = n.CreatedAt,
+                    UserName = n.User.Name
+                })
+                .ToListAsync();
+
+            var categoryNotifications = allNotifications
+                .Where(n => n.Type == "Category")
+                .Take(10)
+                .ToList();
+
+            var feedbackNotifications = allNotifications
+                .Where(n => n.Type == "Feedback")
+                .Take(10)
+                .ToList();
+
+            return new AdminHomeDataDto(totalCategories, totalStudents, totalQuizes, approvedStudents, activeQuizes,
+                categoryNotifications,
+                feedbackNotifications);
         }
 
         public async Task<PageResult<UserDto>> GetUserAsync(UserApprovedFilter approveType, int startIndex, int pageSize)

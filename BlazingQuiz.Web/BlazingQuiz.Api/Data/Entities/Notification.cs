@@ -16,8 +16,7 @@ namespace BlazingQuiz.Api.Data.Entities
 
         public bool IsRead { get; set; } = false;
 
-        [MaxLength(500)]
-        public string? Url { get; set; }
+        public NotificationType Type { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

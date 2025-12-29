@@ -32,15 +32,115 @@
             </div>
         </div>
     </div>
+
+    <!-- Category Notifications Box -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="box bg-white p-3">
+                <h4 class="fw-bold d-flex justify-content-between align-items-center">
+                    <span>Category Notifications</span>
+                    <button class="btn btn-outline-primary btn-sm" @onclick="ToggleCategoryNotifications">
+                        @if (_showCategoryNotifications)
+                        {
+                            <text>Hide</text>
+                        }
+                        else
+                        {
+                            <text>Show</text>
+                        }
+                    </button>
+                </h4>
+                <hr />
+
+                @if (_showCategoryNotifications)
+                {
+                    @if (_data.CategoryNotifications != null && _data.CategoryNotifications.Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var notification in _data.CategoryNotifications)
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-start @(notification.IsRead ? "bg-light" : "")">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold">@notification.Content</div>
+                                        <small class="text-muted">@notification.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No category notifications available.</p>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Notifications Box -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="box bg-white p-3">
+                <h4 class="fw-bold d-flex justify-content-between align-items-center">
+                    <span>Feedback Notifications</span>
+                    <button class="btn btn-outline-primary btn-sm" @onclick="ToggleFeedbackNotifications">
+                        @if (_showFeedbackNotifications)
+                        {
+                            <text>Hide</text>
+                        }
+                        else
+                        {
+                            <text>Show</text>
+                        }
+                    </button>
+                </h4>
+                <hr />
+
+                @if (_showFeedbackNotifications)
+                {
+                    @if (_data.FeedbackNotifications != null && _data.FeedbackNotifications.Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var notification in _data.FeedbackNotifications)
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-start @(notification.IsRead ? "bg-light" : "")">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold">@notification.Content</div>
+                                        <small class="text-muted">@notification.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No feedback notifications available.</p>
+                    }
+                }
+            </div>
+        </div>
+    </div>
 }
 
 @code {
     private AdminHomeDataDto? _data;
+    private bool _showCategoryNotifications = false;
+    private bool _showFeedbackNotifications = false;
 
     protected override async Task OnInitializedAsync()
     {
         AppState.ShowLoader("Loading data");
         _data = await AdminApi.GetAdminHomeDataAsync();
         AppState.HideLoader();
+    }
+
+    private void ToggleCategoryNotifications()
+    {
+        _showCategoryNotifications = !_showCategoryNotifications;
+    }
+
+    private void ToggleFeedbackNotifications()
+    {
+        _showFeedbackNotifications = !_showFeedbackNotifications;
     }
 }
