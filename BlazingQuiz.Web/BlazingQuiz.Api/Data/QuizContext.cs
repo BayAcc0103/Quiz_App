@@ -228,6 +228,13 @@ namespace BlazingQuiz.Api.Data
                 .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Configure Notification Type property to be stored as string
+            modelBuilder.Entity<Notification>()
+                .Property(e => e.Type)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => (NotificationType)Enum.Parse(typeof(NotificationType), v));
+
             base.OnModelCreating(modelBuilder);
             var adminUser = new User
             {
