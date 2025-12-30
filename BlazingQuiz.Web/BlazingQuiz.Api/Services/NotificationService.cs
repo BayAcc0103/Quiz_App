@@ -13,14 +13,15 @@ namespace BlazingQuiz.Api.Services
             _context = context;
         }
 
-        public async Task CreateNotificationAsync(int userId, string content, string? url = null, NotificationType type = NotificationType.Category)
+        public async Task CreateNotificationAsync(int userId, string content, string? url = null, NotificationType type = NotificationType.Category, Guid? quizId = null)
         {
             var notification = new Notification
             {
                 UserId = userId,
                 Content = content,
                 Type = type,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                QuizId = quizId
             };
 
             _context.Notifications.Add(notification);

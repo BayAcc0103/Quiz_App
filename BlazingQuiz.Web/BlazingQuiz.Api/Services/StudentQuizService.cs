@@ -506,18 +506,35 @@ namespace BlazingQuiz.Api.Services
                     // Create notification content in the format: Student [tên student] react [icon react] to quiz [tên quiz] : [comment]
                     string notificationContent = $"Student {student.Name} react {scoreText} to quiz {quiz.Name} : {dto.CommentContent ?? ""}";
 
-                    // Find all admin users and send notification to each
+                    // Find all admin users
                     var adminUsers = await _context.Users
                         .Where(u => u.Role == nameof(UserRole.Admin))
                         .ToListAsync();
 
+                    // Create a set of user IDs to notify to avoid duplicates
+                    var userIdsToNotify = new HashSet<int>();
+
+                    // Add all admin user IDs
                     foreach (var adminUser in adminUsers)
                     {
+                        userIdsToNotify.Add(adminUser.Id);
+                    }
+
+                    // Add quiz creator ID if they are not an admin
+                    if (quiz.CreatedBy.HasValue && !adminUsers.Any(u => u.Id == quiz.CreatedBy.Value))
+                    {
+                        userIdsToNotify.Add(quiz.CreatedBy.Value);
+                    }
+
+                    // Send notification to each unique user
+                    foreach (var userId in userIdsToNotify)
+                    {
                         await _notificationService.CreateNotificationAsync(
-                            adminUser.Id,
+                            userId,
                             notificationContent,
                             null,
-                            NotificationType.Feedback);
+                            NotificationType.Feedback,
+                            studentQuiz.QuizId);
                     }
                 }
 

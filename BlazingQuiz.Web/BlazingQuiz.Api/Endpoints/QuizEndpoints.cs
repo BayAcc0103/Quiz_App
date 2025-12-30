@@ -437,6 +437,27 @@ namespace BlazingQuiz.Api.Endpoints
                 return Results.Ok(QuizApiResponse.Success());
             }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin)));
 
+            // Add teacher home data endpoint
+            quizGroup.MapGet("/teacher-home-data", async (QuizService service, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest("Invalid user ID");
+                }
+
+                // Check user role to determine if they have permission to access teacher home data
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Teacher))
+                {
+                    return Results.Forbid();
+                }
+
+                var data = await service.GetTeacherHomeDataAsync(userId);
+                return Results.Ok(data);
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Teacher)));
+
 
             return app;
         }

@@ -20,6 +20,8 @@ namespace BlazingQuiz.Api.Data.Entities
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public Guid? QuizId { get; set; }
+
         [ForeignKey(nameof(UserId))]
         public virtual User User { get; set; }
     }

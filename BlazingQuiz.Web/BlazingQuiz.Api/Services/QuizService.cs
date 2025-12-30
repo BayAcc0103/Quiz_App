@@ -1021,6 +1021,43 @@ namespace BlazingQuiz.Api.Services
             }
         }
 
+        public async Task<TeacherHomeDataDto> GetTeacherHomeDataAsync(int userId)
+        {
+            // Get teacher's total quizzes
+            var totalQuizzes = await _context.Quizzes.CountAsync(q => q.CreatedBy == userId);
+
+            // Get teacher's total questions
+            var totalQuestions = await _context.Questions.CountAsync(q => q.CreatedBy == userId);
+
+            // Get teacher's total categories
+            var totalCategories = await _context.Categories.CountAsync(c => c.CreatedBy == userId);
+
+            // Get feedback notifications for quizzes created by this teacher
+            var quizIds = await _context.Quizzes
+                .Where(q => q.CreatedBy == userId)
+                .Select(q => q.Id)
+                .ToListAsync();
+
+            var feedbackNotifications = await _context.Notifications
+                .Include(n => n.User)
+                .Where(n => n.Type == NotificationType.Feedback && n.UserId == userId)
+                .OrderByDescending(n => n.CreatedAt)
+                .Take(10)
+                .Select(n => new NotificationDto
+                {
+                    Id = n.Id,
+                    UserId = n.UserId,
+                    Content = n.Content,
+                    IsRead = n.IsRead,
+                    Type = n.Type.ToString(),
+                    CreatedAt = n.CreatedAt,
+                    UserName = n.User.Name
+                })
+                .ToListAsync();
+
+            return new TeacherHomeDataDto(totalQuizzes, totalQuestions, totalCategories, feedbackNotifications);
+        }
+
         public async Task<QuizApiResponse> BanQuizAsync(Guid quizId, int userId, bool isAdmin)
         {
             var quiz = await _context.Quizzes.FindAsync(quizId);

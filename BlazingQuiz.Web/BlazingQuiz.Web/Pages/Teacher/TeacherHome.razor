@@ -1,60 +1,100 @@
 @page "/teacher/home"
 @using BlazingQuiz.Shared
+@using BlazingQuiz.Shared.DTOs
 @using Microsoft.AspNetCore.Authorization
+@inject IAppState AppState
+@inject IQuizApi QuizApi
 @attribute [Authorize(Roles = nameof(UserRole.Teacher))]
 
 <div class="container">
     <h1>Teacher Dashboard</h1>
     <p>Welcome to your teacher dashboard. Here you can manage your questions, categories, and quizzes.</p>
-    
-   @*  <div class="row">
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">Manage Questions</h5>
-                    <p class="card-text">Create, edit, and organize questions for your quizzes.</p>
-                    <a href="/teacher/manage-questions" class="btn btn-primary">Go to Questions</a>
+
+    @if(_data != null)
+    {
+        <div class="row">
+            <div class="col-sm-4">
+                <div class="box bg-white p-3">
+                    <h4 class="fw-bold">Quizzes</h4>
+                    <hr/>
+                    <h3>@_data.TotalQuizzes</h3>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="box bg-white p-3">
+                <h4 class="fw-bold">Questions</h4>
+                <hr/>
+                <h3>@_data.TotalQuestions</h3>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="box bg-white p-3">
+                <h4 class="fw-bold">Categories</h4>
+                <hr />
+                <h3>@_data.TotalCategories</h3>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">Manage Categories</h5>
-                    <p class="card-text">Create and manage categories for organizing your quizzes.</p>
-                    <a href="/teacher/manage-categories" class="btn btn-primary">Go to Categories</a>
+
+        <!-- Feedback Notifications Box -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="box bg-white p-3">
+                    <h4 class="fw-bold d-flex justify-content-between align-items-center">
+                        <span>Feedback Notifications</span>
+                        <button class="btn btn-outline-primary btn-sm" @onclick="ToggleFeedbackNotifications">
+                            @if (_showFeedbackNotifications)
+                            {
+                                <text>Hide</text>
+                            }
+                            else
+                            {
+                                <text>Show</text>
+                            }
+                        </button>
+                    </h4>
+                    <hr />
+
+                    @if (_showFeedbackNotifications)
+                    {
+                        @if (_data.FeedbackNotifications != null && _data.FeedbackNotifications.Any())
+                        {
+                            <div class="list-group">
+                                @foreach (var notification in _data.FeedbackNotifications)
+                                {
+                                    <div class="list-group-item d-flex justify-content-between align-items-start @(notification.IsRead ? "bg-light" : "")">
+                                        <div class="ms-2 me-auto">
+                                            <div class="fw-bold">@notification.Content</div>
+                                            <small class="text-muted">@notification.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No feedback notifications available.</p>
+                        }
+                    }
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">Manage Quizzes</h5>
-                    <p class="card-text">Create, edit, and manage your quizzes.</p>
-                    <a href="/teacher/manage-quizzes" class="btn btn-primary">Go to Quizzes</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">Upload Audio</h5>
-                    <p class="card-text\">Upload MP3 files for use in your quizzes or as audio content.</p>
-                    <a href="/teacher/audio-upload" class="btn btn-primary">Go to Audio Upload</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">Create Room</h5>
-                    <p class="card-text\">Create a new room for students to join and take quizzes together.</p>
-                    <a href="/teacher/createroom" class="btn btn-primary">Create Room</a>
-                </div>
-            </div>
-        </div>
-    </div> *@
+    }
 </div>
+
+@code {
+    private TeacherHomeDataDto? _data;
+    private bool _showFeedbackNotifications = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AppState.ShowLoader("Loading data");
+        _data = await QuizApi.GetTeacherHomeDataAsync();
+        AppState.HideLoader();
+    }
+
+    private void ToggleFeedbackNotifications()
+    {
+        _showFeedbackNotifications = !_showFeedbackNotifications;
+    }
+}

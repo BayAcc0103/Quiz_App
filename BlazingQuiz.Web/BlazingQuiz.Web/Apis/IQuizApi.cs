@@ -63,5 +63,8 @@ namespace BlazingQuiz.Web.Apis
 
         [Post("/api/quizes/{quizId}/unban")]
         Task<QuizApiResponse> UnbanQuizAsync(Guid quizId);
+
+        [Get("/api/quizes/teacher-home-data")]
+        Task<TeacherHomeDataDto> GetTeacherHomeDataAsync();
     }
 }

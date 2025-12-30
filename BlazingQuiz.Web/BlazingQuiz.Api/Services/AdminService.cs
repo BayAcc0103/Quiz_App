@@ -19,7 +19,7 @@ namespace BlazingQuiz.Api.Services
             _notificationService = notificationService;
         }
 
-        public async Task<AdminHomeDataDto> GetAdminHomeDataAsync()
+        public async Task<AdminHomeDataDto> GetAdminHomeDataAsync(int userId)
         {
             using var context = _contextFactory.CreateDbContext();
 
@@ -52,7 +52,7 @@ namespace BlazingQuiz.Api.Services
                 .ToList();
 
             var feedbackNotifications = allNotifications
-                .Where(n => n.Type == nameof(NotificationType.Feedback))
+                .Where(n => n.Type == nameof(NotificationType.Feedback) && n.UserId == userId)
                 .Take(10)
                 .ToList();
 

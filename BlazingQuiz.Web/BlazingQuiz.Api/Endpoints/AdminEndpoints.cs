@@ -1,6 +1,7 @@
 ﻿using BlazingQuiz.Api.Services;
 using BlazingQuiz.Shared;
 using BlazingQuiz.Shared.DTOs;
+using System.Security.Claims;
 
 namespace BlazingQuiz.Api.Endpoints
 {
@@ -11,8 +12,18 @@ namespace BlazingQuiz.Api.Endpoints
             var adminGroup = app.MapGroup("/api/admin")
                 .RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin)));
 
-            adminGroup.MapGet("/home-data", async (AdminService userService) =>
-                Results.Ok(await userService.GetAdminHomeDataAsync()));
+            adminGroup.MapGet("/home-data", async (AdminService userService, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest("Invalid user ID");
+                }
+
+                var data = await userService.GetAdminHomeDataAsync(userId);
+                return Results.Ok(data);
+            });
 
             adminGroup.MapGet("/quizes/{quizId:guid}/students", async (Guid quizId, int startIndex, int pageSize, bool fetchQuizInfo, AdminService userService) =>
                 Results.Ok(await userService.GetQuizStudentsAsync(quizId, startIndex, pageSize, fetchQuizInfo)));
