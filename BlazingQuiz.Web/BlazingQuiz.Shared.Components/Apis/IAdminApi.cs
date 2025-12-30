@@ -15,5 +15,8 @@ namespace BlazingQuiz.Web.Apis
 
         [Get("/api/admin/home-data")]
         Task<AdminHomeDataDto> GetAdminHomeDataAsync();
+
+        [Post("/api/admin/notifications/{notificationId}/mark-as-read")]
+        Task MarkNotificationAsReadAsync(int notificationId);
     }
 }

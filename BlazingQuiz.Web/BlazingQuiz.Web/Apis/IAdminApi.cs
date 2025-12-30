@@ -21,5 +21,8 @@ namespace BlazingQuiz.Web.Apis
 
         [Post("/api/admin/users/create-user")]
         Task<QuizApiResponse> CreateUserAsync(RegisterDto dto);
+
+        [Post("/api/admin/notifications/{notificationId}/mark-as-read")]
+        Task MarkNotificationAsReadAsync(int notificationId);
     }
 }

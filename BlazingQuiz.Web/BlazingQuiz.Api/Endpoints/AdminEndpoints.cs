@@ -51,6 +51,13 @@ namespace BlazingQuiz.Api.Endpoints
                     return Results.BadRequest(result);
             });
 
+            // Add notification endpoints
+            adminGroup.MapPost("/notifications/{notificationId:int}/mark-as-read", async (int notificationId, NotificationService notificationService) =>
+            {
+                await notificationService.MarkAsReadAsync(notificationId);
+                return Results.Ok();
+            });
+
             return app;
         }
     }
