@@ -63,14 +63,18 @@
                             <span class="badge bg-danger rounded-pill ms-2 badge-3d">@categoryUnreadCount</span>
                         }
                     </div>
-                    <button class="btn btn-outline-3d btn-sm" @onclick="ToggleCategoryNotifications">
+                    <button class="btn btn-outline-3d btn-sm d-flex align-items-center" @onclick="ToggleCategoryNotifications">
                         @if (_showCategoryNotifications)
                         {
-                            <text>Hide</text>
+                            <span class="material-symbols-outlined">
+                                keyboard_arrow_up
+                            </span>
                         }
                         else
                         {
-                            <text>Show</text>
+                            <span class="material-symbols-outlined">
+                                keyboard_arrow_down
+                            </span>
                         }
                     </button>
                 </div>
@@ -134,14 +138,18 @@
                             <span class="badge bg-danger rounded-pill ms-2 badge-3d">@feedbackUnreadCount</span>
                         }
                     </div>
-                    <button class="btn btn-outline-3d btn-sm" @onclick="ToggleFeedbackNotifications">
+                    <button class="btn btn-outline-3d btn-sm d-flex align-items-center" @onclick="ToggleFeedbackNotifications">
                         @if (_showFeedbackNotifications)
                         {
-                            <text>Hide</text>
+                            <span class="material-symbols-outlined">
+                                keyboard_arrow_up
+                            </span>
                         }
                         else
                         {
-                            <text>Show</text>
+                            <span class="material-symbols-outlined">
+                                keyboard_arrow_down
+                            </span>
                         }
                     </button>
                 </div>
