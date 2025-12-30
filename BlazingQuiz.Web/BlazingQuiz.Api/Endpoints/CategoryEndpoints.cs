@@ -35,6 +35,9 @@ namespace BlazingQuiz.Api.Endpoints
                 return Results.BadRequest("Invalid user ID");
             })
             .RequireAuthorization(p => p.RequireRole(nameof(UserRole.Teacher)));
+            categoriesGroup.MapGet("/{id:int}", async (int id, CategoryService categoryService) =>
+                Results.Ok(await categoryService.GetCategoryByIdAsync(id)))
+                .RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
             categoriesGroup.MapDelete("/{id:int}", async (int id, CategoryService categoryService) =>
                 Results.Ok(await categoryService.DeleteCategoryAsync(id)))
                 .RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));

@@ -142,5 +142,26 @@ namespace BlazingQuiz.Api.Services
 
             return QuizApiResponse.Success();
         }
+
+        public async Task<CategoryDto> GetCategoryByIdAsync(int id)
+        {
+            var category = await _context.Categories
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (category == null)
+            {
+                return null; // Or throw an exception if preferred
+            }
+
+            return new CategoryDto
+            {
+                Id = category.Id,
+                Name = category.Name,
+                ImagePath = category.ImagePath,
+                IsDisplay = category.IsDisplay,
+                CreatedBy = category.CreatedBy
+            };
+        }
     }
 }

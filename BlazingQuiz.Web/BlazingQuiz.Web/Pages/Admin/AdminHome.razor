@@ -2,6 +2,8 @@
 
 @inject IAppState AppState
 @inject IAdminApi AdminApi
+@inject ICategoryApi CategoryApi
+@inject IUserAvatarApi UserAvatarApi
 
 <h1>Admin Dashboard</h1>
 
@@ -83,18 +85,23 @@
                                     <div class="notification-content">@notification.Content</div>
                                     <small class="notification-date">@notification.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
                                     <div class="notification-actions">
+                                        <button class="btn btn-sm btn-outline-3d me-2" @onclick="() => ShowCategoryDetails(notification)" title="See Category">
+                                            <span class="material-symbols-outlined d-flex align-items-center justify-content-center">
+                                                visibility
+                                            </span>
+                                        </button>
                                         @if (!notification.IsRead)
                                         {
-                                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => MarkNotificationAsRead(notification.Id)" title="Mark as read">
-                                                <span class="material-symbols-outlined">
-                                                    visibility
+                                            <button class="btn btn-sm btn-outline-3d" @onclick="() => MarkNotificationAsRead(notification.Id)" title="Mark as read">
+                                                <span class="material-symbols-outlined d-flex align-items-center justify-content-center">
+                                                    notification_sound
                                                 </span>
                                             </button>
                                         }
                                         else
                                         {
-                                            <button class="btn btn-sm btn-outline-secondary" disabled title="Already read">
-                                                <span class="material-symbols-outlined">
+                                            <button class="btn btn-sm btn-outline-3d" disabled title="Already read">
+                                                <span class="material-symbols-outlined d-flex align-items-center justify-content-center">
                                                     check
                                                 </span>
                                             </button>
@@ -151,16 +158,16 @@
                                     <div class="notification-actions">
                                         @if (!notification.IsRead)
                                         {
-                                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => MarkNotificationAsRead(notification.Id)" title="Mark as read">
-                                                <span class="material-symbols-outlined">
+                                            <button class="btn btn-sm btn-outline-3d" @onclick="() => MarkNotificationAsRead(notification.Id)" title="Mark as read">
+                                                <span class="material-symbols-outlined d-flex align-items-center justify-content-center">
                                                     visibility
                                                 </span>
                                             </button>
                                         }
                                         else
                                         {
-                                            <button class="btn btn-sm btn-outline-secondary" disabled title="Already read">
-                                                <span class="material-symbols-outlined">
+                                            <button class="btn btn-sm btn-outline-3d" disabled title="Already read">
+                                                <span class="material-symbols-outlined d-flex align-items-center justify-content-center">
                                                     check
                                                 </span>
                                             </button>
@@ -232,4 +239,234 @@
     {
         return notifications?.Count(n => !n.IsRead) ?? 0;
     }
+
+    private CategoryDto? _selectedCategory;
+    private UserDto? _selectedCategoryCreator;
+    private bool _showCategoryModal = false;
+
+    private async Task ShowCategoryDetails(NotificationDto notification)
+    {
+        try
+        {
+            AppState.ShowLoader("Loading category details");
+
+            // Extract category name from notification content
+            // Format: "Teacher {teacherName} đã tạo category {categoryName}"
+            string categoryName = ExtractCategoryNameFromNotification(notification.Content);
+
+            // Find the category by name (this is a workaround since we don't have the ID in the notification)
+            // In a real implementation, you would want to include the category ID in the notification
+            var allCategories = await CategoryApi.GetCategoriesAsync();
+            var category = allCategories.FirstOrDefault(c => c.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase));
+
+            if (category != null)
+            {
+                _selectedCategory = category;
+
+                // Load the creator's information if available
+                if (category.CreatedBy.HasValue)
+                {
+                    _selectedCategoryCreator = await GetUserByIdAsync(category.CreatedBy.Value);
+                }
+                else
+                {
+                    _selectedCategoryCreator = null;
+                }
+            }
+            else
+            {
+                // If we can't find the category by name, try to get it by ID if we can extract it
+                // This is a fallback implementation
+                _selectedCategory = new CategoryDto
+                {
+                    Name = categoryName,
+                    ImagePath = "",
+                    IsDisplay = false,
+                    CreatedBy = null
+                };
+                _selectedCategoryCreator = null;
+            }
+
+            _showCategoryModal = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading category details: {ex.Message}");
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
+
+    private async Task<UserDto?> GetUserByIdAsync(int userId)
+    {
+        try
+        {
+            // Get all users and find the specific one
+            // This is not optimal but there's no direct API to get a user by ID
+            var allUsersResult = await AdminApi.GetUsersAsync(UserApprovedFilter.All, 0, 1000); // Get up to 1000 users
+            var user = allUsersResult.Records?.FirstOrDefault(u => u.Id == userId);
+            return user;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting user by ID: {ex.Message}");
+            return null;
+        }
+    }
+
+    private string ExtractCategoryNameFromNotification(string content)
+    {
+        // The notification content format is: "Teacher {teacherName} đã tạo category {categoryName}"
+        // Extract the category name part after "category "
+        if (content.Contains("đã tạo category "))
+        {
+            int startIndex = content.IndexOf("đã tạo category ") + "đã tạo category ".Length;
+            return content.Substring(startIndex).Trim();
+        }
+        // If the format is different, return the original content or an empty string
+        return content;
+    }
+
+    private void CloseCategoryModal()
+    {
+        _showCategoryModal = false;
+        _selectedCategory = null;
+    }
+
+    private async Task ToggleCategoryDisplay(int categoryId, object value)
+    {
+        if (_selectedCategory != null)
+        {
+            // Toggle the display status
+            _selectedCategory.IsDisplay = !(bool)value;
+
+            // Update the category in the database
+            var categoryToUpdate = new CategoryDto
+            {
+                Id = _selectedCategory.Id,
+                Name = _selectedCategory.Name,
+                ImagePath = _selectedCategory.ImagePath,
+                IsDisplay = _selectedCategory.IsDisplay,
+                CreatedBy = _selectedCategory.CreatedBy
+            };
+
+            try
+            {
+                AppState.ShowLoader("Updating category");
+                var result = await CategoryApi.SaveCategoryAsync(categoryToUpdate);
+                if (!result.IsSuccess)
+                {
+                    Console.WriteLine($"Error updating category: {result.ErrorMessage}");
+                    // Revert the change if update failed
+                    _selectedCategory.IsDisplay = !_selectedCategory.IsDisplay;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating category: {ex.Message}");
+                // Revert the change if update failed
+                _selectedCategory.IsDisplay = !_selectedCategory.IsDisplay;
+            }
+            finally
+            {
+                AppState.HideLoader();
+            }
+        }
+    }
+
+    private async Task HandleDisplayToggle(ChangeEventArgs e)
+    {
+        if (_selectedCategory != null)
+        {
+            await ToggleCategoryDisplay(_selectedCategory.Id, e.Value);
+        }
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            CloseCategoryModal();
+        }
+    }
+}
+
+<!-- Category Details Modal using shared component -->
+@if (_showCategoryModal)
+{
+    <Modal Title="Category Details"
+           Size="ModalSize.Large"
+           OnCancelClick="CloseCategoryModal"
+           OnActionButtonClick="CloseCategoryModal"
+           ActionButtonText="Close"
+           CancelText="">
+        @if (_selectedCategory != null)
+        {
+            <div class="text-center mb-3">
+                @if (!string.IsNullOrEmpty(_selectedCategory.ImagePath))
+                {
+                    <img src="@_selectedCategory.ImagePath" alt="@_selectedCategory.Name"
+                         class="img-fluid rounded mb-3" style="max-height: 200px; object-fit: cover;" />
+                }
+                else
+                {
+                    <div class="bg-light d-flex align-items-center justify-content-center"
+                         style="height: 200px; border: 2px dashed #ccc; border-radius: 8px;">
+                        <span class="text-muted">No Image</span>
+                    </div>
+                }
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Category Name</label>
+                <div class="form-control-plaintext">@_selectedCategory.Name</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Display Status</label>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch"
+                           id="displaySwitch"
+                           checked="@_selectedCategory.IsDisplay"
+                           @onchange="HandleDisplayToggle" />
+                    <label class="form-check-label" for="displaySwitch">
+                        @_selectedCategory.IsDisplay
+                    </label>
+                </div>
+            </div>
+
+            @if (_selectedCategory.CreatedBy.HasValue)
+            {
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Created By</label>
+                    @if (_selectedCategoryCreator != null)
+                    {
+                        <div class="d-flex align-items-center">
+                            @if (!string.IsNullOrEmpty(_selectedCategoryCreator.AvatarPath))
+                            {
+                                <img src="@_selectedCategoryCreator.AvatarPath"
+                                     alt="@_selectedCategoryCreator.Name"
+                                     class="rounded-circle me-2"
+                                     style="width: 40px; height: 40px; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2"
+                                     style="width: 40px; height: 40px;">
+                                    <span class="text-white fw-bold">@(_selectedCategoryCreator.Name?.FirstOrDefault() ?? 'U')</span>
+                                </div>
+                            }
+                            <span>@_selectedCategoryCreator.Name</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="form-control-plaintext">Teacher ID: @_selectedCategory.CreatedBy (User not found)</div>
+                    }
+                </div>
+            }
+        }
+    </Modal>
 }
