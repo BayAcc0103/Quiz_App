@@ -51,7 +51,19 @@
             <div class="col-sm-6 mb-4">
                 <div class="notification-card-3d">
                     <div class="card-header">
-                        <span>Quiz Notifications</span>
+                        <div class="d-flex align-items-center">
+                            <span class="material-symbols-outlined me-2">
+                                notifications
+                            </span>
+                            <span>Quiz Notifications</span>
+                            @{
+                                var quizUnreadCount = GetUnreadNotificationsCount(_data?.QuizNotifications ?? new List<NotificationDto>());
+                            }
+                            @if (quizUnreadCount > 0)
+                            {
+                                <span class="badge bg-danger rounded-pill ms-2 badge-3d">@quizUnreadCount</span>
+                            }
+                        </div>
                         <button class="btn btn-outline-3d btn-sm" @onclick="ToggleQuizNotifications">
                             @if (_showQuizNotifications)
                             {
@@ -76,16 +88,16 @@
                                         <div class="notification-actions">
                                             @if (!notification.IsRead)
                                             {
-                                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => MarkNotificationAsRead(notification.Id)" title="Mark as read">
-                                                    <span class="material-symbols-outlined">
+                                                <button class="btn btn-sm btn-outline-3d" @onclick="() => MarkNotificationAsRead(notification.Id)" title="Mark as read">
+                                                    <span class="material-symbols-outlined d-flex align-items-center justify-content-center">
                                                         visibility
                                                     </span>
                                                 </button>
                                             }
                                             else
                                             {
-                                                <button class="btn btn-sm btn-outline-secondary" disabled title="Already read">
-                                                    <span class="material-symbols-outlined">
+                                                <button class="btn btn-sm btn-outline-3d" disabled title="Already read">
+                                                    <span class="material-symbols-outlined d-flex align-items-center justify-content-center">
                                                         check
                                                     </span>
                                                 </button>
@@ -105,7 +117,19 @@
             <div class="col-sm-6 mb-4">
                 <div class="notification-card-3d">
                     <div class="card-header">
-                        <span>Feedback Notifications</span>
+                        <div class="d-flex align-items-center">
+                            <span class="material-symbols-outlined me-2">
+                                notifications
+                            </span>
+                            <span>Feedback Notifications</span>
+                            @{
+                                var feedbackUnreadCount = GetUnreadNotificationsCount(_data?.FeedbackNotifications ?? new List<NotificationDto>());
+                            }
+                            @if (feedbackUnreadCount > 0)
+                            {
+                                <span class="badge bg-danger rounded-pill ms-2 badge-3d">@feedbackUnreadCount</span>
+                            }
+                        </div>
                         <button class="btn btn-outline-3d btn-sm" @onclick="ToggleFeedbackNotifications">
                             @if (_showFeedbackNotifications)
                             {
@@ -130,16 +154,16 @@
                                         <div class="notification-actions">
                                             @if (!notification.IsRead)
                                             {
-                                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => MarkNotificationAsRead(notification.Id)" title="Mark as read">
-                                                    <span class="material-symbols-outlined">
+                                                <button class="btn btn-sm btn-outline-3d" @onclick="() => MarkNotificationAsRead(notification.Id)" title="Mark as read">
+                                                    <span class="material-symbols-outlined d-flex align-items-center justify-content-center">
                                                         visibility
                                                     </span>
                                                 </button>
                                             }
                                             else
                                             {
-                                                <button class="btn btn-sm btn-outline-secondary" disabled title="Already read">
-                                                    <span class="material-symbols-outlined">
+                                                <button class="btn btn-sm btn-outline-3d" disabled title="Already read">
+                                                    <span class="material-symbols-outlined d-flex align-items-center justify-content-center">
                                                         check
                                                     </span>
                                                 </button>
