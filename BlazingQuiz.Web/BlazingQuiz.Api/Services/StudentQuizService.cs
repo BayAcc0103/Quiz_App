@@ -1,5 +1,6 @@
 ﻿using BlazingQuiz.Api.Data;
 using BlazingQuiz.Api.Data.Entities;
+using BlazingQuiz.Shared;
 using BlazingQuiz.Shared.DTOs;
 using BlazingQuiz.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -9,10 +10,12 @@ namespace BlazingQuiz.Api.Services
     public class StudentQuizService
     {
         private readonly QuizContext _context;
+        private readonly NotificationService _notificationService;
 
-        public StudentQuizService(QuizContext context)
+        public StudentQuizService(QuizContext context, NotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
         public async Task<QuizListDto[]> GetActiveQuizesAsync(int categoryId)
         {
@@ -474,6 +477,49 @@ namespace BlazingQuiz.Api.Services
                 }
 
                 await _context.SaveChangesAsync();
+
+                // Get the student and quiz details to create notification
+                var student = await _context.Users.FindAsync(studentId);
+                var quiz = await _context.Quizzes.FindAsync(studentQuiz.QuizId);
+
+                if (student != null && quiz != null)
+                {
+                    // Get the score text representation
+                    string scoreText = "";
+                    if (dto.RatingText != null)
+                    {
+                        scoreText = dto.RatingText;
+                    }
+                    else if (dto.RatingScore.HasValue)
+                    {
+                        scoreText = dto.RatingScore.Value switch
+                        {
+                            1 => RatingText.VeryBad,
+                            2 => RatingText.Bad,
+                            3 => RatingText.Normal,
+                            4 => RatingText.Good,
+                            5 => RatingText.VeryGood,
+                            _ => ""
+                        };
+                    }
+
+                    // Create notification content in the format: Student [tên student] react [icon react] to quiz [tên quiz] : [comment]
+                    string notificationContent = $"Student {student.Name} react {scoreText} to quiz {quiz.Name} : {dto.CommentContent ?? ""}";
+
+                    // Find all admin users and send notification to each
+                    var adminUsers = await _context.Users
+                        .Where(u => u.Role == nameof(UserRole.Admin))
+                        .ToListAsync();
+
+                    foreach (var adminUser in adminUsers)
+                    {
+                        await _notificationService.CreateNotificationAsync(
+                            adminUser.Id,
+                            notificationContent,
+                            null,
+                            NotificationType.Feedback);
+                    }
+                }
 
                 return QuizApiResponse.Success();
             }

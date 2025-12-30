@@ -29,7 +29,7 @@ namespace BlazingQuiz.Api.Services
             var totalQuizes = await context.Quizzes.CountAsync();
             var activeQuizes = await context.Quizzes.Where(q => q.IsActive).CountAsync();
 
-            // Temporarily filter by content to distinguish notification types until Type column is available
+            // Get notifications and classify them by type
             var allNotifications = await context.Notifications
                 .Include(n => n.User)
                 .OrderByDescending(n => n.CreatedAt)
@@ -40,19 +40,19 @@ namespace BlazingQuiz.Api.Services
                     UserId = n.UserId,
                     Content = n.Content,
                     IsRead = n.IsRead,
-                    Type = n.Content.Contains("đã tạo category") ? "Category" : "Feedback", // Temporary classification
+                    Type = n.Type.ToString(), // Use the proper NotificationType
                     CreatedAt = n.CreatedAt,
                     UserName = n.User.Name
                 })
                 .ToListAsync();
 
             var categoryNotifications = allNotifications
-                .Where(n => n.Type == "Category")
+                .Where(n => n.Type == nameof(NotificationType.Category))
                 .Take(10)
                 .ToList();
 
             var feedbackNotifications = allNotifications
-                .Where(n => n.Type == "Feedback")
+                .Where(n => n.Type == nameof(NotificationType.Feedback))
                 .Take(10)
                 .ToList();
 
