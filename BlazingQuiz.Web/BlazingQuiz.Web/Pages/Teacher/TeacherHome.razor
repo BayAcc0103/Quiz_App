@@ -68,7 +68,7 @@
                         {
                             @if (_data.QuizNotifications != null && _data.QuizNotifications.Any())
                             {
-                                @foreach (var notification in _data.QuizNotifications)
+                                @foreach (var notification in _data.QuizNotifications.OrderByDescending(n => n.IsRead).ThenByDescending(n => n.CreatedAt))
                                 {
                                     <div class="notification-list-item @(notification.IsRead ? "bg-light" : "bg-white")">
                                         <div class="notification-content">@notification.Content</div>
@@ -122,7 +122,7 @@
                         {
                             @if (_data.FeedbackNotifications != null && _data.FeedbackNotifications.Any())
                             {
-                                @foreach (var notification in _data.FeedbackNotifications)
+                                @foreach (var notification in _data.FeedbackNotifications.OrderByDescending(n => n.IsRead).ThenByDescending(n => n.CreatedAt))
                                 {
                                     <div class="notification-list-item @(notification.IsRead ? "bg-light" : "bg-white")">
                                         <div class="notification-content">@notification.Content</div>
