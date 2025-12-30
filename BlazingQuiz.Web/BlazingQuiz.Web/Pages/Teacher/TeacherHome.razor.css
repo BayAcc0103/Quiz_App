@@ -1,0 +1,224 @@
+/* 3D Card Styles for Teacher Home Page */
+.dashboard-card-3d {
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+    background-color: #ffffff;
+    color: #333;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-card-3d:hover {
+    transform: perspective(500px) translateY(4px);
+    box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dashboard-card-3d .card-header {
+    padding: 1rem;
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    color: white;
+    font-weight: bold;
+    border-bottom: 3px solid #000 !important;
+}
+
+.dashboard-card-3d .card-body {
+    padding: 1.5rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.dashboard-card-3d .card-title {
+    font-size: 1.25rem;
+    margin: 0 0 0.5rem 0;
+    text-align: center;
+}
+
+.dashboard-card-3d .card-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #0d6efd;
+    margin: 0.5rem 0;
+    text-align: center;
+}
+
+.dashboard-card-3d .card-subvalue {
+    font-size: 1rem;
+    color: #6c757d;
+    margin: 0.25rem 0;
+    text-align: center;
+}
+
+.dashboard-card-3d hr {
+    width: 100%;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    margin: 0.5rem 0;
+}
+
+/* Notification card specific styles */
+.notification-card-3d {
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+    background-color: #ffffff;
+    color: #333;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.notification-card-3d:hover {
+    transform: perspective(500px) translateY(4px);
+    box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+.notification-card-3d .card-header {
+    padding: 1rem;
+    background: linear-gradient(135deg, #28a745, #218838);
+    color: white;
+    font-weight: bold;
+    border-bottom: 3px solid #000 !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-card-3d .card-body {
+    padding: 1rem;
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: 348px; /* Height for 6 notifications (58px each including padding and borders) */
+    min-height: 348px;
+}
+
+.notification-list-item {
+    padding: 0.75rem;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s ease;
+    min-height: 58px; /* Fixed height for consistent sizing */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-content {
+    flex-grow: 1;
+    font-weight: 500;
+    margin-right: 1rem;
+}
+
+.notification-date {
+    font-size: 0.8rem;
+    color: #6c757d;
+    white-space: nowrap;
+    margin-right: 1rem;
+}
+
+.notification-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+.notification-list-item:last-child {
+    border-bottom: none;
+}
+
+.notification-list-item.bg-light {
+    background-color: #f8f9fa !important;
+}
+
+.notification-list-item.bg-white {
+    background-color: #ffffff !important;
+}
+
+.notification-list-item:hover {
+    background-color: #e9ecef;
+}
+
+.notification-content {
+    font-weight: 500;
+}
+
+.notification-date {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.badge-3d {
+    border: 2px solid #000 !important;
+    box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 1px 2px rgba(0, 0, 0, 0.3) !important;
+    font-weight: bold;
+    padding: 0.35em 0.65em;
+    font-size: 0.75em;
+    line-height: 1;
+    border-radius: 0.375rem;
+}
+
+.btn-3d {
+    border: 3px solid #000 !important;
+    border-radius: 12px !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background: linear-gradient(to bottom, #0d6efd, #0b5ed7);
+    color: white;
+    padding: 0.375rem 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-3d:hover {
+    background: linear-gradient(to bottom, #0b5ed7, #0a53be);
+    transform: translateY(-1px);
+    box-shadow: -6px 6px 0px 0px rgba(0, 0, 0, 0.8), 0px 3px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+.btn-3d:active {
+    transform: translateY(2px);
+    box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+.btn-outline-3d {
+    border: 3px solid #000 !important;
+    border-radius: 12px !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background-color: #fff;
+    color: #000;
+    padding: 0.375rem 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-3d:hover {
+    background-color: #e9ecef;
+    transform: translateY(-1px);
+    box-shadow: -6px 6px 0px 0px rgba(0, 0, 0, 0.8), 0px 3px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+.btn-outline-3d:active {
+    transform: translateY(2px);
+    box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+.material-symbols-outlined {
+    font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24
+}

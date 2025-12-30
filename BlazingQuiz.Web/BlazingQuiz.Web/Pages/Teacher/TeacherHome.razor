@@ -12,37 +12,47 @@
 
     @if(_data != null)
     {
-        <div class="row">
-            <div class="col-sm-4">
-                <div class="box bg-white p-3">
-                    <h4 class="fw-bold">Quizzes</h4>
-                    <hr/>
-                    <h3>@_data.TotalQuizzes</h3>
+        <!-- Stats Cards Row -->
+        <div class="row mt-4">
+            <div class="col-sm-4 mb-4">
+                <div class="dashboard-card-3d">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">Quizzes</h4>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="card-value">@_data.TotalQuizzes</div>
+                    </div>
                 </div>
             </div>
-            <div class="col-sm-4">
-                <div class="box bg-white p-3">
-                <h4 class="fw-bold">Questions</h4>
-                <hr/>
-                <h3>@_data.TotalQuestions</h3>
+            <div class="col-sm-4 mb-4">
+                <div class="dashboard-card-3d">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">Questions</h4>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="card-value">@_data.TotalQuestions</div>
+                    </div>
                 </div>
             </div>
-            <div class="col-sm-4">
-                <div class="box bg-white p-3">
-                <h4 class="fw-bold">Categories</h4>
-                <hr />
-                <h3>@_data.TotalCategories</h3>
+            <div class="col-sm-4 mb-4">
+                <div class="dashboard-card-3d">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">Categories</h4>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="card-value">@_data.TotalCategories</div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Quiz Notifications Box and Feedback Notifications Box on the same row -->
         <div class="row mt-4">
-            <div class="col-sm-6">
-                <div class="box bg-white p-3">
-                    <h4 class="fw-bold d-flex justify-content-between align-items-center">
+            <div class="col-sm-6 mb-4">
+                <div class="notification-card-3d">
+                    <div class="card-header">
                         <span>Quiz Notifications</span>
-                        <button class="btn btn-outline-primary btn-sm" @onclick="ToggleQuizNotifications">
+                        <button class="btn btn-outline-3d btn-sm" @onclick="ToggleQuizNotifications">
                             @if (_showQuizNotifications)
                             {
                                 <text>Hide</text>
@@ -52,37 +62,51 @@
                                 <text>Show</text>
                             }
                         </button>
-                    </h4>
-                    <hr />
-
-                    @if (_showQuizNotifications)
-                    {
-                        @if (_data.QuizNotifications != null && _data.QuizNotifications.Any())
+                    </div>
+                    <div class="card-body">
+                        @if (_showQuizNotifications)
                         {
-                            <div class="list-group">
+                            @if (_data.QuizNotifications != null && _data.QuizNotifications.Any())
+                            {
                                 @foreach (var notification in _data.QuizNotifications)
                                 {
-                                    <div class="list-group-item d-flex justify-content-between align-items-start @(notification.IsRead ? "bg-light" : "")">
-                                        <div class="ms-2 me-auto">
-                                            <div class="fw-bold">@notification.Content</div>
-                                            <small class="text-muted">@notification.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                                    <div class="notification-list-item @(notification.IsRead ? "bg-light" : "bg-white")">
+                                        <div class="notification-content">@notification.Content</div>
+                                        <small class="notification-date">@notification.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                                        <div class="notification-actions">
+                                            @if (!notification.IsRead)
+                                            {
+                                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => MarkNotificationAsRead(notification.Id)" title="Mark as read">
+                                                    <span class="material-symbols-outlined">
+                                                        visibility
+                                                    </span>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-sm btn-outline-secondary" disabled title="Already read">
+                                                    <span class="material-symbols-outlined">
+                                                        check
+                                                    </span>
+                                                </button>
+                                            }
                                         </div>
                                     </div>
                                 }
-                            </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted mb-0">No quiz notifications available.</p>
+                            }
                         }
-                        else
-                        {
-                            <p class="text-muted">No quiz notifications available.</p>
-                        }
-                    }
+                    </div>
                 </div>
             </div>
-            <div class="col-sm-6">
-                <div class="box bg-white p-3">
-                    <h4 class="fw-bold d-flex justify-content-between align-items-center">
+            <div class="col-sm-6 mb-4">
+                <div class="notification-card-3d">
+                    <div class="card-header">
                         <span>Feedback Notifications</span>
-                        <button class="btn btn-outline-primary btn-sm" @onclick="ToggleFeedbackNotifications">
+                        <button class="btn btn-outline-3d btn-sm" @onclick="ToggleFeedbackNotifications">
                             @if (_showFeedbackNotifications)
                             {
                                 <text>Hide</text>
@@ -92,30 +116,44 @@
                                 <text>Show</text>
                             }
                         </button>
-                    </h4>
-                    <hr />
-
-                    @if (_showFeedbackNotifications)
-                    {
-                        @if (_data.FeedbackNotifications != null && _data.FeedbackNotifications.Any())
+                    </div>
+                    <div class="card-body">
+                        @if (_showFeedbackNotifications)
                         {
-                            <div class="list-group">
+                            @if (_data.FeedbackNotifications != null && _data.FeedbackNotifications.Any())
+                            {
                                 @foreach (var notification in _data.FeedbackNotifications)
                                 {
-                                    <div class="list-group-item d-flex justify-content-between align-items-start @(notification.IsRead ? "bg-light" : "")">
-                                        <div class="ms-2 me-auto">
-                                            <div class="fw-bold">@notification.Content</div>
-                                            <small class="text-muted">@notification.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                                    <div class="notification-list-item @(notification.IsRead ? "bg-light" : "bg-white")">
+                                        <div class="notification-content">@notification.Content</div>
+                                        <small class="notification-date">@notification.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                                        <div class="notification-actions">
+                                            @if (!notification.IsRead)
+                                            {
+                                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => MarkNotificationAsRead(notification.Id)" title="Mark as read">
+                                                    <span class="material-symbols-outlined">
+                                                        visibility
+                                                    </span>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-sm btn-outline-secondary" disabled title="Already read">
+                                                    <span class="material-symbols-outlined">
+                                                        check
+                                                    </span>
+                                                </button>
+                                            }
                                         </div>
                                     </div>
                                 }
-                            </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted mb-0">No feedback notifications available.</p>
+                            }
                         }
-                        else
-                        {
-                            <p class="text-muted">No feedback notifications available.</p>
-                        }
-                    }
+                    </div>
                 </div>
             </div>
         </div>
@@ -142,5 +180,38 @@
     private void ToggleFeedbackNotifications()
     {
         _showFeedbackNotifications = !_showFeedbackNotifications;
+    }
+
+    private async Task MarkNotificationAsRead(int notificationId)
+    {
+        try
+        {
+            // Assuming there's a method to mark notifications as read in IQuizApi
+            // If not available, you might need to add it to the API
+            // await QuizApi.MarkNotificationAsReadAsync(notificationId);
+
+            // Update the UI immediately to reflect the change
+            var quizNotification = _data?.QuizNotifications?.FirstOrDefault(n => n.Id == notificationId);
+            if (quizNotification != null)
+            {
+                quizNotification.IsRead = true;
+            }
+
+            var feedbackNotification = _data?.FeedbackNotifications?.FirstOrDefault(n => n.Id == notificationId);
+            if (feedbackNotification != null)
+            {
+                feedbackNotification.IsRead = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error marking notification as read: {ex.Message}");
+            // Optionally show an error message to the user
+        }
+    }
+
+    private int GetUnreadNotificationsCount(List<NotificationDto> notifications)
+    {
+        return notifications?.Count(n => !n.IsRead) ?? 0;
     }
 }
