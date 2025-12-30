@@ -6,7 +6,7 @@
 @inject IQuizApi QuizApi
 @attribute [Authorize(Roles = nameof(UserRole.Teacher))]
 
-<div class="container">
+<div>
     <h1>Teacher Dashboard</h1>
     <p>Welcome to your teacher dashboard. Here you can manage your questions, categories, and quizzes.</p>
 
@@ -36,9 +36,9 @@
             </div>
         </div>
 
-        <!-- Quiz Notifications Box -->
+        <!-- Quiz Notifications Box and Feedback Notifications Box on the same row -->
         <div class="row mt-4">
-            <div class="col-12">
+            <div class="col-sm-6">
                 <div class="box bg-white p-3">
                     <h4 class="fw-bold d-flex justify-content-between align-items-center">
                         <span>Quiz Notifications</span>
@@ -78,11 +78,7 @@
                     }
                 </div>
             </div>
-        </div>
-
-        <!-- Feedback Notifications Box -->
-        <div class="row mt-4">
-            <div class="col-12">
+            <div class="col-sm-6">
                 <div class="box bg-white p-3">
                     <h4 class="fw-bold d-flex justify-content-between align-items-center">
                         <span>Feedback Notifications</span>
