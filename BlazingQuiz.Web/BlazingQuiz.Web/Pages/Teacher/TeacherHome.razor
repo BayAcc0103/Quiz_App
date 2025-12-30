@@ -36,6 +36,50 @@
             </div>
         </div>
 
+        <!-- Quiz Notifications Box -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="box bg-white p-3">
+                    <h4 class="fw-bold d-flex justify-content-between align-items-center">
+                        <span>Quiz Notifications</span>
+                        <button class="btn btn-outline-primary btn-sm" @onclick="ToggleQuizNotifications">
+                            @if (_showQuizNotifications)
+                            {
+                                <text>Hide</text>
+                            }
+                            else
+                            {
+                                <text>Show</text>
+                            }
+                        </button>
+                    </h4>
+                    <hr />
+
+                    @if (_showQuizNotifications)
+                    {
+                        @if (_data.QuizNotifications != null && _data.QuizNotifications.Any())
+                        {
+                            <div class="list-group">
+                                @foreach (var notification in _data.QuizNotifications)
+                                {
+                                    <div class="list-group-item d-flex justify-content-between align-items-start @(notification.IsRead ? "bg-light" : "")">
+                                        <div class="ms-2 me-auto">
+                                            <div class="fw-bold">@notification.Content</div>
+                                            <small class="text-muted">@notification.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No quiz notifications available.</p>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
         <!-- Feedback Notifications Box -->
         <div class="row mt-4">
             <div class="col-12">
@@ -84,6 +128,7 @@
 
 @code {
     private TeacherHomeDataDto? _data;
+    private bool _showQuizNotifications = false;
     private bool _showFeedbackNotifications = false;
 
     protected override async Task OnInitializedAsync()
@@ -91,6 +136,11 @@
         AppState.ShowLoader("Loading data");
         _data = await QuizApi.GetTeacherHomeDataAsync();
         AppState.HideLoader();
+    }
+
+    private void ToggleQuizNotifications()
+    {
+        _showQuizNotifications = !_showQuizNotifications;
     }
 
     private void ToggleFeedbackNotifications()

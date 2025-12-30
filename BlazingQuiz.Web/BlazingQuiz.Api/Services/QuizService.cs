@@ -1,5 +1,6 @@
 using BlazingQuiz.Api.Data;
 using BlazingQuiz.Api.Data.Entities;
+using BlazingQuiz.Shared;
 using BlazingQuiz.Shared.DTOs;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,10 +9,12 @@ namespace BlazingQuiz.Api.Services
     public class QuizService
     {
         private readonly QuizContext _context;
+        private readonly NotificationService _notificationService;
 
-        public QuizService(QuizContext context)
+        public QuizService(QuizContext context, NotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
         public async Task<QuizApiResponse> SaveQuizAsync(QuizSaveDto dto, int userId)
         {
@@ -1055,12 +1058,33 @@ namespace BlazingQuiz.Api.Services
                 })
                 .ToListAsync();
 
-            return new TeacherHomeDataDto(totalQuizzes, totalQuestions, totalCategories, feedbackNotifications);
+            // Get quiz notifications for quizzes created by this teacher
+            var quizNotifications = await _context.Notifications
+                .Include(n => n.User)
+                .Where(n => n.Type == NotificationType.Quiz && n.UserId == userId)
+                .OrderByDescending(n => n.CreatedAt)
+                .Take(10)
+                .Select(n => new NotificationDto
+                {
+                    Id = n.Id,
+                    UserId = n.UserId,
+                    Content = n.Content,
+                    IsRead = n.IsRead,
+                    Type = n.Type.ToString(),
+                    CreatedAt = n.CreatedAt,
+                    UserName = n.User.Name
+                })
+                .ToListAsync();
+
+            return new TeacherHomeDataDto(totalQuizzes, totalQuestions, totalCategories, feedbackNotifications, quizNotifications);
         }
 
         public async Task<QuizApiResponse> BanQuizAsync(Guid quizId, int userId, bool isAdmin)
         {
-            var quiz = await _context.Quizzes.FindAsync(quizId);
+            var quiz = await _context.Quizzes
+                .Include(q => q.CreatedByUser) // Include the user who created the quiz
+                .FirstOrDefaultAsync(q => q.Id == quizId);
+
             if (quiz == null)
             {
                 return QuizApiResponse.Failure("Quiz not found");
@@ -1075,13 +1099,30 @@ namespace BlazingQuiz.Api.Services
             quiz.IsBan = true;
             quiz.IsActive = false; // Also set IsActive to false when banned
 
+            // If the quiz was created by a teacher (not an admin), send a notification to that teacher
+            if (quiz.CreatedBy.HasValue && quiz.CreatedByUser != null &&
+                quiz.CreatedByUser.Role != nameof(UserRole.Admin))
+            {
+                var notificationContent = $"Your quiz '{quiz.Name}' has been banned by an administrator.";
+                await _notificationService.CreateNotificationAsync(
+                    quiz.CreatedBy.Value,
+                    notificationContent,
+                    null,
+                    NotificationType.Quiz,
+                    quiz.Id
+                );
+            }
+
             await _context.SaveChangesAsync();
             return QuizApiResponse.Success();
         }
 
         public async Task<QuizApiResponse> UnbanQuizAsync(Guid quizId, int userId, bool isAdmin)
         {
-            var quiz = await _context.Quizzes.FindAsync(quizId);
+            var quiz = await _context.Quizzes
+                .Include(q => q.CreatedByUser) // Include the user who created the quiz
+                .FirstOrDefaultAsync(q => q.Id == quizId);
+
             if (quiz == null)
             {
                 return QuizApiResponse.Failure("Quiz not found");
@@ -1096,6 +1137,20 @@ namespace BlazingQuiz.Api.Services
             quiz.IsBan = false;
             // Note: We don't automatically set IsActive back to true when unbanning
             // The quiz creator may want to keep it inactive for other reasons
+
+            // If the quiz was created by a teacher (not an admin), send a notification to that teacher
+            if (quiz.CreatedBy.HasValue && quiz.CreatedByUser != null &&
+                quiz.CreatedByUser.Role != nameof(UserRole.Admin))
+            {
+                var notificationContent = $"Your quiz '{quiz.Name}' has been unbanned by an administrator.";
+                await _notificationService.CreateNotificationAsync(
+                    quiz.CreatedBy.Value,
+                    notificationContent,
+                    null,
+                    NotificationType.Quiz,
+                    quiz.Id
+                );
+            }
 
             await _context.SaveChangesAsync();
             return QuizApiResponse.Success();
