@@ -699,6 +699,13 @@ namespace BlazingQuiz.Api.Services
                 }
             }
 
+            // Get all students who bookmarked this quiz before deleting the bookmarks
+            var bookmarkedStudents = await _context.QuizBookmarks
+                .Where(b => b.QuizId == quizId)
+                .Select(b => b.UserId)
+                .Distinct()
+                .ToListAsync();
+
             // Delete all related records in the following tables:
             // 1. QuizBookmark - bookmarks for this quiz
             var quizBookmarks = await _context.QuizBookmarks.Where(b => b.QuizId == quizId).ToListAsync();
@@ -736,6 +743,20 @@ namespace BlazingQuiz.Api.Services
             _context.QuizCategories.RemoveRange(quiz.QuizCategories);
 
             _context.Quizzes.Remove(quiz);
+
+            // Notify all students who bookmarked this quiz that it has been deleted
+            foreach (var studentId in bookmarkedStudents)
+            {
+                var notificationContent = $"The quiz '{quiz.Name}' that you bookmarked has been deleted by the teacher.";
+                await _notificationService.CreateNotificationAsync(
+                    studentId,
+                    notificationContent,
+                    null,
+                    NotificationType.Quiz,
+                    quiz.Id
+                );
+            }
+
             await _context.SaveChangesAsync();
             return true;
         }
@@ -1113,6 +1134,25 @@ namespace BlazingQuiz.Api.Services
                 );
             }
 
+            // Notify all students who bookmarked this quiz
+            var bookmarkedStudents = await _context.QuizBookmarks
+                .Where(b => b.QuizId == quizId)
+                .Select(b => b.UserId)
+                .Distinct()
+                .ToListAsync();
+
+            foreach (var studentId in bookmarkedStudents)
+            {
+                var notificationContent = $"The quiz '{quiz.Name}' that you bookmarked has been banned by an administrator.";
+                await _notificationService.CreateNotificationAsync(
+                    studentId,
+                    notificationContent,
+                    null,
+                    NotificationType.Quiz,
+                    quiz.Id
+                );
+            }
+
             await _context.SaveChangesAsync();
             return QuizApiResponse.Success();
         }
@@ -1145,6 +1185,25 @@ namespace BlazingQuiz.Api.Services
                 var notificationContent = $"Your quiz '{quiz.Name}' has been unbanned by an administrator.";
                 await _notificationService.CreateNotificationAsync(
                     quiz.CreatedBy.Value,
+                    notificationContent,
+                    null,
+                    NotificationType.Quiz,
+                    quiz.Id
+                );
+            }
+
+            // Notify all students who bookmarked this quiz that it has been unbanned
+            var bookmarkedStudents = await _context.QuizBookmarks
+                .Where(b => b.QuizId == quizId)
+                .Select(b => b.UserId)
+                .Distinct()
+                .ToListAsync();
+
+            foreach (var studentId in bookmarkedStudents)
+            {
+                var notificationContent = $"The quiz '{quiz.Name}' that you bookmarked has been unbanned by an administrator.";
+                await _notificationService.CreateNotificationAsync(
+                    studentId,
                     notificationContent,
                     null,
                     NotificationType.Quiz,
