@@ -686,3 +686,120 @@ a.card-3d-raised.card-light:active {
         0px 0px 0px 0px rgba(0, 0, 0, 0.5),
         0px 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
+
+/* Notification box styles to match the 3D card design */
+.notification-box {
+    z-index: 1000;
+    width: 700px;
+    max-height: 1000px;
+}
+
+.notification-box .card-3d-raised {
+    position: relative;
+    border: 3px solid #000 !important; /* Darker border as in other cards */
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75), /* Similar to other cards with left and bottom emphasis */
+        0px 2px 4px rgba(0, 0, 0, 0.3);
+    transform: translateY(0);
+}
+
+/* Scrollable content area inside the notification box */
+.notification-box .card-body {
+    max-height: 400px; /* Adjust based on header height */
+    overflow-y: auto;
+    padding: 0;
+}
+
+/* Custom scrollbar styling to make it appear inside */
+.notification-box .card-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.notification-box .card-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.notification-box .card-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.notification-box .card-body::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+.notification-box .card-3d-raised:hover {
+    transform: translateY(4px); /* Sinking effect on hover */
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+        0px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.notification-box .card-3d-raised:active {
+    transform: translateY(6px); /* Press down further when clicked */
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+        0px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.notification-box .card-header {
+    border-bottom: 3px solid #000 !important; /* Bold border for header */
+    border-radius: 12px 12px 0 0 !important; /* Slightly smaller than card border radius */
+}
+
+.notification-box .list-group-item {
+    border: none;
+    border-bottom: 1px solid #dee2e6;
+    transition: background-color 0.2s ease;
+}
+
+.notification-box .list-group-item:last-child {
+    border-bottom: none;
+}
+
+/* 3D circular notification button */
+.chat-btn {
+    position: relative;
+    width: 46px;
+    height: 46px;
+    border-radius: 50% !important;
+    border: none;
+    background-color: #0d6efd; /* Primary blue color */
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow:
+        0 6px 0 0 #0a58ca, /* Primary shadow color */
+        0 5px 10px rgba(0, 0, 0, 0.3);
+    transform: translateY(0);
+    z-index: 1001;
+}
+
+.chat-btn:hover:not(:active) {
+    background-color: #0b5ed7; /* Slightly lighter on hover */
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 0 0 #0a58ca,
+        0 7px 15px rgba(0, 0, 0, 0.35);
+}
+
+.chat-btn:active {
+    transform: translateY(6px);
+    box-shadow:
+        0 0 0 0 #0a58ca,
+        0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.chat-btn .material-symbols-outlined {
+    font-size: 20px;
+    line-height: 1;
+    z-index: 2;
+    position: relative;
+}

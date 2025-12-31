@@ -53,5 +53,8 @@ namespace BlazingQuiz.Web.Apis
 
         [Get("/api/student/quiz/{studentQuizId}/responses")]
         Task<StudentQuizQuestionResultDto[]> GetStudentQuizQuestionResponsesAsync(int studentQuizId);
+
+        [Get("/api/student/notifications")]
+        Task<List<NotificationDto>> GetNotificationsAsync();
     }
 }

@@ -799,5 +799,25 @@ namespace BlazingQuiz.Api.Services
 
             return responses;
         }
+
+        public async Task<List<NotificationDto>> GetNotificationsForUserAsync(int userId)
+        {
+            var notifications = await _context.Notifications
+                .Where(n => n.UserId == userId)
+                .OrderByDescending(n => n.CreatedAt)
+                .Select(n => new NotificationDto
+                {
+                    Id = n.Id,
+                    UserId = n.UserId,
+                    Content = n.Content,
+                    IsRead = n.IsRead,
+                    Type = n.Type.ToString(),
+                    CreatedAt = n.CreatedAt,
+                    UserName = n.User.Name
+                })
+                .ToListAsync();
+
+            return notifications;
+        }
     }
 }

@@ -18,18 +18,28 @@
     <div class="container-fluid px-0">
 
         <!-- Search Section -->
-        <div class="mb-4 px-5">
-            <div class="input-group">
-                <input type="text"
-                       class="form-control form-control-lg"
-                       placeholder="Search quizzes by name..."
-                       @bind="SearchTerm"
-                       @bind:event="oninput"
-                       @onkeydown="HandleSearchKeyDown" />
-                <button class="btn btn-outline-secondary search-btn"
+        <div class="mb-4 px-5 position-relative">
+            <div class="d-flex align-items-center">
+                <div class="input-group flex-grow-1 me-2">
+                    <input type="text"
+                           class="form-control form-control-lg"
+                           placeholder="Search quizzes by name..."
+                           @bind="SearchTerm"
+                           @bind:event="oninput"
+                           @onkeydown="HandleSearchKeyDown" />
+                    <button class="btn btn-outline-secondary search-btn"
+                            type="button"
+                            @onclick="HandleSearchIconClick">
+                        <i class="fas fa-search text-muted"></i>
+                    </button>
+                </div>
+                <!-- Chat Button -->
+                <button class="btn chat-btn"
                         type="button"
-                        @onclick="HandleSearchIconClick">
-                    <i class="fas fa-search text-muted"></i>
+                        @onclick="ToggleNotificationBox">
+                    <span class="material-symbols-outlined">
+                        forum
+                    </span>
                 </button>
             </div>
             @if (!string.IsNullOrEmpty(_searchTerm))
@@ -50,6 +60,46 @@
                             @onclick="ClearSearch">
                         Clear
                     </button>
+                </div>
+            }
+
+            <!-- Notification Box -->
+            @if (_showNotificationBox)
+            {
+                <div class="notification-box position-absolute end-0 mt-1">
+                    <div class="card card-3d-raised card-light">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Notifications</h5>
+                            <button type="button" class="btn-close" @onclick="ToggleNotificationBox"></button>
+                        </div>
+                        <div class="card-body p-0">
+                            @if (_notifications != null && _notifications.Any())
+                            {
+                                <div class="list-group list-group-flush">
+                                    @foreach (var notification in _notifications)
+                                    {
+                                        <div class="list-group-item d-flex justify-content-between align-items-start @(notification.IsRead ? "bg-light" : "bg-primary-light")">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold">@notification.Type</div>
+                                                <p class="mb-1">@notification.Content</p>
+                                                <small class="text-muted">@notification.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                                            </div>
+                                            @if (!notification.IsRead)
+                                            {
+                                                <span class="badge bg-danger rounded-pill">New</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="p-3 text-center text-muted">
+                                    No notifications yet
+                                </div>
+                            }
+                        </div>
+                    </div>
                 </div>
             }
         </div>
@@ -643,6 +693,10 @@
     private enum QuestionType { MCQ, Flashcard }
     private bool _categoriesExpanded = false;
 
+    // Notification properties
+    private bool _showNotificationBox = false;
+    private List<NotificationDto> _notifications = new();
+
     protected override async Task OnInitializedAsync()
     {
         AppState.ShowLoader("Loading categories and quizes...");
@@ -1119,6 +1173,29 @@
         if (!string.IsNullOrEmpty(_searchTerm))
         {
             NavigationManager.NavigateTo($"/student/search?searchTerm={Uri.EscapeDataString(_searchTerm)}");
+        }
+    }
+
+    private async Task ToggleNotificationBox()
+    {
+        _showNotificationBox = !_showNotificationBox;
+        if (_showNotificationBox)
+        {
+            await LoadNotifications();
+        }
+        StateHasChanged();
+    }
+
+    private async Task LoadNotifications()
+    {
+        try
+        {
+            // Call the API to get notifications for the user
+            _notifications = await StudentQuizApi.GetNotificationsAsync();
+        }
+        catch (Exception ex)
+        {
+            AppState.ShowError($"Error loading notifications: {ex.Message}");
         }
     }
 }
