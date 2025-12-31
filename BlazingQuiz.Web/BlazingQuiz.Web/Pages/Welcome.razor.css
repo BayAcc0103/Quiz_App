@@ -41,23 +41,23 @@
 .quiz-card {
     border-radius: 15px;
     overflow: hidden;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.06);
     transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     height: 100%;
     background: white;
-    border: 1px solid #e9ecef;
+    border: 3px solid #000 !important;
     display: flex;
     flex-direction: column;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
 }
 
     .quiz-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 40px rgba(79, 172, 254, 0.15);
-        border-color: #4facfe;
+        transform: perspective(500px) translateY(-5px);
+        box-shadow: -2px 8px 0px 0px rgba(0, 0, 0, 0.75), 0px 4px 10px rgba(0, 0, 0, 0.3) !important;
     }
 
 .quiz-image {
-    height: 180px;
+    height: 250px;
     object-fit: cover;
     width: 100%;
     transition: transform 0.3s ease;
@@ -72,14 +72,11 @@
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+    position: relative;
+    z-index: 1;
 }
 
-.quiz-meta {
-    background: #f8f9fa;
-    padding: 1rem;
-    border-top: 1px solid #e9ecef;
-    margin-top: auto;
-}
+/* Removed quiz-meta as it's no longer used */
 
 .category-badge {
     display: inline-block;
@@ -93,62 +90,11 @@
     box-shadow: 0 2px 8px rgba(79, 172, 254, 0.2);
 }
 
-.quiz-stats {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-    margin: 1rem 0;
-}
+/* Removed quiz-stats and related styles as they're no longer used */
 
-.stat-item {
-    text-align: center;
-    padding: 0.5rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-}
+/* Removed btn-bookmark as it's no longer used in this context */
 
-.stat-value {
-    font-weight: 600;
-    font-size: 1rem;
-    color: #495057;
-}
-
-.stat-label {
-    font-size: 0.75rem;
-    color: #6c757d;
-    margin-bottom: 0;
-}
-
-.btn-quiz-action {
-    width: 100%;
-    margin-bottom: 0.25rem;
-    border-radius: 8px;
-    font-weight: 500;
-    padding: 0.5rem;
-}
-
-.btn-bookmark {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    z-index: 10;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    padding: 0;
-}
-
-.category-select-container {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    margin-bottom: 2rem;
-    border: 1px solid #e9ecef;
-}
+/* Category select container styles are now handled by the 3D card styling */
 
 .category-select {
     width: 100%;
@@ -213,3 +159,237 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 2px;
     }
+
+/* 3D Card styles for room cards */
+.card-3d-raised.card-light {
+    position: relative;
+    border: 3px solid #000 !important;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3);
+    transform: translateY(0);
+    height: 100%;
+}
+
+.card-3d-raised.card-light:hover {
+    transform: translateY(4px);
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+        0px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Card button overlay for room cards */
+.room-card-button-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 12px;
+    padding: 10px;
+    margin: 15px;
+}
+
+.card-3d-raised.card-light:hover .room-card-button-overlay {
+    opacity: 1;
+}
+
+.room-card-actions-section {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    padding: 10px;
+    width: 100%;
+}
+
+.room-card-actions-section .btn {
+    flex: 1;
+    min-width: 100px;
+    transition: all 0.3s ease;
+    transform: translateY(20px);
+    opacity: 0;
+}
+
+.card-3d-raised.card-light:hover .room-card-actions-section .btn {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.card-3d-raised.card-light:hover .room-card-actions-section .btn:nth-child(1) {
+    transition-delay: 0.1s;
+}
+
+.card-3d-raised.card-light:hover .room-card-actions-section .btn:nth-child(2) {
+    transition-delay: 0.2s;
+}
+
+.card-3d-raised.card-light:hover .room-card-actions-section .btn:nth-child(3) {
+    transition-delay: 0.3s;
+}
+
+.card-3d-raised.card-light:active {
+    transform: translateY(6px);
+    box-shadow:
+        0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+        0px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* 3D Button styles */
+.btn-3d {
+    position: relative;
+    border: none;
+    padding: 8px 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-align: center;
+    overflow: hidden;
+    border: 3px solid #000 !important;
+    border-radius: 12px !important;
+    box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 1px 2px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.btn-3d:hover {
+    transform: perspective(500px) translateY(-3px) !important;
+    box-shadow: -4px 5px 0px 0px rgba(0, 0, 0, 0.85), 0px 3px 5px rgba(0, 0, 0, 0.4) !important;
+}
+
+.btn-3d:active {
+    transform: perspective(500px) translateY(2px) !important;
+    box-shadow: -2px 2px 0px 0px rgba(0, 0, 0, 0.75), 0px 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+.btn-3d-primary {
+    background: linear-gradient(to bottom, #0d6efd, #0b5ed7) !important;
+    color: white !important;
+}
+
+.btn-3d-success {
+    background: linear-gradient(to bottom, #198754, #157347) !important;
+    color: white !important;
+}
+
+/* Quiz card overlay styles */
+.quiz-card-button-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 12px;
+    padding: 10px;
+    margin: 5px;
+}
+
+.quiz-card:hover .quiz-card-button-overlay {
+    opacity: 1;
+}
+
+.quiz-card-actions-section {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    padding: 10px;
+    width: 100%;
+}
+
+.quiz-card-actions-section .btn {
+    flex: 1;
+    min-width: 100px;
+    transition: all 0.3s ease;
+    transform: translateY(20px);
+    opacity: 0;
+}
+
+.quiz-card:hover .quiz-card-actions-section .btn {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.quiz-card:hover .quiz-card-actions-section .btn:nth-child(1) {
+    transition-delay: 0.1s;
+}
+
+.quiz-card:hover .quiz-card-actions-section .btn:nth-child(2) {
+    transition-delay: 0.2s;
+}
+
+.quiz-card:hover .quiz-card-actions-section .btn:nth-child(3) {
+    transition-delay: 0.3s;
+}
+
+/* Start Quiz button specific styling */
+.btn-quiz-start {
+    background: #ffc107 !important;
+    color: #212529 !important;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    border: 2px solid #000 !important;
+}
+
+.btn-quiz-start:hover {
+    background: #e0a800 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+.btn-quiz-start:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Update category select container to use 3D styling */
+.category-select-container {
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    border-radius: 15px;
+}
+
+.category-select-container .card-body {
+    padding: 1.5rem;
+}
+
+.category-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: white;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.category-select:focus {
+    border-color: #4facfe;
+    box-shadow: 0 0 0 0.2rem rgba(79, 172, 254, 0.2);
+    outline: none;
+}
+
+/* Invisible card styles for maintaining grid layout */
+.invisible-card {
+    visibility: hidden;
+    opacity: 0;
+}
