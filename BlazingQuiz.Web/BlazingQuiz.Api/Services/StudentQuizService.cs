@@ -819,5 +819,15 @@ namespace BlazingQuiz.Api.Services
 
             return notifications;
         }
+
+        public async Task MarkNotificationAsReadAsync(int notificationId, int userId)
+        {
+            var notification = await _context.Notifications.FindAsync(notificationId);
+            if (notification != null && notification.UserId == userId)
+            {
+                notification.IsRead = true;
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

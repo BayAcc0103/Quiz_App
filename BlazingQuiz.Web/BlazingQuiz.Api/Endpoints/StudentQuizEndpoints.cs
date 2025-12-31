@@ -82,6 +82,13 @@ namespace BlazingQuiz.Api.Endpoints
             group.MapGet("/notifications", async (StudentQuizService quizService, ClaimsPrincipal principal) =>
                 Results.Ok(await quizService.GetNotificationsForUserAsync(principal.GetStudentId())));
 
+            // Mark notification as read for the current user
+            group.MapPost("/notifications/{notificationId:int}/mark-as-read", async (int notificationId, StudentQuizService quizService, ClaimsPrincipal principal) =>
+            {
+                await quizService.MarkNotificationAsReadAsync(notificationId, principal.GetStudentId());
+                return Results.Ok();
+            });
+
             return app;
         }
     }

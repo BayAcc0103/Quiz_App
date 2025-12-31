@@ -84,10 +84,25 @@
                                                 <p class="mb-1">@notification.Content</p>
                                                 <small class="text-muted">@notification.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
                                             </div>
-                                            @if (!notification.IsRead)
-                                            {
-                                                <span class="badge bg-danger rounded-pill">New</span>
-                                            }
+                                            <div class="d-flex align-items-center">
+                                                @if (!notification.IsRead)
+                                                {
+                                                    <button class="btn btn-sm btn-outline-3d me-2" @onclick="() => MarkNotificationAsRead(notification.Id)" title="Mark as read">
+                                                        <span class="material-symbols-outlined d-flex align-items-center justify-content-center">
+                                                            visibility
+                                                        </span>
+                                                    </button>
+                                                    <span class="badge bg-danger rounded-pill">New</span>
+                                                }
+                                                else
+                                                {
+                                                    <button class="btn btn-sm btn-outline-3d" disabled title="Already read">
+                                                        <span class="material-symbols-outlined d-flex align-items-center justify-content-center">
+                                                            check
+                                                        </span>
+                                                    </button>
+                                                }
+                                            </div>
                                         </div>
                                     }
                                 </div>
@@ -1196,6 +1211,28 @@
         catch (Exception ex)
         {
             AppState.ShowError($"Error loading notifications: {ex.Message}");
+        }
+    }
+
+    private async Task MarkNotificationAsRead(int notificationId)
+    {
+        try
+        {
+            await StudentQuizApi.MarkNotificationAsReadAsync(notificationId);
+
+            // Update the UI immediately to reflect the change
+            var notification = _notifications.FirstOrDefault(n => n.Id == notificationId);
+            if (notification != null)
+            {
+                notification.IsRead = true;
+            }
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error marking notification as read: {ex.Message}");
+            // Optionally show an error message to the user
         }
     }
 }

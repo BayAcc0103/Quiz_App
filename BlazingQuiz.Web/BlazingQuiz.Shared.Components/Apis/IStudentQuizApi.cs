@@ -53,5 +53,11 @@ namespace BlazingQuiz.Shared.Components.Apis
 
         [Get("/api/student/quiz/{studentQuizId}/responses")]
         Task<StudentQuizQuestionResultDto[]> GetStudentQuizQuestionResponsesAsync(int studentQuizId);
+
+        [Get("/api/student/notifications")]
+        Task<List<NotificationDto>> GetNotificationsAsync();
+
+        [Post("/api/student/notifications/{notificationId}/mark-as-read")]
+        Task MarkNotificationAsReadAsync(int notificationId);
     }
 }

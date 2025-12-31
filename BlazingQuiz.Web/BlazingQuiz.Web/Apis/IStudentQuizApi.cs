@@ -56,5 +56,8 @@ namespace BlazingQuiz.Web.Apis
 
         [Get("/api/student/notifications")]
         Task<List<NotificationDto>> GetNotificationsAsync();
+
+        [Post("/api/student/notifications/{notificationId}/mark-as-read")]
+        Task MarkNotificationAsReadAsync(int notificationId);
     }
 }
