@@ -1,0 +1,234 @@
+/* 3D Card styling for Quiz Result page */
+.quiz-result-container {
+    padding: 1rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0;
+}
+
+.quiz-result-card {
+    perspective: 1000px;
+    width: 100%;
+    max-width: 600px;
+    margin: 1rem auto;
+}
+
+.quiz-result-card-inner {
+    position: relative;
+    width: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    border: 3px solid #000;
+    border-radius: 15px;
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.3),
+        0 5px 15px rgba(0, 0, 0, 0.2),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    background-color: #ffffff;
+    overflow: hidden;
+}
+
+.quiz-result-card:hover .quiz-result-card-inner {
+    transform: rotateY(5deg) rotateX(5deg);
+}
+
+.quiz-result-card-front {
+    position: relative;
+    width: 100%;
+    padding: 2rem;
+    backface-visibility: hidden;
+    border-radius: 12px;
+}
+
+.quiz-result-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.quiz-result-header h4 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.quiz-result-stats {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 2px solid #000;
+}
+
+.quiz-result-stats p {
+    margin: 0.5rem 0;
+    font-size: 1.1rem;
+}
+
+.text-success {
+    color: #28a745 !important;
+    font-weight: bold;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+    font-weight: bold;
+}
+
+.question-card {
+    background-color: #ffffff;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 2px solid #000;
+    transition: transform 0.3s ease;
+}
+
+.question-card:hover {
+    transform: translateY(-3px);
+}
+
+.question-header {
+    background-color: #4a6fa5;
+    color: white;
+    padding: 1rem;
+}
+
+.question-header h5 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.question-body {
+    padding: 1rem;
+}
+
+.option-item {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 1px solid #ddd;
+}
+
+.option-item.bg-success.text-white {
+    background-color: #28a745 !important;
+    border-color: #28a745;
+}
+
+.option-item.bg-danger.text-white {
+    background-color: #dc3545 !important;
+    border-color: #dc3545;
+}
+
+.option-item.bg-info.text-white {
+    background-color: #17a2b8 !important;
+    border-color: #17a2b8;
+}
+
+.action-buttons {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.btn {
+    margin: 0 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 2px solid #000;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+}
+
+.btn-outline-secondary {
+    background-color: #6c757d;
+    color: white;
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+.btn-outline-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+}
+
+.badge {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .quiz-result-container {
+        padding: 0.5rem;
+    }
+
+    .quiz-result-card {
+        margin: 0.5rem;
+        max-width: 100%;
+    }
+
+    .quiz-result-card-front {
+        padding: 1rem;
+    }
+
+    .quiz-result-header h4 {
+        font-size: 1.25rem;
+    }
+
+    .quiz-result-stats p {
+        font-size: 1rem;
+    }
+
+    .question-header h5 {
+        font-size: 1rem;
+    }
+
+    .option-item {
+        padding: 0.5rem;
+    }
+
+    .btn {
+        display: block;
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+
+    .action-buttons {
+        margin-top: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .quiz-result-card-front {
+        padding: 0.75rem;
+    }
+
+    .quiz-result-header h4 {
+        font-size: 1.1rem;
+    }
+
+    .question-header {
+        padding: 0.75rem;
+    }
+
+    .question-body {
+        padding: 0.75rem;
+    }
+}

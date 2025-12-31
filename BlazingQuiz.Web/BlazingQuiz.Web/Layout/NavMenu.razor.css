@@ -128,7 +128,7 @@ body {
             position: relative;
             display: flex;
             align-items: center;
-            gap: 0 13px;
+            gap: 0 10px;
             color: #255a0a; /* Darker text for better contrast */
             font-size: 0.9rem;
             font-weight: 500;
