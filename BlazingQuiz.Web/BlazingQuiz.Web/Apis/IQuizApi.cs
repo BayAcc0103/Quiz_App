@@ -66,5 +66,8 @@ namespace BlazingQuiz.Web.Apis
 
         [Get("/api/quizes/teacher-home-data")]
         Task<TeacherHomeDataDto> GetTeacherHomeDataAsync();
+
+        [Delete("/api/student/notifications/{notificationId}")]
+        Task<ApiResponse<bool>> DeleteNotificationAsync(int notificationId);
     }
 }

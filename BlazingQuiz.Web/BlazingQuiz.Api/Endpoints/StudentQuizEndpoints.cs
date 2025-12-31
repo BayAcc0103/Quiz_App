@@ -89,6 +89,20 @@ namespace BlazingQuiz.Api.Endpoints
                 return Results.Ok();
             });
 
+            // Delete notification for the current user
+            group.MapDelete("/notifications/{notificationId:int}", async (int notificationId, StudentQuizService quizService, ClaimsPrincipal principal) =>
+            {
+                var result = await quizService.DeleteNotificationAsync(notificationId, principal.GetStudentId());
+                if (result)
+                {
+                    return Results.Ok(new { success = true, message = "Notification deleted successfully" });
+                }
+                else
+                {
+                    return Results.NotFound(new { success = false, message = "Notification not found" });
+                }
+            });
+
             return app;
         }
     }

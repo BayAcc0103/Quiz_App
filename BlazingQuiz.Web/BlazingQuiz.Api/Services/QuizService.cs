@@ -1214,5 +1214,10 @@ namespace BlazingQuiz.Api.Services
             await _context.SaveChangesAsync();
             return QuizApiResponse.Success();
         }
+
+        public async Task<bool> DeleteNotificationAsync(int notificationId, int userId)
+        {
+            return await _notificationService.DeleteNotificationAsync(notificationId, userId);
+        }
     }
 }

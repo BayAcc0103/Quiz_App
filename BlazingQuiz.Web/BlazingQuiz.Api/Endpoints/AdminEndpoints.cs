@@ -58,6 +58,26 @@ namespace BlazingQuiz.Api.Endpoints
                 return Results.Ok();
             });
 
+            adminGroup.MapDelete("/notifications/{notificationId:int}", async (int notificationId, NotificationService notificationService, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest(new { success = false, message = "Invalid user ID" });
+                }
+
+                var result = await notificationService.DeleteNotificationAsync(notificationId, userId);
+                if (result)
+                {
+                    return Results.Ok(new { success = true, message = "Notification deleted successfully" });
+                }
+                else
+                {
+                    return Results.NotFound(new { success = false, message = "Notification not found" });
+                }
+            });
+
             return app;
         }
     }

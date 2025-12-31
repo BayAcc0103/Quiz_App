@@ -59,5 +59,8 @@ namespace BlazingQuiz.Web.Apis
 
         [Post("/api/student/notifications/{notificationId}/mark-as-read")]
         Task MarkNotificationAsReadAsync(int notificationId);
+
+        [Delete("/api/student/notifications/{notificationId}")]
+        Task<ApiResponse<bool>> DeleteNotificationAsync(int notificationId);
     }
 }

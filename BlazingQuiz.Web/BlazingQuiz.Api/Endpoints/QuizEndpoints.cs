@@ -458,6 +458,34 @@ namespace BlazingQuiz.Api.Endpoints
                 return Results.Ok(data);
             }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Teacher)));
 
+            // Add delete notification endpoint for teachers
+            quizGroup.MapDelete("/notifications/{notificationId:int}", async (int notificationId, QuizService service, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest("Invalid user ID");
+                }
+
+                // Check user role to determine if they have permission to delete notifications
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Teacher))
+                {
+                    return Results.Forbid();
+                }
+
+                var result = await service.DeleteNotificationAsync(notificationId, userId);
+                if (result)
+                {
+                    return Results.Ok(new { success = true, message = "Notification deleted successfully" });
+                }
+                else
+                {
+                    return Results.NotFound(new { success = false, message = "Notification not found" });
+                }
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Teacher)));
+
 
             return app;
         }
