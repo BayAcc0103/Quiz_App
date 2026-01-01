@@ -194,6 +194,11 @@
     color: #212529 !important;
 }
 
+.btn-3d-custom {
+    background: linear-gradient(to bottom, #c0f03e, #a0d02e) !important;
+    color: #212529 !important;
+}
+
 .quiz-actions-section {
     padding: 10px;
     display: flex;
