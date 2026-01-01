@@ -34,11 +34,18 @@
                     </button>
                 </div>
                 <!-- Chat Button -->
-                <button class="btn chat-btn"
+                <button class="btn chat-btn position-relative"
                         type="button"
                         @onclick="ToggleNotificationBox">
-                    <span class="material-symbols-outlined">
+                    <span class="material-symbols-outlined position-relative">
                         forum
+                        @if (UnreadNotificationCount > 0)
+                        {
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                  style="z-index: 1002;">
+                                @UnreadNotificationCount
+                            </span>
+                        }
                     </span>
                 </button>
             </div>
@@ -716,6 +723,7 @@
     // Notification properties
     private bool _showNotificationBox = false;
     private List<NotificationDto> _notifications = new();
+    private int UnreadNotificationCount => _notifications.Count(n => !n.IsRead);
 
     protected override async Task OnInitializedAsync()
     {
