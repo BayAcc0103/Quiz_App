@@ -156,7 +156,6 @@
 }
 
 .btn-3d:hover {
-    transform: perspective(500px) translateY(-3px) !important;
     box-shadow: -4px 5px 0px 0px rgba(0, 0, 0, 0.85), 0px 3px 5px rgba(0, 0, 0, 0.4) !important;
 }
 
@@ -182,6 +181,11 @@
 
 .btn-3d-warning {
     background: linear-gradient(to bottom, #ffc107, #e0a800) !important;
+    color: #212529 !important;
+}
+
+.btn-3d-custom {
+    background: linear-gradient(to bottom, #c0f03e, #a0d02e) !important;
     color: #212529 !important;
 }
 

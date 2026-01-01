@@ -132,13 +132,13 @@
 
             <!-- Navigation controls -->
             <div class="mobile-slider-nav d-flex justify-content-between align-items-center mt-3 px-2">
-                <button type="button" class="btn btn-outline-primary rounded-circle nav-btn" @onclick="PrevSlide" disabled="@(CanGoPrev ? null : "disabled")">
+                <button type="button" class="btn btn-3d btn-3d-custom rounded-circle nav-btn" @onclick="PrevSlide" disabled="@(CanGoPrev ? null : "disabled")">
                     <span class="material-symbols-outlined">arrow_back</span>
                 </button>
                 <div class="slide-progress">
                     <span class="text-muted">@(_currentSlide + 1) / @_totalSlides</span>
                 </div>
-                <button type="button" class="btn btn-outline-primary rounded-circle nav-btn" @onclick="NextSlide" disabled="@(CanGoNext ? null : "disabled")">
+                <button type="button" class="btn btn-3d btn-3d-custom rounded-circle nav-btn" @onclick="NextSlide" disabled="@(CanGoNext ? null : "disabled")">
                     <span class="material-symbols-outlined">arrow_forward</span>
                 </button>
             </div>
