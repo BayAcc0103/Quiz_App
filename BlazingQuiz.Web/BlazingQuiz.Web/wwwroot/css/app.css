@@ -141,5 +141,5 @@ html.dark-theme body {
 }
 
 html.dark-theme .background-overlay {
-    background-color: rgba(0, 0, 0, 0.1); /* Darker overlay for dark theme */
+    background-color: rgba(0, 0, 0, 0.3); /* Darker overlay for dark theme with same opacity as light theme */
 }

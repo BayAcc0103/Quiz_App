@@ -803,3 +803,53 @@ a.card-3d-raised.card-light:active {
     z-index: 2;
     position: relative;
 }
+
+/* White text for section headers in dark mode */
+html.dark-theme .student-home-background h1,
+html.dark-theme .student-home-background h2 {
+    color: silver !important;
+}
+
+/* Dark mode semi-transparent backgrounds for search input, category section, and hero cards */
+html.dark-theme .input-group {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border-color: silver !important;
+}
+
+html.dark-theme .form-control {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+}
+
+html.dark-theme .search-btn {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+}
+
+html.dark-theme .category-section .card-3d-raised.card-light,
+html.dark-theme .category-section .card-3d-raised.card-light .card-body {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border-color: silver !important;
+}
+
+html.dark-theme .row.mb-4 .card-3d-raised.card-light,
+html.dark-theme .row.mb-4 .card-3d-raised.card-light .card-body {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border-color: silver !important;
+}
+
+/* Text colors for elements inside dark mode cards */
+html.dark-theme .category-name {
+    color: silver !important;
+}
+
+html.dark-theme .category-section .card-3d-raised.card-light h4,
+html.dark-theme .row.mb-4 .card-3d-raised.card-light h4 {
+    color: silver !important;
+}
+
+html.dark-theme .toggle-button {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 1px solid white !important;
+}
