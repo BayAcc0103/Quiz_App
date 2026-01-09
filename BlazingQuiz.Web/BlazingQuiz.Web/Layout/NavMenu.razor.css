@@ -27,7 +27,66 @@ body {
     transition: all 0.35s ease;
     border: 3px solid #000;
 }
+/* Dark mode styles for NavMenu */
+html.dark-theme .sidebar {
+    background: rgba(0, 0, 0, 0.7) !important;
+    border-color: white !important;
+    color: silver !important;
+}
 
+html.dark-theme .sidebar-links li a {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: silver !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+    html.dark-theme .sidebar-links li a:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+    }
+
+    html.dark-theme .sidebar-links li a.active {
+        background: rgba(255, 255, 255, 0.3) !important;
+        color: white !important;
+    }
+
+html.dark-theme .sidebar-links h4 {
+    color: silver !important;
+}
+
+html.dark-theme .sidebar-links h4 span {
+    color: silver !important;
+}
+
+html.dark-theme .user-account {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: silver !important;
+}
+
+html.dark-theme .user-profile {
+    color: silver !important;
+}
+
+html.dark-theme .sidebar-links li a i,
+html.dark-theme .sidebar-links li a .icon,
+html.dark-theme .sidebar-links li a span {
+    color: silver !important;
+}
+
+html.dark-theme .sidebar-links li a:hover i,
+html.dark-theme .sidebar-links li a:hover .icon {
+    color: white !important;
+}
+
+html.dark-theme .sidebar .sidebar-header h2 {
+    color: silver !important;
+}
+
+html.dark-theme .sidebar .sidebar-header img {
+    filter: brightness(0.8) contrast(1.2);
+}
+ 
 /* Desktop sidebar hover effect - only on screens wider than 768px */
 @media (min-width: 769px) {
     .sidebar:hover {
