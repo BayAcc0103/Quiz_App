@@ -185,7 +185,7 @@
 }
 
 .btn-3d-custom {
-    background: linear-gradient(to bottom, #c0f03e, #a0d02e) !important;
+    background: linear-gradient(to bottom, #c0f03e, #a0d02e);
     color: #212529 !important;
 }
 
@@ -235,7 +235,6 @@
         width: 50px;
         height: 50px;
         border-radius: 50%;
-        background: white;
         border: none;
         display: flex;
         align-items: center;
@@ -283,7 +282,73 @@
     .indicator-btn:hover {
         background: #adb5bd;
     }
+/* Dark mode styles for quiz cards */
 
+html.dark-theme .quiz-card-3d {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    border-color: white !important;
+    color: silver !important;
+}
+
+html.dark-theme .quiz-card {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    border-color: white !important;
+    color: silver !important;
+}
+
+html.dark-theme .quiz-content {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    color: silver !important;
+}
+
+html.dark-theme .quiz-meta {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+    color: silver !important;
+    border-color: white !important;
+}
+
+/* Text colors for elements inside quiz cards in dark mode */
+html.dark-theme .quiz-card h5,
+html.dark-theme .quiz-card h6,
+html.dark-theme .quiz-card p,
+html.dark-theme .quiz-card span,
+html.dark-theme .quiz-card div {
+    color: silver !important;
+}
+
+/* Stat items in dark mode */
+html.dark-theme .stat-item {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+    color: silver !important;
+}
+
+html.dark-theme .stat-value,
+html.dark-theme .stat-label {
+    color: silver !important;
+}
+
+/* Category badges in dark mode */
+html.dark-theme .category-badge {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: silver !important;
+}
+btn-3d-custom
+html.dark-theme .slider-nav-btn {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 1px solid white !important;
+}
+
+    html.dark-theme .slider-nav-btn:hover {
+        background-color: rgba(30, 30, 30, 0.8) !important;
+        color: white !important;
+    }
+
+html.dark-theme .btn-3d-custom {
+    background: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 1px solid white !important;
+}
 /* Responsive adjustments */
     @media (max-width: 1200px) {
         .quiz-card-container {
