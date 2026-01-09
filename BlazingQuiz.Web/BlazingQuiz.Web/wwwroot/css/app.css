@@ -127,3 +127,19 @@ html.dark-theme body {
     background-color: transparent;
     color: var(--bs-body-color);
 }
+
+/* Light overlay for background */
+.background-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.3); /* Light semi-transparent overlay */
+    z-index: -1; /* Place behind other content */
+    pointer-events: none; /* Allow clicks to pass through */
+}
+
+html.dark-theme .background-overlay {
+    background-color: rgba(0, 0, 0, 0.1); /* Darker overlay for dark theme */
+}
