@@ -96,9 +96,190 @@
             </div>
         </div> *@
 
+        <!-- Content-Based Recommendations Section -->
+        @if (_contentBasedRecommendations?.Any() == true)
+        {
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h4>Same content quiz</h4>
+                </div>
+            </div>
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
+                @foreach (var recommendation in _contentBasedRecommendations)
+                {
+                    var quiz = GetQuizByRecommendationId(recommendation.QuizId);
+                    if (quiz != null)
+                    {
+                        <div class="col">
+                            <div class="quiz-card-3d position-relative h-100">
+                                <!-- Quiz level badge -->
+                                <div class="level-badge position-absolute top-0 start-0 m-3">
+                                    <span class="badge badge-@(quiz.Level?.ToLower() == "easy" ? "success" : quiz.Level?.ToLower() == "medium" ? "warning" : "danger")">
+                                        @quiz.Level
+                                    </span>
+                                </div>
+
+                                <!-- Bookmark button -->
+                                <button type="button"
+                                        class="btn btn-bookmark @(IsBookmarked(quiz.Id) ? "bookmarked" : "")"
+                                        @onclick="() => ToggleBookmarkAsync(quiz)"
+                                        title="@(IsBookmarked(quiz.Id) ? "Remove bookmark" : "Add to bookmarks")">
+
+                                    <span class="material-symbols-outlined @(IsBookmarked(quiz.Id) ? "text-warning" : "text-muted")">
+                                        @(IsBookmarked(quiz.Id) ? "bookmark" : "bookmark_add")
+                                    </span>
+                                </button>
+
+                                <!-- Quiz image -->
+                                @if (!string.IsNullOrEmpty(quiz.ImagePath))
+                                {
+                                    <div class="quiz-image-container">
+                                        <img src="@QuizImageService.GetImageUrl(quiz.ImagePath)" alt="@quiz.Name" class="quiz-image" />
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="quiz-image quiz-image-placeholder d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-journal-text fs-1 text-white"></i>
+                                    </div>
+                                }
+
+                                <!-- Quiz content -->
+                                <div class="quiz-content p-3">
+                                    <h5 class="fw-bold mb-3 text-truncate" title="@quiz.Name">@quiz.Name</h5>
+
+                                    <!-- Quiz statistics -->
+                                    <div class="quiz-stats d-flex justify-content-between mt-auto">
+                                        <div class="stat-item d-flex flex-column align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <span class="material-symbols-outlined me-1" style="font-size: 16px;">
+                                                    @if (quiz.AverageRating.HasValue && quiz.AverageRating.Value > 0)
+                                                    {
+                                                        @:star
+                                                    }
+                                                    else
+                                                    {
+                                                        @:star_outline
+                                                    }
+                                                </span>
+                                                @if (quiz.AverageRating.HasValue)
+                                                {
+                                                    <span class="stat-value fw-bold">@quiz.AverageRating.Value.ToString("F1")</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="stat-value fw-bold text-muted">0</span>
+                                                }
+                                            </div>
+                                            <small class="stat-label text-muted">Rating</small>
+                                        </div>
+                                        <div class="stat-item d-flex flex-column align-items-center">
+                                            <div class="d-flex align-items-center mb-1">
+                                                @if (!string.IsNullOrEmpty(quiz.CreatedByAvatarPath))
+                                                {
+                                                    <img src="@QuizImageService.GetImageUrl(quiz.CreatedByAvatarPath)"
+                                                         alt="@quiz.CreatedByName's avatar"
+                                                         class="rounded-circle me-2"
+                                                         style="width: 24px; height: 24px; object-fit: cover;"
+                                                         title="@quiz.CreatedByName" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="rounded-circle me-2 d-flex align-items-center justify-content-center bg-secondary text-white"
+                                                         style="width: 24px; height: 24px; font-size: 10px;"
+                                                         title="@quiz.CreatedByName">
+                                                        @quiz.CreatedByName?.FirstOrDefault().ToString().ToUpper()
+                                                    </div>
+                                                }
+                                                <span class="stat-value fw-bold small">@quiz.CreatedByName</span>
+                                            </div>
+                                            <small class="stat-label text-muted">Creator</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Action buttons -->
+                                <div class="card-button-overlay">
+                                    <div class="quiz-actions-section d-flex gap-1">
+                                        <button type="button"
+                                                class="btn btn-3d btn-3d-info btn-sm flex-fill"
+                                                @onclick="() => ShowQuizTypeSelection(quiz)">
+                                            Start Quiz
+                                        </button>
+                                        <a href="student/createroom?quizId=@quiz.Id" class="btn btn-3d btn-3d-primary btn-sm flex-fill">
+                                            Create Room
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-3d btn-3d-success btn-sm flex-fill"
+                                                @onclick="() => ShowQuizDetails(quiz.Id)">
+                                            View Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        // Try to show what we have even if quiz details are not fully loaded
+                        <div class="col">
+                            <div class="quiz-card-3d position-relative h-100">
+                                <div class="level-badge position-absolute top-0 start-0 m-3">
+                                    <span class="badge bg-secondary">Loading...</span>
+                                </div>
+
+                                <div class="quiz-image quiz-image-placeholder d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-journal-text fs-1 text-white"></i>
+                                </div>
+
+                                <div class="quiz-content p-3">
+                                    <h5 class="fw-bold mb-3 text-truncate">Quiz ID: @recommendation.QuizId</h5>
+                                    <div class="quiz-stats d-flex justify-content-between mt-auto">
+                                        <div class="stat-item d-flex flex-column align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <span class="material-symbols-outlined me-1" style="font-size: 16px;">
+                                                    star
+                                                </span>
+                                                <span class="stat-value fw-bold">@recommendation.PredictedRating.ToString("F1")</span>
+                                            </div>
+                                            <small class="stat-label text-muted">Predicted Rating</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card-button-overlay">
+                                    <div class="quiz-actions-section d-flex gap-1">
+                                        <button type="button"
+                                                class="btn btn-3d btn-3d-info btn-sm flex-fill"
+                                                @onclick="() => StartQuizFromIdString(recommendation.QuizId)"
+                                                disabled>
+                                            Start Quiz
+                                        </button>
+                                        <a href="#" class="btn btn-3d btn-3d-primary btn-sm flex-fill" @onclick="() => RedirectToCreateRoom(recommendation.QuizId)" preventDefault>
+                                            Create Room
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-3d btn-3d-success btn-sm flex-fill"
+                                                disabled>
+                                            View Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+
         <!-- Recommendations Section -->
         @if (_recommendations?.Any() == true)
         {
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h4>Recommended Quizzes for You</h4>
+                </div>
+            </div>
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
                 @foreach (var recommendation in _recommendations)
                 {
@@ -271,6 +452,7 @@
 
 @code {
     private List<PythonRecommendation> _recommendations = new();
+    private List<PythonRecommendation> _contentBasedRecommendations = new();
     private List<QuizListDto> _allAvailableQuizzes = new();
     private bool _isLoading = true;
     private bool _hasError = false;
@@ -301,65 +483,11 @@
                 var allQuizzesResult = await StudentQuizApi.GetActiveQuizesAsync(0); // 0 means all categories
                 _allAvailableQuizzes = allQuizzesResult?.ToList() ?? new List<QuizListDto>();
 
-                // Call the Python service API to get recommendations
-                string baseUrl = "https://n2nthr35-5000.asse.devtunnels.ms";
-                string apiUrl = string.Format("https://n2nthr35-5000.asse.devtunnels.ms/api/recommendations/{0}?n=10&method=hybrid", userId.Value);
-                var response = await HttpClient.GetAsync(apiUrl);
+                // Load collaborative/hybrid recommendations
+                await LoadHybridRecommendations(userId.Value);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-
-                    // Check if the response is valid JSON before deserializing
-                    // This handles cases where the Python service returns HTML error pages
-                    if (!string.IsNullOrEmpty(content) && content.TrimStart().StartsWith("<"))
-                    {
-                        // This is an HTML response (likely an error page), not JSON
-                        _hasError = true;
-                        _hasPythonServiceError = true;
-                        Console.WriteLine($"Python service returned HTML instead of JSON: {content.Substring(0, Math.Min(200, content.Length))}...");
-                    }
-                    else
-                    {
-                        var options = new System.Text.Json.JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        };
-
-                        try
-                        {
-                            var pythonResponse = System.Text.Json.JsonSerializer.Deserialize<PythonRecommendationResponse>(content, options);
-
-                            if (pythonResponse?.Recommendations != null)
-                            {
-                                _recommendations = pythonResponse.Recommendations;
-
-                                // Calculate analysis statistics
-                                CalculateAnalysisStats();
-
-                                // Load bookmark status for each quiz
-                                await LoadBookmarkStatusAsync();
-                            }
-                            else
-                            {
-                                _hasError = true;
-                            }
-                        }
-                        catch (System.Text.Json.JsonException ex)
-                        {
-                            _hasError = true;
-                            _hasPythonServiceError = true;
-                            Console.WriteLine($"Error deserializing JSON response from Python service: {ex.Message}");
-                            Console.WriteLine($"Response content: {content}");
-                        }
-                    }
-                }
-                else
-                {
-                    _hasError = true;
-                    _hasPythonServiceError = true;
-                    Console.WriteLine($"HTTP error from Python service: {response.StatusCode}");
-                }
+                // Load content-based recommendations
+                await LoadContentBasedRecommendations(userId.Value);
             }
             else
             {
@@ -384,6 +512,117 @@
         }
     }
 
+    private async Task LoadHybridRecommendations(int userId)
+    {
+        try
+        {
+            // Call the Python service API to get hybrid recommendations
+            string baseUrl = "https://n2nthr35-5000.asse.devtunnels.ms";
+            string apiUrl = string.Format("https://n2nthr35-5000.asse.devtunnels.ms/api/recommendations/{0}?n=10&method=hybrid", userId);
+            var response = await HttpClient.GetAsync(apiUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+
+                // Check if the response is valid JSON before deserializing
+                // This handles cases where the Python service returns HTML error pages
+                if (!string.IsNullOrEmpty(content) && content.TrimStart().StartsWith("<"))
+                {
+                    // This is an HTML response (likely an error page), not JSON
+                    Console.WriteLine($"Python service returned HTML instead of JSON for hybrid recommendations: {content.Substring(0, Math.Min(200, content.Length))}...");
+                }
+                else
+                {
+                    var options = new System.Text.Json.JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+
+                    try
+                    {
+                        var pythonResponse = System.Text.Json.JsonSerializer.Deserialize<PythonRecommendationResponse>(content, options);
+
+                        if (pythonResponse?.Recommendations != null)
+                        {
+                            _recommendations = pythonResponse.Recommendations;
+
+                            // Calculate analysis statistics
+                            CalculateAnalysisStats();
+                        }
+                    }
+                    catch (System.Text.Json.JsonException ex)
+                    {
+                        Console.WriteLine($"Error deserializing JSON response from Python service for hybrid recommendations: {ex.Message}");
+                        Console.WriteLine($"Response content: {content}");
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine($"HTTP error from Python service for hybrid recommendations: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading hybrid recommendations from Python service: {ex.Message}");
+        }
+    }
+
+    private async Task LoadContentBasedRecommendations(int userId)
+    {
+        try
+        {
+            // Call the Python service API to get content-based recommendations
+            string baseUrl = "https://n2nthr35-5000.asse.devtunnels.ms";
+            string apiUrl = string.Format("https://n2nthr35-5000.asse.devtunnels.ms/api/recommendations/{0}?n=10&method=content_based", userId);
+            var response = await HttpClient.GetAsync(apiUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+
+                // Check if the response is valid JSON before deserializing
+                // This handles cases where the Python service returns HTML error pages
+                if (!string.IsNullOrEmpty(content) && content.TrimStart().StartsWith("<"))
+                {
+                    // This is an HTML response (likely an error page), not JSON
+                    Console.WriteLine($"Python service returned HTML instead of JSON for content-based recommendations: {content.Substring(0, Math.Min(200, content.Length))}...");
+                }
+                else
+                {
+                    var options = new System.Text.Json.JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+
+                    try
+                    {
+                        var pythonResponse = System.Text.Json.JsonSerializer.Deserialize<PythonRecommendationResponse>(content, options);
+
+                        if (pythonResponse?.Recommendations != null)
+                        {
+                            _contentBasedRecommendations = pythonResponse.Recommendations;
+                        }
+                    }
+                    catch (System.Text.Json.JsonException ex)
+                    {
+                        Console.WriteLine($"Error deserializing JSON response from Python service for content-based recommendations: {ex.Message}");
+                        Console.WriteLine($"Response content: {content}");
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine($"HTTP error from Python service for content-based recommendations: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading content-based recommendations from Python service: {ex.Message}");
+        }
+    }
+
     private async Task LoadBookmarkStatusAsync()
     {
         if (!QuizAuthStateProvider.IsLoggedIn)
@@ -392,12 +631,31 @@
         }
 
         _bookmarkedQuizes.Clear();
+
+        // Collect all unique quiz IDs from both recommendation lists
+        var allQuizIds = new HashSet<Guid>();
+
+        foreach (var recommendation in _recommendations.Concat(_contentBasedRecommendations))
+        {
+            if (Guid.TryParse(recommendation.QuizId, out Guid quizId))
+            {
+                allQuizIds.Add(quizId);
+            }
+        }
+
+        // Also include quizzes from _allAvailableQuizzes
         foreach (var quiz in _allAvailableQuizzes)
         {
-            var result = await BookmarkApi.IsBookmarkedAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+            allQuizIds.Add(quiz.Id);
+        }
+
+        // Load bookmark status for each unique quiz
+        foreach (var quizId in allQuizIds)
+        {
+            var result = await BookmarkApi.IsBookmarkedAsync(QuizAuthStateProvider.User.Id, quizId);
             if (result.IsSuccess)
             {
-                _bookmarkedQuizes[quiz.Id] = result.Data;
+                _bookmarkedQuizes[quizId] = result.Data;
             }
         }
     }
@@ -419,7 +677,7 @@
             return;
         }
 
-        // Calculate average predicted rating
+        // Calculate average predicted rating for main recommendations only
         var avgRating = _recommendations.Average(r => r.PredictedRating);
 
         // Count of recommendations
