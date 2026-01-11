@@ -725,11 +725,37 @@ namespace BlazingQuiz.Api.Services
             }
             _context.Rooms.RemoveRange(rooms);
 
-            // 4. StudentQuizzes - student attempts for this quiz
+            // 4. StudentQuizQuestions - student answers to questions in quizzes (must be deleted before StudentQuizzes due to FK constraint)
+            // Use raw SQL to delete StudentQuizQuestions that reference StudentQuizzes with the quizId being deleted
+            if (await _context.StudentQuizzes.AnyAsync(sq => sq.QuizId == quizId))
+            {
+                await _context.Database.ExecuteSqlRawAsync(@"
+                    DELETE FROM [StudentQuizQuestions]
+                    WHERE StudentQuizId IN (
+                        SELECT Id
+                        FROM [StudentQuizzes]
+                        WHERE QuizId = {0}
+                    )", quizId);
+            }
+
+            // 5. StudentQuizQuestionForRoom - student answers to questions in room quizzes (must be deleted before StudentQuizzesForRoom due to FK constraint)
+            // Use raw SQL to delete StudentQuizQuestionForRoom that reference StudentQuizzesForRoom with the quizId being deleted
+            if (await _context.StudentQuizzesForRoom.AnyAsync(sqfr => sqfr.QuizId == quizId))
+            {
+                await _context.Database.ExecuteSqlRawAsync(@"
+                    DELETE FROM [StudentQuizQuestionsForRoom]
+                    WHERE StudentQuizForRoomId IN (
+                        SELECT Id
+                        FROM [StudentQuizzesForRoom]
+                        WHERE QuizId = {0}
+                    )", quizId);
+            }
+
+            // 6. StudentQuizzes - student attempts for this quiz
             var studentQuizzes = await _context.StudentQuizzes.Where(sq => sq.QuizId == quizId).ToListAsync();
             _context.StudentQuizzes.RemoveRange(studentQuizzes);
 
-            // 5. StudentQuizzesForRoom - student attempts for this quiz in rooms
+            // 7. StudentQuizzesForRoom - student attempts for this quiz in rooms
             var studentQuizzesForRoom = await _context.StudentQuizzesForRoom.Where(sqfr => sqfr.QuizId == quizId).ToListAsync();
             _context.StudentQuizzesForRoom.RemoveRange(studentQuizzesForRoom);
 
