@@ -251,6 +251,11 @@ class QuizRecommendationSystem:
                 'predicted_rating': round(predicted_rating, 2)
             })
         
+        # Print the predicted ratings for debugging/output
+        print(f"\nCollaborative Filtering Recommendations for User {user_id}:")
+        for i, rec in enumerate(final_recommendations, 1):
+            print(f"  {i}. Quiz ID: {rec['quiz_id']} | Predicted Rating: {rec['predicted_rating']}")
+
         # Log the recommended quiz IDs
         recommended_quiz_ids = [rec['quiz_id'] for rec in final_recommendations]
         logger.info(f"Generated {len(final_recommendations)} recommendations for user {user_id}: {recommended_quiz_ids}")
@@ -288,6 +293,11 @@ class QuizRecommendationSystem:
                 'rating_count': int(row['rating_count']),
                 'method': 'popular'  # Add method field for consistency
             })
+
+        # Print the predicted ratings for popular quizzes
+        print(f"\nPopular Quizzes Recommendations:")
+        for i, rec in enumerate(recommendations, 1):
+            print(f"  {i}. Quiz ID: {rec['quiz_id']} | Predicted Rating: {rec['predicted_rating']} | Rating Count: {rec.get('rating_count', 0)}")
 
         # Log the popular quiz IDs
         popular_quiz_ids = [rec['quiz_id'] for rec in recommendations]
@@ -390,6 +400,11 @@ class QuizRecommendationSystem:
                 'similar_rated_quiz_ids': similar_to_user_rated
             })
         
+        # Print the predicted ratings for enhanced recommendations
+        print(f"\nEnhanced Collaborative Filtering Recommendations for User {user_id}:")
+        for i, rec in enumerate(enhanced_recommendations[:n_recommendations], 1):
+            print(f"  {i}. Quiz ID: {rec['quiz_id']} | Predicted Rating: {rec['predicted_rating']}")
+
         # Log the recommended quiz IDs
         recommended_quiz_ids = [rec['quiz_id'] for rec in enhanced_recommendations[:n_recommendations]]
         logger.info(f"Recommended quizzes for user {user_id}: {recommended_quiz_ids}")
@@ -494,6 +509,11 @@ class QuizRecommendationSystem:
             else:
                 # If user has not rated any quizzes, return popular ones based on overall ratings
                 recommendations = [r for r in self.get_popular_quizzes(n_recommendations)]
+
+        # Print the predicted ratings for KNN-based recommendations
+        print(f"\nKNN-Based Recommendations for User {user_id}:")
+        for i, rec in enumerate(recommendations[:n_recommendations], 1):
+            print(f"  {i}. Quiz ID: {rec['quiz_id']} | Predicted Rating: {rec['predicted_rating']}")
 
         # Log the recommended quiz IDs
         recommended_quiz_ids = [rec['quiz_id'] for rec in recommendations[:n_recommendations]]
@@ -648,7 +668,7 @@ class QuizRecommendationSystem:
 
     def vectorize_quizzes_content(self, quizzes_df: pd.DataFrame) -> tuple:
         """
-        Create content-based feature vectors for quizzes based on their content
+        Create content-based feature vectors for quizzes based on their content using ML vectorization
         """
         if quizzes_df.empty:
             return np.array([]), []
@@ -675,13 +695,20 @@ class QuizRecommendationSystem:
             category_names = [cat['name'] for cat in all_quiz_categories.get(quiz_id, [])]
             categories_str = ' '.join(category_names)
 
-            # Combine all features
-            content = f"{name} {description} {level} {total_questions} {time_minutes} {categories_str}".lower()
+            # Combine all features with emphasis on different aspects
+            content = f"{name} {name} {name} {description} {level} {level} {total_questions} {time_minutes} {categories_str} {categories_str}".lower()
             content_strings.append(content)
 
-        # Use TF-IDF to vectorize the content
+        # Use TF-IDF to vectorize the content with more features for better ML performance
         if content_strings:
-            tfidf = TfidfVectorizer(stop_words='english', max_features=100)
+            # Increase max_features to capture more nuanced content differences
+            tfidf = TfidfVectorizer(
+                stop_words='english',
+                max_features=200,  # Increased for better representation
+                ngram_range=(1, 2),  # Include bigrams for better context
+                lowercase=True,
+                strip_accents='unicode'
+            )
             content_matrix = tfidf.fit_transform(content_strings)
             return content_matrix.toarray(), quiz_ids
         else:
@@ -689,7 +716,7 @@ class QuizRecommendationSystem:
 
     def content_based_recommend(self, user_id: int, n_recommendations: int = 5) -> list:
         """
-        Content-based recommendation algorithm based on QuizCategories and StudentQuizzes
+        Enhanced content-based recommendation algorithm using vector similarity ML approach
         """
         logger.info(f"Generating content-based recommendations for user {user_id}")
 
@@ -699,126 +726,179 @@ class QuizRecommendationSystem:
             logger.info(f"User {user_id} has not played any quizzes, returning popular quizzes")
             return self.get_popular_quizzes(n_recommendations)
 
-        # 2. Get categories of the played quizzes from QuizCategories table
-        played_quiz_categories = self.get_quiz_categories(played_quiz_ids)
-        logger.info(f"Found categories for {len(played_quiz_categories)} played quizzes")
-
-        # 3. Extract all category IDs from played quizzes to find similar quizzes
-        user_category_ids = set()
-        for quiz_id, categories in played_quiz_categories.items():
-            for category in categories:
-                user_category_ids.add(category['id'])
-
-        logger.info(f"User has played quizzes in categories: {list(user_category_ids)}")
-
-        # 4. Find all quizzes that belong to the same categories as the user's played quizzes
-        if not user_category_ids:
-            logger.warning("No categories found for user's played quizzes")
+        # 2. Get all quizzes with content features
+        all_quizzes_df = self.get_all_quizzes_with_content()
+        if all_quizzes_df.empty:
+            logger.warning("No quizzes found for content-based recommendation")
             return self.get_popular_quizzes(n_recommendations)
 
-        # Create parameterized query to find quizzes in the same categories
-        category_placeholders = ','.join([f"'{cat_id}'" for cat_id in user_category_ids])
-        same_category_query = f"""
-        SELECT DISTINCT
-            qc.QuizId as quiz_id
-        FROM QuizCategories qc
-        WHERE qc.CategoryId IN ({category_placeholders})
-        AND qc.QuizId NOT IN ({','.join([f"'{pid}'" for pid in played_quiz_ids])})  -- Exclude already played
-        """
+        # 3. Vectorize all quizzes based on content (including name, description, level, questions, time, categories)
+        content_vectors, quiz_ids = self.vectorize_quizzes_content(all_quizzes_df)
+        if content_vectors.size == 0:
+            logger.warning("No content vectors generated for content-based recommendation")
+            return self.get_popular_quizzes(n_recommendations)
 
-        try:
-            same_category_df = pd.read_sql(text(same_category_query), self.engine)
-            same_category_quiz_ids = [str(qid) for qid in same_category_df['quiz_id'].tolist()] if not same_category_df.empty else []
-            logger.info(f"Found {len(same_category_quiz_ids)} quizzes in same categories as user's played quizzes")
-        except Exception as e:
-            logger.error(f"Error querying quizzes in same categories: {str(e)}")
-            return []
+        # 4. Get vectors for played quizzes
+        played_quiz_indices = []
+        played_quiz_vectors = []
+        for i, quiz_id in enumerate(quiz_ids):
+            if quiz_id in played_quiz_ids:
+                played_quiz_indices.append(i)
+                played_quiz_vectors.append(content_vectors[i])
 
-        # 5. If we found quizzes in the same categories, return them as recommendations
-        if same_category_quiz_ids:
-            # Get detailed information for these quizzes
-            recommendations = []
+        if not played_quiz_vectors:
+            logger.warning("No content vectors found for played quizzes")
+            return self.get_popular_quizzes(n_recommendations)
 
-            # Limit to n_recommendations
-            limited_quiz_ids = same_category_quiz_ids[:n_recommendations]
+        # 5. Calculate user profile as the average of played quiz vectors
+        user_profile = np.mean(played_quiz_vectors, axis=0).reshape(1, -1)
 
-            # Get quiz details for the recommended quizzes
-            quiz_details = self.get_quiz_details(limited_quiz_ids)
-            details_map = {str(detail['quiz_id']): detail for detail in quiz_details}
+        # 6. Calculate cosine similarity between user profile and all quizzes
+        similarities = cosine_similarity(user_profile, content_vectors)[0]
 
-            for quiz_id in limited_quiz_ids:
-                # Calculate a basic relevance score based on category match
-                # For content-based filtering, we can use a simple scoring mechanism
-                relevance_score = 4.5  # High relevance since it's in the same category
+        # 7. Create similarity scores for all quizzes
+        quiz_similarities = [(quiz_ids[i], similarities[i]) for i in range(len(quiz_ids))]
 
-                rec_entry = {
+        # 8. Sort by similarity score (highest first)
+        quiz_similarities.sort(key=lambda x: x[1], reverse=True)
+
+        # 9. Filter out quizzes the user has already played and take top N
+        recommendations = []
+        for quiz_id, similarity_score in quiz_similarities:
+            if quiz_id not in played_quiz_ids and len(recommendations) < n_recommendations:
+                recommendations.append({
                     'quiz_id': quiz_id,
-                    'predicted_rating': relevance_score,
-                    'similarity_score': relevance_score / 5.0,  # Normalize to 0-1 scale
-                    'method': 'content_based_category_match'
-                }
+                    'predicted_rating': round(similarity_score * 5.0, 2),  # Scale similarity to rating range
+                    'similarity_score': round(similarity_score, 3),
+                    'method': 'content_based_ml'
+                })
 
-                # Add quiz details if available
-                if quiz_id in details_map:
-                    rec_entry['quiz_details'] = details_map[quiz_id]
-                else:
-                    rec_entry['quiz_details'] = None
+        # Print the predicted ratings for debugging/output
+        print(f"\nContent-Based Recommendations for User {user_id}:")
+        for i, rec in enumerate(recommendations, 1):
+            print(f"  {i}. Quiz ID: {rec['quiz_id']} | Predicted Rating: {rec['predicted_rating']} | Similarity Score: {rec['similarity_score']}")
 
-                recommendations.append(rec_entry)
+        logger.info(f"Generated {len(recommendations)} content-based recommendations using ML vector similarity for user {user_id}")
+        return recommendations
 
-            logger.info(f"Generated {len(recommendations)} content-based recommendations based on category matching for user {user_id}")
-            return recommendations
-        else:
-            # If no quizzes found in the same categories, fall back to the original content-based approach
-            logger.info("No quizzes found in same categories, falling back to content-based approach")
+    def content_based_recommend_with_clustering(self, user_id: int, n_recommendations: int = 5) -> list:
+        """
+        Advanced content-based recommendation using clustering and vector similarity
+        """
+        logger.info(f"Generating advanced content-based recommendations with clustering for user {user_id}")
 
-            # 6. Get all quizzes with content features
-            all_quizzes_df = self.get_all_quizzes_with_content()
-            if all_quizzes_df.empty:
-                logger.warning("No quizzes found for content-based recommendation")
-                return self.get_popular_quizzes(n_recommendations)
+        # 1. Get quizzes the user has played from StudentQuizzes table
+        played_quiz_ids = self.get_user_played_quizzes(user_id)
+        if not played_quiz_ids:
+            logger.info(f"User {user_id} has not played any quizzes, returning popular quizzes")
+            return self.get_popular_quizzes(n_recommendations)
 
-            # 7. Vectorize all quizzes based on content
-            content_vectors, quiz_ids = self.vectorize_quizzes_content(all_quizzes_df)
-            if content_vectors.size == 0:
-                logger.warning("No content vectors generated for content-based recommendation")
-                return self.get_popular_quizzes(n_recommendations)
+        # 2. Get all quizzes with content features
+        all_quizzes_df = self.get_all_quizzes_with_content()
+        if all_quizzes_df.empty:
+            logger.warning("No quizzes found for content-based recommendation")
+            return self.get_popular_quizzes(n_recommendations)
 
-            # 8. Get vectors for played quizzes
-            played_quiz_vectors = []
-            for i, quiz_id in enumerate(quiz_ids):
-                if quiz_id in played_quiz_ids:
-                    played_quiz_vectors.append(content_vectors[i])
+        # 3. Vectorize all quizzes based on content
+        content_vectors, quiz_ids = self.vectorize_quizzes_content(all_quizzes_df)
+        if content_vectors.size == 0:
+            logger.warning("No content vectors generated for content-based recommendation")
+            return self.get_popular_quizzes(n_recommendations)
 
-            if not played_quiz_vectors:
-                logger.warning("No content vectors found for played quizzes")
-                return self.get_popular_quizzes(n_recommendations)
+        # 4. Get vectors for played quizzes
+        played_quiz_indices = []
+        played_quiz_vectors = []
+        for i, quiz_id in enumerate(quiz_ids):
+            if quiz_id in played_quiz_ids:
+                played_quiz_indices.append(i)
+                played_quiz_vectors.append(content_vectors[i])
 
-            # 9. Calculate average vector of played quizzes to represent user's preferences
-            user_profile = np.mean(played_quiz_vectors, axis=0).reshape(1, -1)
+        if not played_quiz_vectors:
+            logger.warning("No content vectors found for played quizzes")
+            return self.get_popular_quizzes(n_recommendations)
 
-            # 10. Calculate cosine similarity between user profile and all quizzes
-            similarities = cosine_similarity(user_profile, content_vectors)[0]
+        # 5. Use K-means clustering to group similar quizzes
+        from sklearn.cluster import KMeans
 
-            # 11. Create similarity scores for all quizzes
-            quiz_similarities = [(quiz_ids[i], similarities[i]) for i in range(len(quiz_ids))]
+        # Determine optimal number of clusters (up to 10% of total quizzes)
+        n_clusters = min(max(3, len(content_vectors) // 10), 10)
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+        cluster_labels = kmeans.fit_predict(content_vectors)
 
-            # 12. Sort by similarity score (highest first)
-            quiz_similarities.sort(key=lambda x: x[1], reverse=True)
+        # 6. Find which clusters the user's played quizzes belong to
+        user_cluster_indices = set()
+        for idx in played_quiz_indices:
+            user_cluster_indices.add(cluster_labels[idx])
 
-            # 13. Filter out quizzes the user has already played and take top N
-            recommendations = []
-            for quiz_id, similarity_score in quiz_similarities:
-                if quiz_id not in played_quiz_ids and len(recommendations) < n_recommendations:
+        # 7. Calculate user profile as the average of played quiz vectors
+        user_profile = np.mean(played_quiz_vectors, axis=0).reshape(1, -1)
+
+        # 8. Calculate similarities within user's preferred clusters
+        recommendations = []
+        for cluster_idx in user_cluster_indices:
+            # Get all quizzes in this cluster
+            cluster_quiz_indices = [i for i, label in enumerate(cluster_labels) if label == cluster_idx]
+
+            # Calculate similarities for quizzes in this cluster
+            cluster_vectors = content_vectors[cluster_quiz_indices]
+            cluster_quiz_ids = [quiz_ids[i] for i in cluster_quiz_indices]
+
+            # Calculate similarity to user profile
+            cluster_similarities = cosine_similarity(user_profile, cluster_vectors)[0]
+
+            # Create similarity pairs
+            cluster_similarities_pairs = [(cluster_quiz_ids[i], cluster_similarities[i]) for i in range(len(cluster_quiz_ids))]
+
+            # Sort by similarity
+            cluster_similarities_pairs.sort(key=lambda x: x[1], reverse=True)
+
+            # Add top similar quizzes from this cluster that user hasn't played
+            for quiz_id, similarity_score in cluster_similarities_pairs:
+                if (quiz_id not in played_quiz_ids and
+                    len(recommendations) < n_recommendations and
+                    quiz_id not in [rec['quiz_id'] for rec in recommendations]):
+
                     recommendations.append({
                         'quiz_id': quiz_id,
-                        'predicted_rating': round(similarity_score * 5.0, 2),  # Scale similarity to rating range
+                        'predicted_rating': round(similarity_score * 5.0, 2),
                         'similarity_score': round(similarity_score, 3),
-                        'method': 'content_based'
+                        'method': 'content_based_ml_cluster'
                     })
 
-            logger.info(f"Generated {len(recommendations)} content-based recommendations for user {user_id}")
-            return recommendations
+                    if len(recommendations) >= n_recommendations:
+                        break
+
+            if len(recommendations) >= n_recommendations:
+                break
+
+        # 9. If we don't have enough recommendations, fall back to general similarity approach
+        if len(recommendations) < n_recommendations:
+            # Calculate overall similarities for remaining slots
+            similarities = cosine_similarity(user_profile, content_vectors)[0]
+            quiz_similarities = [(quiz_ids[i], similarities[i]) for i in range(len(quiz_ids))]
+            quiz_similarities.sort(key=lambda x: x[1], reverse=True)
+
+            for quiz_id, similarity_score in quiz_similarities:
+                if (quiz_id not in played_quiz_ids and
+                    quiz_id not in [rec['quiz_id'] for rec in recommendations]):
+
+                    recommendations.append({
+                        'quiz_id': quiz_id,
+                        'predicted_rating': round(similarity_score * 5.0, 2),
+                        'similarity_score': round(similarity_score, 3),
+                        'method': 'content_based_ml_fallback'
+                    })
+
+                    if len(recommendations) >= n_recommendations:
+                        break
+
+        # Print the predicted ratings for debugging/output
+        print(f"\nAdvanced Content-Based Recommendations (with Clustering) for User {user_id}:")
+        for i, rec in enumerate(recommendations, 1):
+            print(f"  {i}. Quiz ID: {rec['quiz_id']} | Predicted Rating: {rec['predicted_rating']} | Similarity Score: {rec['similarity_score']} | Method: {rec['method']}")
+
+        logger.info(f"Generated {len(recommendations)} advanced content-based recommendations with clustering for user {user_id}")
+        return recommendations
 
 
 
@@ -868,6 +948,14 @@ def get_recommendations(user_id):
                 'recommendations': recommendations_data,
                 'timestamp': datetime.now().isoformat()
             }
+        elif method == 'content_based_advanced':
+            recommendations_data = rec_system.content_based_recommend_with_clustering(user_id, n_recommendations)
+            # Format the response to match expected structure
+            recommendations_data = {
+                'user_id': user_id,
+                'recommendations': recommendations_data,
+                'timestamp': datetime.now().isoformat()
+            }
         elif method == 'collaborative_filtering':
             recommendations_data = rec_system.get_user_recommendations_with_knn(user_id, n_recommendations)
         else:
@@ -911,6 +999,14 @@ def get_batch_recommendations():
             # Use the appropriate recommendation method
             if method == 'content_based':
                 recommendations = rec_system.content_based_recommend(user_id, n_recommendations)
+                # Format the response to match expected structure
+                recommendations = {
+                    'user_id': user_id,
+                    'recommendations': recommendations,
+                    'timestamp': datetime.now().isoformat()
+                }
+            elif method == 'content_based_advanced':
+                recommendations = rec_system.content_based_recommend_with_clustering(user_id, n_recommendations)
                 # Format the response to match expected structure
                 recommendations = {
                     'user_id': user_id,

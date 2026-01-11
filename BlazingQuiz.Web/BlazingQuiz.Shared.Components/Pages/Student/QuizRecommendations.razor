@@ -573,9 +573,9 @@
     {
         try
         {
-            // Call the Python service API to get content-based recommendations
+            // Call the Python service API to get advanced content-based recommendations using ML vector similarity
             string baseUrl = "https://n2nthr35-5000.asse.devtunnels.ms";
-            string apiUrl = string.Format("https://n2nthr35-5000.asse.devtunnels.ms/api/recommendations/{0}?n=10&method=content_based", userId);
+            string apiUrl = string.Format("https://n2nthr35-5000.asse.devtunnels.ms/api/recommendations/{0}?n=10&method=content_based_advanced", userId);
             var response = await HttpClient.GetAsync(apiUrl);
 
             if (response.IsSuccessStatusCode)
