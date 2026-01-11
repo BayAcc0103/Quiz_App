@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class QuizRecommendationSystem:
     """
-    Recommendation system using Item-Based Collaborative Filtering with KNN
+    Recommendation system using Collaborative Filtering with KNN and Content-Based Filtering
     """
     
     def __init__(self, connection_string: str, k_neighbors: int = 5):
@@ -753,61 +753,6 @@ class QuizRecommendationSystem:
         logger.info(f"Generated {len(recommendations)} content-based recommendations for user {user_id}")
         return recommendations
 
-    def hybrid_recommend(self, user_id: int, n_recommendations: int = 5, content_weight: float = 0.5) -> dict:
-        """
-        Hybrid recommendation combining content-based and collaborative filtering
-        """
-        logger.info(f"Generating hybrid recommendations for user {user_id}")
-
-        # Get content-based recommendations
-        content_recs = self.content_based_recommend(user_id, n_recommendations * 2)  # Get more to have options
-
-        # Get collaborative filtering recommendations
-        cf_recs = self.recommend_for_user(user_id, n_recommendations * 2)
-
-        # Create a set of quiz IDs to avoid duplicates
-        recommended_quiz_ids = set()
-        final_recommendations = []
-
-        # Combine recommendations with weighting
-        all_recs = []
-
-        # Add content-based recommendations with content_weight
-        for rec in content_recs:
-            all_recs.append({
-                'quiz_id': rec['quiz_id'],
-                'predicted_rating': rec['predicted_rating'] * content_weight,
-                'method': 'content_based',
-                'original_rating': rec['predicted_rating']
-            })
-
-        # Add collaborative filtering recommendations with (1 - content_weight)
-        for rec in cf_recs:
-            all_recs.append({
-                'quiz_id': rec['quiz_id'],
-                'predicted_rating': rec['predicted_rating'] * (1 - content_weight),
-                'method': 'collaborative_filtering',
-                'original_rating': rec['predicted_rating']
-            })
-
-        # Sort by predicted rating and remove duplicates
-        all_recs.sort(key=lambda x: x['predicted_rating'], reverse=True)
-
-        for rec in all_recs:
-            if rec['quiz_id'] not in recommended_quiz_ids and len(final_recommendations) < n_recommendations:
-                final_recommendations.append({
-                    'quiz_id': rec['quiz_id'],
-                    'predicted_rating': rec['original_rating'],
-                    'method': rec['method']
-                })
-                recommended_quiz_ids.add(rec['quiz_id'])
-
-        logger.info(f"Generated {len(final_recommendations)} hybrid recommendations for user {user_id}")
-        return {
-            'user_id': user_id,
-            'recommendations': final_recommendations,
-            'timestamp': datetime.now().isoformat()
-        }
 
 
 # Flask app setup
@@ -845,7 +790,7 @@ def get_recommendations(user_id):
     """Get quiz recommendations for a specific user"""
     try:
         n_recommendations = int(request.args.get('n', 5))  # Number of recommendations, default 5
-        method = request.args.get('method', 'hybrid')  # Method: hybrid, content_based, collaborative_filtering
+        method = request.args.get('method', 'collaborative_filtering')  # Method: content_based, collaborative_filtering
 
         # Use the appropriate recommendation method
         if method == 'content_based':
@@ -858,11 +803,9 @@ def get_recommendations(user_id):
             }
         elif method == 'collaborative_filtering':
             recommendations_data = rec_system.get_user_recommendations_with_knn(user_id, n_recommendations)
-        elif method == 'hybrid':
-            recommendations_data = rec_system.hybrid_recommend(user_id, n_recommendations)
         else:
-            # Default to hybrid method
-            recommendations_data = rec_system.hybrid_recommend(user_id, n_recommendations)
+            # Default to collaborative filtering method
+            recommendations_data = rec_system.get_user_recommendations_with_knn(user_id, n_recommendations)
 
         # Add detailed quiz information to recommendations
         if 'recommendations' in recommendations_data:
@@ -894,7 +837,7 @@ def get_batch_recommendations():
         data = request.get_json()
         user_ids = data.get('user_ids', [])
         n_recommendations = data.get('n', 5)
-        method = data.get('method', 'hybrid')  # Method: hybrid, content_based, collaborative_filtering
+        method = data.get('method', 'collaborative_filtering')  # Method: content_based, collaborative_filtering
 
         batch_recommendations = {}
         for user_id in user_ids:
@@ -909,11 +852,9 @@ def get_batch_recommendations():
                 }
             elif method == 'collaborative_filtering':
                 recommendations = rec_system.get_user_recommendations_with_knn(user_id, n_recommendations)
-            elif method == 'hybrid':
-                recommendations = rec_system.hybrid_recommend(user_id, n_recommendations)
             else:
-                # Default to hybrid method
-                recommendations = rec_system.hybrid_recommend(user_id, n_recommendations)
+                # Default to collaborative filtering method
+                recommendations = rec_system.get_user_recommendations_with_knn(user_id, n_recommendations)
 
             # Add detailed quiz information to recommendations
             if 'recommendations' in recommendations:
