@@ -53,7 +53,8 @@ namespace BlazingQuiz.Mobile
                 .AddSingleton<IPlatform, MobilePlatform>()
                 .AddSingleton<ProfileUpdateService>()
                 .AddSingleton<QuizHubService>()
-                .AddScoped<ThemeService>();
+                .AddScoped<ThemeService>()
+                .AddSingleton<IPythonRecommendationConfigService, PythonRecommendationConfigService>();
 
             // Register services that depend on HttpClient and QuizAuthStateProvider
             builder.Services.AddScoped(sp =>

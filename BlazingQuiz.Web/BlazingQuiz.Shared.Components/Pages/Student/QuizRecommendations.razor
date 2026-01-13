@@ -13,6 +13,7 @@
 @inject NavigationManager NavigationManager
 @inject QuizState QuizState
 @inject QuizImageService QuizImageService
+@inject IPythonRecommendationConfigService PythonRecommendationConfigService
 
 <link href="~/Pages/Student/QuizRecommendations.razor.css" rel="stylesheet" />
 
@@ -517,8 +518,8 @@
         try
         {
             // Call the Python service API to get hybrid recommendations
-            string baseUrl = "https://npvmkkjm-5000.asse.devtunnels.ms";
-            string apiUrl = string.Format("https://npvmkkjm-5000.asse.devtunnels.ms/api/recommendations/{0}?n=10&method=hybrid", userId);
+            string baseUrl = PythonRecommendationConfigService.GetBaseUrl();
+            string apiUrl = $"{baseUrl}/api/recommendations/{userId}?n=10&method=hybrid";
             var response = await HttpClient.GetAsync(apiUrl);
 
             if (response.IsSuccessStatusCode)
@@ -574,8 +575,8 @@
         try
         {
             // Call the Python service API to get advanced content-based recommendations using ML vector similarity
-            string baseUrl = "https://npvmkkjm-5000.asse.devtunnels.ms";
-            string apiUrl = string.Format("https://npvmkkjm-5000.asse.devtunnels.ms/api/recommendations/{0}?n=10&method=content_based_advanced", userId);
+            string baseUrl = PythonRecommendationConfigService.GetBaseUrl();
+            string apiUrl = $"{baseUrl}/api/recommendations/{userId}?n=10&method=content_based_advanced";
             var response = await HttpClient.GetAsync(apiUrl);
 
             if (response.IsSuccessStatusCode)
