@@ -929,7 +929,13 @@
 
     private async Task LoadBookmarkStatusAsync()
     {
-        if (!QuizAuthStateProvider.IsLoggedIn)
+        if (!QuizAuthStateProvider.IsLoggedIn || QuizAuthStateProvider.User == null)
+        {
+            return;
+        }
+
+        var currentUser = QuizAuthStateProvider.User;
+        if (currentUser == null)
         {
             return;
         }
@@ -937,7 +943,7 @@
         _bookmarkedQuizes.Clear();
         foreach (var quiz in _quizes)
         {
-            var result = await BookmarkApi.IsBookmarkedAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+            var result = await BookmarkApi.IsBookmarkedAsync(currentUser.Id, quiz.Id);
             if (result.IsSuccess)
             {
                 _bookmarkedQuizes[quiz.Id] = result.Data;
@@ -947,7 +953,14 @@
 
     private async Task ToggleBookmarkAsync(QuizListDto quiz)
     {
-        if (!QuizAuthStateProvider.IsLoggedIn)
+        if (!QuizAuthStateProvider.IsLoggedIn || QuizAuthStateProvider.User == null)
+        {
+            NavigationManager.NavigateTo("auth/login");
+            return;
+        }
+
+        var currentUser = QuizAuthStateProvider.User;
+        if (currentUser == null)
         {
             NavigationManager.NavigateTo("auth/login");
             return;
@@ -958,7 +971,7 @@
         if (isBookmarked)
         {
             // Remove bookmark
-            var result = await BookmarkApi.RemoveBookmarkAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+            var result = await BookmarkApi.RemoveBookmarkAsync(currentUser.Id, quiz.Id);
             if (result.IsSuccess)
             {
                 _bookmarkedQuizes[quiz.Id] = false;
@@ -969,7 +982,7 @@
             // Add bookmark
             var bookmarkDto = new QuizBookmarkDto
                 {
-                    UserId = QuizAuthStateProvider.User.Id,
+                    UserId = currentUser.Id,
                     QuizId = quiz.Id,
                     QuizName = quiz.Name,
                     CategoryName = quiz.CategoryName
@@ -986,7 +999,18 @@
     private async Task OnBookmarkToggled(QuizListDto quiz)
     {
         // Refresh bookmark status when bookmark is toggled in the slider
-        var result = await BookmarkApi.IsBookmarkedAsync(QuizAuthStateProvider.User.Id, quiz.Id);
+        if (!QuizAuthStateProvider.IsLoggedIn || QuizAuthStateProvider.User == null)
+        {
+            return;
+        }
+
+        var currentUser = QuizAuthStateProvider.User;
+        if (currentUser == null)
+        {
+            return;
+        }
+
+        var result = await BookmarkApi.IsBookmarkedAsync(currentUser.Id, quiz.Id);
         if (result.IsSuccess)
         {
             _bookmarkedQuizes[quiz.Id] = result.Data;
