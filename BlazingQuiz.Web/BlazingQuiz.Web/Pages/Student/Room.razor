@@ -42,7 +42,7 @@
                     <div class="card card-3d-raised card-light h-100">
                         <div class="card-body text-center">
                             <h5 class="card-title">Room Code</h5>
-                            <p class="card-text display-6 fw-bold text-primary room-code-text">@room?.Code</p>
+                            <p class="card-text display-6 text-primary room-code-text">@room?.Code</p>
                             <div class="d-flex justify-content-center">
                                 <button type="button" class="btn btn-3d btn-3d-primary btn-sm btn-press-down d-flex align-items-center justify-content-center" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.875rem;" @onclick="CopyRoomCode">
                                     <span class="material-symbols-outlined me-1" style="font-size: 1rem;">content_copy</span>Copy
@@ -57,7 +57,7 @@
                         <div class="card-body text-center">
                             <h5 class="card-title">Room Player</h5>
                             <span class="material-symbols-outlined display-1 text-success mb-2 icon-person">person_play</span>
-                            <p class="card-text display-5 fw-bold text-success mb-0 room-player-text">
+                            <p class="card-text display-5 text-success mb-0 room-player-text">
                                 @participants.Length/@room?.MaxParticipants
                             </p>
                         </div>
@@ -141,13 +141,13 @@
                                                              style="max-height: 150px; object-fit: cover;" />
                                                     </div>
                                                     <div class="col-md-9">
-                                                        <h6 class="fw-bold">@quizDetails.Name</h6>
+                                                        <h6>@quizDetails.Name</h6>
                                                     </div>
                                                 }
                                                 else
                                                 {
                                                     <div class="col-12">
-                                                        <h6 class="fw-bold">@quizDetails.Name</h6>
+                                                        <h6>@quizDetails.Name</h6>
                                                     </div>
                                                 }
                                             </div>

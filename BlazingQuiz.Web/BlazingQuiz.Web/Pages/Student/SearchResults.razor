@@ -145,7 +145,7 @@
     {
         <div class="quiz-details-content" style="max-height: 60vh; overflow-y: auto;">
             <div class="quiz-info">
-                <h5 class="fw-bold">@_quizDetails.Name</h5>
+                <h5>@_quizDetails.Name</h5>
                 @if (!string.IsNullOrEmpty(_quizDetails.Description))
                 {
                     <p><strong>Description:</strong> @_quizDetails.Description</p>
@@ -253,11 +253,11 @@
                         </div>
                         @if (_quizDetails.AverageRating.HasValue)
                         {
-                            <span class="fs-5 fw-bold">@(_quizDetails.AverageRating.Value.ToString("F1"))</span>
+                            <span class="fs-5">@(_quizDetails.AverageRating.Value.ToString("F1"))</span>
                         }
                         else
                         {
-                            <span class="fs-5 fw-bold text-muted">0.0</span>
+                            <span class="fs-5 text-muted">0.0</span>
                         }
                     </div>
                 </div>

@@ -149,7 +149,7 @@
 
                                 <!-- Quiz content -->
                                 <div class="quiz-content p-3">
-                                    <h5 class="fw-bold mb-3 text-truncate" title="@quiz.Name">@quiz.Name</h5>
+                                    <h5 class="mb-3 text-truncate" title="@quiz.Name">@quiz.Name</h5>
 
                                     <!-- Quiz statistics -->
                                     <div class="quiz-stats d-flex justify-content-between mt-auto">
@@ -167,11 +167,11 @@
                                                 </span>
                                                 @if (quiz.AverageRating.HasValue)
                                                 {
-                                                    <span class="stat-value fw-bold">@quiz.AverageRating.Value.ToString("F1")</span>
+                                                    <span class="stat-value">@quiz.AverageRating.Value.ToString("F1")</span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="stat-value fw-bold text-muted">0</span>
+                                                    <span class="stat-value text-muted">0</span>
                                                 }
                                             </div>
                                             <small class="stat-label text-muted">Rating</small>
@@ -194,7 +194,7 @@
                                                         @quiz.CreatedByName?.FirstOrDefault().ToString().ToUpper()
                                                     </div>
                                                 }
-                                                <span class="stat-value fw-bold small">@quiz.CreatedByName</span>
+                                                <span class="stat-value small">@quiz.CreatedByName</span>
                                             </div>
                                             <small class="stat-label text-muted">Creator</small>
                                         </div>
@@ -236,14 +236,14 @@
                                 </div>
 
                                 <div class="quiz-content p-3">
-                                    <h5 class="fw-bold mb-3 text-truncate">Quiz ID: @recommendation.QuizId</h5>
+                                    <h5 class="mb-3 text-truncate">Quiz ID: @recommendation.QuizId</h5>
                                     <div class="quiz-stats d-flex justify-content-between mt-auto">
                                         <div class="stat-item d-flex flex-column align-items-center">
                                             <div class="d-flex align-items-center">
                                                 <span class="material-symbols-outlined me-1" style="font-size: 16px;">
                                                     star
                                                 </span>
-                                                <span class="stat-value fw-bold">@recommendation.PredictedRating.ToString("F1")</span>
+                                                <span class="stat-value">@recommendation.PredictedRating.ToString("F1")</span>
                                             </div>
                                             <small class="stat-label text-muted">Predicted Rating</small>
                                         </div>
@@ -325,7 +325,7 @@
 
                                 <!-- Quiz content -->
                                 <div class="quiz-content p-3">
-                                    <h5 class="fw-bold mb-3 text-truncate" title="@quiz.Name">@quiz.Name</h5>
+                                    <h5 class="mb-3 text-truncate" title="@quiz.Name">@quiz.Name</h5>
 
                                     <!-- Quiz statistics -->
                                     <div class="quiz-stats d-flex justify-content-between mt-auto">
@@ -343,11 +343,11 @@
                                                 </span>
                                                 @if (quiz.AverageRating.HasValue)
                                                 {
-                                                    <span class="stat-value fw-bold">@quiz.AverageRating.Value.ToString("F1")</span>
+                                                    <span class="stat-value">@quiz.AverageRating.Value.ToString("F1")</span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="stat-value fw-bold text-muted">0</span>
+                                                    <span class="stat-value text-muted">0</span>
                                                 }
                                             </div>
                                             <small class="stat-label text-muted">Rating</small>
@@ -370,7 +370,7 @@
                                                         @quiz.CreatedByName?.FirstOrDefault().ToString().ToUpper()
                                                     </div>
                                                 }
-                                                <span class="stat-value fw-bold small">@quiz.CreatedByName</span>
+                                                <span class="stat-value  small">@quiz.CreatedByName</span>
                                             </div>
                                             <small class="stat-label text-muted">Creator</small>
                                         </div>
@@ -412,14 +412,14 @@
                                 </div>
 
                                 <div class="quiz-content p-3">
-                                    <h5 class="fw-bold mb-3 text-truncate">Quiz ID: @recommendation.QuizId</h5>
+                                    <h5 class=" mb-3 text-truncate">Quiz ID: @recommendation.QuizId</h5>
                                     <div class="quiz-stats d-flex justify-content-between mt-auto">
                                         <div class="stat-item d-flex flex-column align-items-center">
                                             <div class="d-flex align-items-center">
                                                 <span class="material-symbols-outlined me-1" style="font-size: 16px;">
                                                     star
                                                 </span>
-                                                <span class="stat-value fw-bold">@recommendation.PredictedRating.ToString("F1")</span>
+                                                <span class="stat-value ">@recommendation.PredictedRating.ToString("F1")</span>
                                             </div>
                                             <small class="stat-label text-muted">Predicted Rating</small>
                                         </div>
@@ -956,7 +956,7 @@
         {
             <div class="quiz-details-content" style="max-height: 60vh; overflow-y: auto;">
                 <div class="quiz-info">
-                    <h5 class="fw-bold">@_quizDetails.Name</h5>
+                    <h5 class="">@_quizDetails.Name</h5>
                     @if (!string.IsNullOrEmpty(_quizDetails.Description))
                     {
                         <p><strong>Description:</strong> @_quizDetails.Description</p>
@@ -1064,11 +1064,11 @@
                             </div>
                             @if (_quizDetails.AverageRating.HasValue)
                             {
-                                <span class="fs-5 fw-bold">@(_quizDetails.AverageRating.Value.ToString("F1"))</span>
+                                <span class="fs-5">@(_quizDetails.AverageRating.Value.ToString("F1"))</span>
                             }
                             else
                             {
-                                <span class="fs-5 fw-bold text-muted">0.0</span>
+                                <span class="fs-5 text-muted">0.0</span>
                             }
                         </div>
                     </div>

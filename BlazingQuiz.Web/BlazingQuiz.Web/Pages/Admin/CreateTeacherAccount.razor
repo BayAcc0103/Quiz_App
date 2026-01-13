@@ -32,31 +32,31 @@
                         }
 
                         <div class="mb-3">
-                            <label for="name" class="form-label fw-bold">Full Name</label>
+                            <label for="name" class="form-label ">Full Name</label>
                             <input id="name" class="form-control form-control-lg" @bind="registerDto.Name" />
                             <ValidationMessage For="@(() => registerDto.Name)" class="text-danger" />
                         </div>
 
                         <div class="mb-3">
-                            <label for="email" class="form-label fw-bold">Email</label>
+                            <label for="email" class="form-label ">Email</label>
                             <input id="email" class="form-control form-control-lg" @bind="registerDto.Email" type="email" />
                             <ValidationMessage For="@(() => registerDto.Email)" class="text-danger" />
                         </div>
 
                         <div class="mb-3">
-                            <label for="phone" class="form-label fw-bold">Phone</label>
+                            <label for="phone" class="form-label ">Phone</label>
                             <input id="phone" class="form-control form-control-lg" @bind="registerDto.Phone" />
                             <ValidationMessage For="@(() => registerDto.Phone)" class="text-danger" />
                         </div>
 
                         <div class="mb-4">
-                            <label for="password" class="form-label fw-bold">Password</label>
+                            <label for="password" class="form-label ">Password</label>
                             <input id="password" class="form-control form-control-lg" @bind="registerDto.Password" type="password" />
                             <ValidationMessage For="@(() => registerDto.Password)" class="text-danger" />
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Role</label>
+                            <label class="form-label ">Role</label>
                             <div class="border rounded p-3 bg-light">
                                 <span class="badge bg-secondary fs-5">@UserRole.Teacher</span>
                             </div>

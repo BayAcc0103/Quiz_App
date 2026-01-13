@@ -184,25 +184,25 @@
                 <table class="table table-borderless text-center" style="max-width: 400px;">
                     <tbody>
                         <tr>
-                            <td class="fw-bold" style="width: 40%;">Email:</td>
+                            <td class="" style="width: 40%;">Email:</td>
                             <td class="text-start">@(_selectedUser.Email ?? "N/A")</td>
                         </tr>
                         <tr>
-                            <td class="fw-bold" style="width: 40%;">Phone:</td>
+                            <td class="" style="width: 40%;">Phone:</td>
                             <td class="text-start">@(_selectedUser.Phone ?? "N/A")</td>
                         </tr>
                         <tr>
-                            <td class="fw-bold" style="width: 40%;">Role:</td>
+                            <td class="" style="width: 40%;">Role:</td>
                             <td class="text-start"><span class="badge bg-info">@_selectedUser.Role</span></td>
                         </tr>
                         <tr>
-                            <td class="fw-bold" style="width: 40%;">Status:</td>
+                            <td class="" style="width: 40%;">Status:</td>
                             <td class="text-start">
                                 <span class="@(GetApprovalBadgeClass())">@(_selectedUser.IsApproved ? "Active" : "Inactive")</span>
                             </td>
                         </tr>
                         <tr>
-                            <td class="fw-bold" style="width: 40%;">Account ID:</td>
+                            <td class="" style="width: 40%;">Account ID:</td>
                             <td class="text-start">@_selectedUser.Id</td>
                         </tr>
                     </tbody>

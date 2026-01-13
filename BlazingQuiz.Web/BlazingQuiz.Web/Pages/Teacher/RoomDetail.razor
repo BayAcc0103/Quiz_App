@@ -46,7 +46,7 @@ else
                         <div class="card card-3d-raised card-light h-100">
                             <div class="card-body text-center">
                                 <h5 class="card-title">Room Code</h5>
-                                <p class="card-text display-6 fw-bold text-primary room-code-text">@room.Code</p>
+                                <p class="card-text display-6 text-primary room-code-text">@room.Code</p>
                                 <div class="d-flex justify-content-center">
                                     <button type="button" class="btn btn-3d btn-3d-primary btn-sm btn-press-down d-flex align-items-center justify-content-center" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.875rem;" @onclick="CopyRoomCode">
                                         <span class="material-symbols-outlined me-1" style="font-size: 1rem;">content_copy</span>Copy
@@ -63,7 +63,7 @@ else
                                 <span class="material-symbols-outlined display-1 @(room.IsActive ? "text-success" : "text-danger") mb-2 icon-person">
                                     @(room.IsActive ? "check_circle" : "cancel")
                                 </span>
-                                <p class="card-text display-5 fw-bold @(room.IsActive ? "text-success" : "text-danger") mb-0 room-player-text">
+                                <p class="card-text display-5 @(room.IsActive ? "text-success" : "text-danger") mb-0 room-player-text">
                                     @(room.IsActive ? "Active" : "Inactive")
                                 </p>
                             </div>

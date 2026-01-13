@@ -1,5 +1,6 @@
 html, body {
-    font-family: "Coiny", system-ui;
+    font-family: "Nunito", sans-serif;
+    font-weight: 700;
 }
 
 h1:focus {

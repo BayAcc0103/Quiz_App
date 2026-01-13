@@ -51,7 +51,7 @@
     <div class="card-body">
         <div class="row align-items-center">
             <div class="col-md-4">
-                <label class="form-label fw-bold mb-0 fs-5">Select Category</label>
+                <label class="form-label mb-0 fs-5">Select Category</label>
             </div>
             <div class="col-md-8">
                 <select class="category-select" @bind="_selectedCategoryId" @bind:after="OnSelectedCategoryChanged">
@@ -99,7 +99,7 @@
                     }
 
                     <div class="quiz-content">
-                        <h5 class="fw-bold mb-3">@q.Name</h5>
+                        <h5 class="mb-3">@q.Name</h5>
                     </div>
 
                     <!-- Start Quiz button overlay that appears on hover -->

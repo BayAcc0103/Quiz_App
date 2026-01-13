@@ -219,12 +219,12 @@
         {
             <div class="mb-4 shadow p-3 question-container">
                 <div class="question-text mb-3">
-                    <h5 class="fw-bold">Question:</h5>
+                    <h5>Question:</h5>
                     <p class="mb-2">@q.Text</p>
                 </div>
 
                 <div class="options-container">
-                    <h6 class="fw-bold">Options:</h6>
+                    <h6>Options:</h6>
                     <div class="options-list">
                         @if (q.IsTextAnswer)
                         {
@@ -261,7 +261,7 @@
                 @if (!string.IsNullOrEmpty(q.AnswerExplanation))
                 {
                     <div class="explanation-container mt-3 p-2 bg-info bg-opacity-10 border border-info rounded">
-                        <h6 class="fw-bold">Explanation:</h6>
+                        <h6>Explanation:</h6>
                         <p class="mb-0">@q.AnswerExplanation</p>
                     </div>
                 }

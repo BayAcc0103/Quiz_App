@@ -54,7 +54,7 @@
 
                                 <!-- Quiz content -->
                                 <div class="quiz-content p-3">
-                                    <h5 class="fw-bold mb-3 text-truncate" title="@quiz.Name">@quiz.Name</h5>
+                                    <h5 class="mb-3 text-truncate" title="@quiz.Name">@quiz.Name</h5>
 
                                     <!-- Quiz statistics -->
                                     <div class="quiz-stats d-flex justify-content-between mt-auto">
@@ -76,7 +76,7 @@
                                                 }
                                                 else
                                                 {
-                                                    <span class="stat-value fw-bold text-muted">0</span>
+                                                    <span class="stat-value text-muted">0</span>
                                                 }
                                             </div>
                                             <small class="stat-label text-muted">Rating</small>
@@ -99,7 +99,7 @@
                                                         @quiz.CreatedByName?.FirstOrDefault().ToString().ToUpper()
                                                     </div>
                                                 }
-                                                <span class="stat-value fw-bold small">@quiz.CreatedByName</span>
+                                                <span class="stat-value small">@quiz.CreatedByName</span>
                                             </div>
                                             <small class="stat-label text-muted">Creator</small>
                                         </div>

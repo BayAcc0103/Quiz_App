@@ -186,7 +186,7 @@
                                                     <div class="see-all-icon mb-2">
                                                         <i class="bi bi-arrow-right-circle fs-2"></i>
                                                     </div>
-                                                    <div class="fw-bold">See All</div>
+                                                    <div class="">See All</div>
                                                 </div>
                                             </a>
                                         </div>
@@ -557,7 +557,7 @@
         {
             <div class="quiz-details-content" style="max-height: 60vh; overflow-y: auto;">
                 <div class="quiz-info">
-                    <h5 class="fw-bold">@_quizDetails.Name</h5>
+                    <h5 class="">@_quizDetails.Name</h5>
                     @if (!string.IsNullOrEmpty(_quizDetails.Description))
                     {
                         <p><strong>Description:</strong> @_quizDetails.Description</p>
@@ -665,11 +665,11 @@
                             </div>
                             @if (_quizDetails.AverageRating.HasValue)
                             {
-                                <span class="fs-5 fw-bold">@(_quizDetails.AverageRating.Value.ToString("F1"))</span>
+                                <span class="fs-5 ">@(_quizDetails.AverageRating.Value.ToString("F1"))</span>
                             }
                             else
                             {
-                                <span class="fs-5 fw-bold text-muted">0.0</span>
+                                <span class="fs-5  text-muted">0.0</span>
                             }
                         </div>
                     </div>
