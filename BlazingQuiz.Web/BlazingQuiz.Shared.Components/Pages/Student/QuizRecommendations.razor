@@ -517,8 +517,8 @@
         try
         {
             // Call the Python service API to get hybrid recommendations
-            string baseUrl = "https://n2nthr35-5000.asse.devtunnels.ms";
-            string apiUrl = string.Format("https://n2nthr35-5000.asse.devtunnels.ms/api/recommendations/{0}?n=10&method=hybrid", userId);
+            string baseUrl = "https://npvmkkjm-5000.asse.devtunnels.ms";
+            string apiUrl = string.Format("https://npvmkkjm-5000.asse.devtunnels.ms/api/recommendations/{0}?n=10&method=hybrid", userId);
             var response = await HttpClient.GetAsync(apiUrl);
 
             if (response.IsSuccessStatusCode)
@@ -574,8 +574,8 @@
         try
         {
             // Call the Python service API to get advanced content-based recommendations using ML vector similarity
-            string baseUrl = "https://n2nthr35-5000.asse.devtunnels.ms";
-            string apiUrl = string.Format("https://n2nthr35-5000.asse.devtunnels.ms/api/recommendations/{0}?n=10&method=content_based_advanced", userId);
+            string baseUrl = "https://npvmkkjm-5000.asse.devtunnels.ms";
+            string apiUrl = string.Format("https://npvmkkjm-5000.asse.devtunnels.ms/api/recommendations/{0}?n=10&method=content_based_advanced", userId);
             var response = await HttpClient.GetAsync(apiUrl);
 
             if (response.IsSuccessStatusCode)
