@@ -49,82 +49,226 @@
                     }
                     else
                     {
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">#</th>
-                                        <th scope="col">Student</th>
-                                        <th scope="col">Avatar</th>
-                                        <th scope="col">Score</th>
-                                        <th scope="col">Completion Time</th>
-                                        <th scope="col">Started At</th>
-                                        <th scope="col">Completed At</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @for (int i = 0; i < leaderboard.Count; i++)
-                                    {
-                                        var entry = leaderboard[i];
+                        <!-- Top 3 Players Cards -->
+                        @if (leaderboard.Any())
+                        {
+                            <!-- First Place Card (Top Center) -->
+                            @if (leaderboard.Count >= 1)
+                            {
+                                var firstPlace = leaderboard[0];
+                                <div class="row mb-4">
+                                    <div class="col-md-6 offset-md-3">
+                                        <div class="hanging-container">
+                                            <div class="hanging-content">1st</div>
+                                            <div class="rope"></div>
+                                        </div>
+                                        <div class="card first-place-card text-center p-4 leaderboard-card">
+                                            <div class="mt-3">
+                                                <div class="d-flex justify-content-center">
+                                                    @if (!string.IsNullOrEmpty(firstPlace.StudentAvatarPath))
+                                                    {
+                                                        <img src="@firstPlace.StudentAvatarPath" alt="Avatar" class="rounded-circle border border-3 border-white" style="width: 80px; height: 80px; object-fit: cover;" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="bg-secondary rounded-circle border border-3 border-white d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                                            <span class="text-white fs-3">@firstPlace.StudentName.Substring(0, 1).ToUpper()</span>
+                                                        </div>
+                                                    }
+                                                </div>
+                                                <h4 class="mt-3 mb-1 text-dark player-name">@firstPlace.StudentName</h4>
+                                                <div class="d-flex justify-content-center gap-3">
+                                                    <span class="badge bg-dark fs-5 score-badge">@firstPlace.Total điểm</span>
+                                                    <span class="medal-icon">🏆</span>
+                                                    <span class="badge bg-info fs-6">Nhất</span>
+                                                </div>
+                                                <div class="mt-2">
+                                                    @if (firstPlace.CompletionTime.HasValue)
+                                                    {
+                                                        <small class="text-dark">Thời gian: @firstPlace.CompletionTime.Value.ToString(@"mm\:ss")</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <small class="text-dark"><em>N/A</em></small>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Second and Third Place Cards (Side by Side) -->
+                            <div class="row mb-4">
+                                @if (leaderboard.Count >= 2)
+                                {
+                                    var secondPlace = leaderboard[1];
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <div class="hanging-container">
+                                            <div class="hanging-content">2nd</div>
+                                            <div class="rope"></div>
+                                        </div>
+                                        <div class="card second-place-card text-center p-3 leaderboard-card">
+                                            <div class="mt-3">
+                                                <div class="d-flex justify-content-center">
+                                                    @if (!string.IsNullOrEmpty(secondPlace.StudentAvatarPath))
+                                                    {
+                                                        <img src="@secondPlace.StudentAvatarPath" alt="Avatar" class="rounded-circle border border-2 border-white" style="width: 60px; height: 60px; object-fit: cover;" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="bg-secondary rounded-circle border border-2 border-white d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                                            <span class="text-white fs-4">@secondPlace.StudentName.Substring(0, 1).ToUpper()</span>
+                                                        </div>
+                                                    }
+                                                </div>
+                                                <h5 class="mt-2 mb-1 text-dark player-name">@secondPlace.StudentName</h5>
+                                                <div class="d-flex justify-content-center gap-2">
+                                                    <span class="badge bg-dark fs-6 score-badge">@secondPlace.Total điểm</span>
+                                                    <span class="medal-icon">🥈</span>
+                                                    <span class="badge bg-info fs-6">Nhì</span>
+                                                </div>
+                                                <div class="mt-2">
+                                                    @if (secondPlace.CompletionTime.HasValue)
+                                                    {
+                                                        <small class="text-dark">Thời gian: @secondPlace.CompletionTime.Value.ToString(@"mm\:ss")</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <small class="text-dark"><em>N/A</em></small>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+
+                                @if (leaderboard.Count >= 3)
+                                {
+                                    var thirdPlace = leaderboard[2];
+                                    <div class="col-md-6">
+                                        <div class="hanging-container">
+                                            <div class="hanging-content">3rd</div>
+                                            <div class="rope"></div>
+                                        </div>
+                                        <div class="card third-place-card text-center p-3 leaderboard-card">
+                                            <div class="mt-3">
+                                                <div class="d-flex justify-content-center">
+                                                    @if (!string.IsNullOrEmpty(thirdPlace.StudentAvatarPath))
+                                                    {
+                                                        <img src="@thirdPlace.StudentAvatarPath" alt="Avatar" class="rounded-circle border border-2 border-white" style="width: 60px; height: 60px; object-fit: cover;" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="bg-secondary rounded-circle border border-2 border-white d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                                            <span class="text-white fs-4">@thirdPlace.StudentName.Substring(0, 1).ToUpper()</span>
+                                                        </div>
+                                                    }
+                                                </div>
+                                                <h5 class="mt-2 mb-1 text-dark player-name">@thirdPlace.StudentName</h5>
+                                                <div class="d-flex justify-content-center gap-2">
+                                                    <span class="badge bg-dark fs-6 score-badge">@thirdPlace.Total điểm</span>
+                                                    <span class="medal-icon">🥉</span>
+                                                    <span class="badge bg-info fs-6">Ba</span>
+                                                </div>
+                                                <div class="mt-2">
+                                                    @if (thirdPlace.CompletionTime.HasValue)
+                                                    {
+                                                        <small class="text-dark">Thời gian: @thirdPlace.CompletionTime.Value.ToString(@"mm\:ss")</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <small class="text-dark"><em>N/A</em></small>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <!-- Remaining Players Table (From 4th place onwards) -->
+                        @if (leaderboard.Count > 3)
+                        {
+                            <div class="table-responsive mt-4">
+                                <h5 class="mb-3">Danh sách người chơi khác</h5>
+                                <table class="table table-striped">
+                                    <thead>
                                         <tr>
-                                            <td>
-                                                <span class="badge @(i == 0 ? "bg-warning text-dark" : i == 1 ? "bg-secondary" : i == 2 ? "bg-danger" : "bg-light text-dark")">
-                                                    @(entry.Rank)
-                                                </span>
-                                            </td>
-                                            <td>
-                                                @entry.StudentName
-                                            </td>
-                                            <td>
-                                                @if (!string.IsNullOrEmpty(entry.StudentAvatarPath))
-                                                {
-                                                    <img src="@entry.StudentAvatarPath" alt="@entry.StudentName" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;" />
-                                                }
-                                                else
-                                                {
-                                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px;">
-                                                        @entry.StudentName?.Substring(0, 1).ToUpper()
-                                                    </div>
-                                                }
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-primary fs-5">@entry.Total</span>
-                                            </td>
-                                            <td>
-                                                @if (entry.CompletionTime.HasValue)
-                                                {
-                                                    @entry.CompletionTime.Value.ToString(@"mm\:ss")
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">N/A</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                @if (entry.StartedOn != DateTime.MinValue)
-                                                {
-                                                    @entry.StartedOn.ToString("HH:mm:ss")
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">N/A</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                @if (entry.CompletedOn.HasValue)
-                                                {
-                                                    @entry.CompletedOn.Value.ToString("HH:mm:ss")
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">N/A</span>
-                                                }
-                                            </td>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Student</th>
+                                            <th scope="col">Avatar</th>
+                                            <th scope="col">Score</th>
+                                            <th scope="col">Completion Time</th>
+                                            <th scope="col">Started At</th>
+                                            <th scope="col">Completed At</th>
                                         </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 3; i < leaderboard.Count; i++)
+                                        {
+                                            var entry = leaderboard[i];
+                                            <tr>
+                                                <td>
+                                                    <span class="badge bg-secondary">
+                                                        @(entry.Rank)
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    @entry.StudentName
+                                                </td>
+                                                <td>
+                                                    @if (!string.IsNullOrEmpty(entry.StudentAvatarPath))
+                                                    {
+                                                        <img src="@entry.StudentAvatarPath" alt="@entry.StudentName" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px;">
+                                                            @entry.StudentName?.Substring(0, 1).ToUpper()
+                                                        </div>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-primary fs-5">@entry.Total</span>
+                                                </td>
+                                                <td>
+                                                    @if (entry.CompletionTime.HasValue)
+                                                    {
+                                                        @entry.CompletionTime.Value.ToString(@"mm\:ss")
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">N/A</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (entry.StartedOn != DateTime.MinValue)
+                                                    {
+                                                        @entry.StartedOn.ToString("HH:mm:ss")
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">N/A</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (entry.CompletedOn.HasValue)
+                                                    {
+                                                        @entry.CompletedOn.Value.ToString("HH:mm:ss")
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">N/A</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
                     }
                 </div>
             </div>
@@ -171,3 +315,21 @@
         }
     }
 }
+
+<style>
+    .table th {
+        vertical-align: middle;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .badge {
+        font-size: 1em;
+    }
+
+    .table-info {
+        background-color: rgba(13, 110, 253, 0.1) !important;
+    }
+</style>

@@ -6,118 +6,257 @@
 
 @layout QuizPageLayout
 
-@if (isLoading)
-{
-    <div class="text-center mt-5">
-        <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-        <p>Đang tải bảng xếp hạng...</p>
-    </div>
-}
-else if (!string.IsNullOrEmpty(errorMessage))
-{
-    <div class="alert alert-danger">@errorMessage</div>
-}
-else
-{
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white">
-                        <h3 class="mb-0">Bảng Xếp Hạng Phòng @roomName</h3>
-                        <small>Phòng: @roomCode</small>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th style="width: 10%">Xếp hạng</th>
-                                        <th>Học viên</th>
-                                        <th>Điểm số</th>
-                                        <th>Thời gian hoàn thành</th>
-                                        <th>Thời gian nộp bài</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @for (int i = 0; i < leaderboardEntries.Count; i++)
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="hanging-container">
+                <div class="hanging-content">
+                    <h3>Bảng Xếp Hạng Phòng @roomCode</h3>
+                </div>
+                <div class="rope left-rope"></div>
+                <div class="rope right-rope"></div>
+            </div>
+            <div class="card card-3d-raised card-light">
+                <div class="card-body">
+                    @if (isLoading)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p>Đang tải bảng xếp hạng...</p>
+                        </div>
+                    }
+                    else if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger">@errorMessage</div>
+                    }
+                    else
+                    {
+                        <div class="mb-4">
+                            <h4 class="text-center mb-4">Top 3 Người Chơi</h4>
+
+                            <!-- Top 3 Players Cards -->
+                            @if (leaderboardEntries.Any())
+                            {
+                                <!-- First Place Card (Top Center) -->
+                                @if (leaderboardEntries.Count >= 1)
+                                {
+                                    var firstPlace = leaderboardEntries[0];
+                                    <div class="row mb-4">
+                                        <div class="col-md-8 offset-md-2">
+                                            <div class="hanging-container">
+                                                <div class="hanging-content">1st</div>
+                                                <div class="rope"></div>
+                                            </div>
+                                            <div class="card first-place-card text-center p-4 leaderboard-card">
+                                                <div class="mt-3">
+                                                    <div class="d-flex justify-content-center">
+                                                        @if (!string.IsNullOrEmpty(firstPlace.StudentAvatarPath))
+                                                        {
+                                                            <img src="@firstPlace.StudentAvatarPath" alt="Avatar" class="rounded-circle border border-3 border-white" style="width: 80px; height: 80px; object-fit: cover;" />
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="bg-secondary rounded-circle border border-3 border-white d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                                                <span class="text-white fs-3">@firstPlace.StudentName.Substring(0, 1).ToUpper()</span>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                    <h4 class="mt-3 mb-1 text-dark player-name">@firstPlace.StudentName</h4>
+                                                    <div class="d-flex justify-content-center gap-3">
+                                                        <span class="badge bg-dark fs-5 score-badge">@firstPlace.Total điểm</span>
+                                                        <span class="medal-icon">🏆</span>
+                                                        <span class="badge bg-info fs-6">Nhất</span>
+                                                    </div>
+                                                    <div class="mt-2">
+                                                        @if (firstPlace.CompletionTime.HasValue)
+                                                        {
+                                                            <small class="text-dark">Thời gian: @firstPlace.CompletionTime.Value.ToString(@"mm\:ss")</small>
+                                                        }
+                                                        else
+                                                        {
+                                                            <small class="text-dark"><em>Chưa hoàn thành</em></small>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+
+                                <!-- Second and Third Place Cards (Side by Side) -->
+                                <div class="row mb-4">
+                                    @if (leaderboardEntries.Count >= 2)
                                     {
-                                        var entry = leaderboardEntries[i];
-                                        var rank = i + 1;
-                                        var isCurrentUser = entry.StudentId == QuizAuthStateProvider.User.Id;
-                                        var rowClass = isCurrentUser ? "table-info" : "";
-                                        
-                                        <tr class="@rowClass">
-                                            <td>
-                                                <span class="badge @(rank <= 3 ? "bg-warning text-dark" : "bg-secondary")">@rank</span>
-                                                @if (rank == 1)
-                                                {
-                                                    <span class="ms-1">🏆</span>
-                                                }
-                                                else if (rank == 2)
-                                                {
-                                                    <span class="ms-1">🥈</span>
-                                                }
-                                                else if (rank == 3)
-                                                {
-                                                    <span class="ms-1">🥉</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    @if (!string.IsNullOrEmpty(entry.StudentAvatarPath))
+                                        var secondPlace = leaderboardEntries[1];
+                                        <div class="col-md-6 mb-3 mb-md-0">
+                                            <div class="hanging-container">
+                                                <div class="hanging-content">2nd</div>
+                                                <div class="rope"></div>
+                                            </div>
+                                            <div class="card second-place-card text-center p-3 leaderboard-card">
+                                                <div class="mt-3">
+                                                    <div class="d-flex justify-content-center">
+                                                        @if (!string.IsNullOrEmpty(secondPlace.StudentAvatarPath))
+                                                        {
+                                                            <img src="@secondPlace.StudentAvatarPath" alt="Avatar" class="rounded-circle border border-2 border-white" style="width: 60px; height: 60px; object-fit: cover;" />
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="bg-secondary rounded-circle border border-2 border-white d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                                                <span class="text-white fs-4">@secondPlace.StudentName.Substring(0, 1).ToUpper()</span>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                    <h5 class="mt-2 mb-1 text-dark player-name">@secondPlace.StudentName</h5>
+                                                    <div class="d-flex justify-content-center gap-2">
+                                                        <span class="badge bg-dark fs-6 score-badge">@secondPlace.Total điểm</span>
+                                                        <span class="medal-icon">🥈</span>
+                                                        <span class="badge bg-info fs-6">Nhì</span>
+                                                    </div>
+                                                    <div class="mt-2">
+                                                        @if (secondPlace.CompletionTime.HasValue)
+                                                        {
+                                                            <small class="text-dark">Thời gian: @secondPlace.CompletionTime.Value.ToString(@"mm\:ss")</small>
+                                                        }
+                                                        else
+                                                        {
+                                                            <small class="text-dark"><em>Chưa hoàn thành</em></small>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    @if (leaderboardEntries.Count >= 3)
+                                    {
+                                        var thirdPlace = leaderboardEntries[2];
+                                        <div class="col-md-6">
+                                            <div class="hanging-container">
+                                                <div class="hanging-content">3rd</div>
+                                                <div class="rope"></div>
+                                            </div>
+                                            <div class="card third-place-card text-center p-3 leaderboard-card">
+                                                <div class="mt-3">
+                                                    <div class="d-flex justify-content-center">
+                                                        @if (!string.IsNullOrEmpty(thirdPlace.StudentAvatarPath))
+                                                        {
+                                                            <img src="@thirdPlace.StudentAvatarPath" alt="Avatar" class="rounded-circle border border-2 border-white" style="width: 60px; height: 60px; object-fit: cover;" />
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="bg-secondary rounded-circle border border-2 border-white d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                                                <span class="text-white fs-4">@thirdPlace.StudentName.Substring(0, 1).ToUpper()</span>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                    <h5 class="mt-2 mb-1 text-dark player-name">@thirdPlace.StudentName</h5>
+                                                    <div class="d-flex justify-content-center gap-2">
+                                                        <span class="badge bg-dark fs-6 score-badge">@thirdPlace.Total điểm</span>
+                                                        <span class="medal-icon">🥉</span>
+                                                        <span class="badge bg-info fs-6">Ba</span>
+                                                    </div>
+                                                    <div class="mt-2">
+                                                        @if (thirdPlace.CompletionTime.HasValue)
+                                                        {
+                                                            <small class="text-dark">Thời gian: @thirdPlace.CompletionTime.Value.ToString(@"mm\:ss")</small>
+                                                        }
+                                                        else
+                                                        {
+                                                            <small class="text-dark"><em>Chưa hoàn thành</em></small>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Remaining Players Table (From 4th place onwards) -->
+                        @if (leaderboardEntries.Count > 3)
+                        {
+                            <div class="table-responsive mt-4">
+                                <h5 class="mb-3">Danh sách người chơi khác</h5>
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th style="width: 10%">Xếp hạng</th>
+                                            <th>Học viên</th>
+                                            <th>Điểm số</th>
+                                            <th>Thời gian hoàn thành</th>
+                                            <th>Thời gian nộp bài</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 3; i < leaderboardEntries.Count; i++)
+                                        {
+                                            var entry = leaderboardEntries[i];
+                                            var rank = i + 1;
+                                            var isCurrentUser = entry.StudentId == QuizAuthStateProvider.User.Id;
+                                            var rowClass = isCurrentUser ? "table-info" : "";
+
+                                            <tr class="@rowClass">
+                                                <td>
+                                                    <span class="badge bg-secondary">@rank</span>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        @if (!string.IsNullOrEmpty(entry.StudentAvatarPath))
+                                                        {
+                                                            <img src="@entry.StudentAvatarPath" alt="Avatar" class="rounded-circle me-2" style="width: 30px; height: 30px;" />
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                                                <span class="text-white">@entry.StudentName.Substring(0, 1).ToUpper()</span>
+                                                            </div>
+                                                        }
+                                                        <span class="@(isCurrentUser ? "fw-bold" : "")">@entry.StudentName @(isCurrentUser ? "(Bạn)" : "")</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <strong>@entry.Total</strong>
+                                                </td>
+                                                <td>
+                                                    @if (entry.CompletionTime.HasValue)
                                                     {
-                                                        <img src="@entry.StudentAvatarPath" alt="Avatar" class="rounded-circle me-2" style="width: 30px; height: 30px;" />
+                                                        @entry.CompletionTime.Value.ToString(@"mm\:ss")
                                                     }
                                                     else
                                                     {
-                                                        <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
-                                                            <span class="text-white">@entry.StudentName.Substring(0, 1).ToUpper()</span>
-                                                        </div>
+                                                        <em>Chưa hoàn thành</em>
                                                     }
-                                                    <span class="@(isCurrentUser ? "fw-bold" : "")">@entry.StudentName @(isCurrentUser ? "(Bạn)" : "")</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <strong>@entry.Total</strong>
-                                            </td>
-                                            <td>
-                                                @if (entry.CompletionTime.HasValue)
-                                                {
-                                                    @entry.CompletionTime.Value.ToString(@"mm\:ss")
-                                                }
-                                                else
-                                                {
-                                                    <em>Chưa hoàn thành</em>
-                                                }
-                                            </td>
-                                            <td>
-                                                @if (entry.CompletedOn.HasValue)
-                                                {
-                                                    @entry.CompletedOn.Value.ToString("HH:mm:ss")
-                                                }
-                                                else
-                                                {
-                                                    <em>Chưa hoàn thành</em>
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
+                                                </td>
+                                                <td>
+                                                    @if (entry.CompletedOn.HasValue)
+                                                    {
+                                                        @entry.CompletedOn.Value.ToString("HH:mm:ss")
+                                                    }
+                                                    else
+                                                    {
+                                                        <em>Chưa hoàn thành</em>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
 
-                        <div class="mt-4 d-flex justify-content-between">
-                            <button type="button" class="btn btn-secondary" @onclick="GoToHome">Về trang chủ</button>
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="button" class="btn btn-3d btn-3d-primary" @onclick="GoToHome">Về trang chủ</button>
                         </div>
-                    </div>
+                    }
                 </div>
             </div>
         </div>
     </div>
-}
+</div>
 
 <style>
     .table th {
@@ -134,6 +273,59 @@ else
 
     .table-info {
         background-color: rgba(13, 110, 253, 0.1) !important;
+    }
+
+    .hanging-container {
+        position: relative;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .hanging-content {
+        position: relative;
+        z-index: 2;
+        background: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        display: inline-block;
+    }
+
+    .rope {
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        width: 2px;
+        height: 20px;
+        background: #8B4513;
+        transform: translateX(-50%);
+        z-index: 1;
+    }
+
+    .left-rope {
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%) translateX(-30px);
+    }
+
+    .right-rope {
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%) translateX(30px);
+    }
+
+    .card-3d-raised {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transform-style: preserve-3d;
+    }
+
+    .card-3d-raised:hover {
+        transform: translateY(-5px) translateZ(10px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    .card-light {
+        background-color: #f8f9fa;
     }
 </style>
 

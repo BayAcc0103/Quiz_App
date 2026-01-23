@@ -1,0 +1,203 @@
+/* 3D Card Effects for Top 3 Players */
+
+/* First Place Card - Gold Theme */
+.first-place-card {
+    border: 3px solid #000 !important;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: linear-gradient(135deg, #FFD700, #DAA520) !important;
+    position: relative;
+    overflow: visible; /* Allow hanging elements to extend outside */
+    margin-top: 20px; /* Space for hanging badge */
+}
+
+.first-place-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+    transform: rotate(30deg);
+    pointer-events: none;
+}
+
+.first-place-card:hover {
+    transform: perspective(500px) translateY(-5px) rotateX(5deg);
+    box-shadow:
+        -6px 8px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 4px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Second Place Card - Silver Theme */
+.second-place-card {
+    border: 3px solid #000 !important;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: linear-gradient(135deg, #C0C0C0, #A9A9A9) !important;
+    position: relative;
+    overflow: visible; /* Allow hanging elements to extend outside */
+    margin-top: 20px; /* Space for hanging badge */
+}
+
+.second-place-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+    transform: rotate(30deg);
+    pointer-events: none;
+}
+
+.second-place-card:hover {
+    transform: perspective(500px) translateY(-5px) rotateX(5deg);
+    box-shadow:
+        -6px 8px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 4px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Third Place Card - Bronze Theme */
+.third-place-card {
+    border: 3px solid #000 !important;
+    box-shadow:
+        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: linear-gradient(135deg, #CD7F32, #A0522D) !important;
+    position: relative;
+    overflow: visible; /* Allow hanging elements to extend outside */
+    margin-top: 20px; /* Space for hanging badge */
+}
+
+.third-place-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+    transform: rotate(30deg);
+    pointer-events: none;
+}
+
+.third-place-card:hover {
+    transform: perspective(500px) translateY(-5px) rotateX(5deg);
+    box-shadow:
+        -6px 8px 0px 0px rgba(0, 0, 0, 0.75),
+        0px 4px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* General card enhancements */
+.leaderboard-card {
+    transition: all 0.3s ease !important;
+    border-radius: 15px !important;
+}
+
+/* Hanging rank badge styles */
+.hanging-container {
+    position: relative;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hanging-content {
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    padding: 10px 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    z-index: 2;
+    color: white;
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 80px;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.rope {
+    position: absolute;
+    width: 4px;
+    height: 30px;
+    background: linear-gradient(to bottom, #8B4513, #A0522D, #8B4513);
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    border: 1px solid #000;
+    box-shadow: -1px 1px 0px 0px rgba(0, 0, 0, 0.75), 0px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Rank badge positioning */
+.rank-badge {
+    position: absolute;
+    top: -40px; /* Adjusted to account for rope */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    z-index: 10;
+    border: 2px solid #fff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.first-place-rank {
+    background: #FFD700;
+    color: #000;
+    font-size: 1.5rem;
+}
+
+.second-place-rank {
+    background: #C0C0C0;
+    color: #000;
+    font-size: 1.5rem;
+}
+
+.third-place-rank {
+    background: #CD7F32;
+    color: #fff;
+    font-size: 1.5rem;
+}
+
+/* Player name styling */
+.player-name {
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Score badge styling */
+.score-badge {
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Medal styling */
+.medal-icon {
+    display: inline-block;
+    font-size: 1.5rem;
+    margin-right: 5px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
