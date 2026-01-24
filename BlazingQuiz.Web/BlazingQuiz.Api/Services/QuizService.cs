@@ -864,6 +864,87 @@ namespace BlazingQuiz.Api.Services
             return result;
         }
 
+        public async Task<TeacherQuizStudentForRoomListDto> GetQuizStudentsForRoomAsync(Guid quizId, int startIndex, int pageSize, bool fetchQuizInfo, int userId, bool isAdmin)
+        {
+            var result = new TeacherQuizStudentForRoomListDto();
+
+            // First, check if the user has permission to access this quiz
+            var quizQuery = _context.Quizzes.Where(q => q.Id == quizId);
+
+            // If the user is not an admin, ensure they can only access their own quizzes
+            if (!isAdmin)
+            {
+                quizQuery = quizQuery.Where(q => q.CreatedBy == userId && q.CreatedBy.HasValue);
+            }
+
+            var quizExists = await quizQuery.AnyAsync();
+            if (!quizExists)
+            {
+                return null; // Quiz doesn't exist or user doesn't have permission
+            }
+
+            if (fetchQuizInfo)
+            {
+                var quizInfo = await quizQuery
+                    .Include(q => q.QuizCategories)
+                    .ThenInclude(qc => qc.Category)
+                    .Select(q => new {
+                        QuizName = q.Name,
+                        CategoryName = q.CategoryId.HasValue ?
+                            q.QuizCategories.Any(qc => qc.CategoryId == q.CategoryId) ?
+                                q.QuizCategories.First(qc => qc.CategoryId == q.CategoryId).Category.Name :
+                                "No Category" :
+                            q.QuizCategories.Any() ? string.Join(", ", q.QuizCategories.Select(qc => qc.Category.Name)) : "No Category"
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (quizInfo == null)
+                {
+                    result.Students = new PageResult<TeacherQuizStudentForRoomDto>([], 0);
+                    return result;
+                }
+
+                result.QuizName = quizInfo.QuizName;
+                result.CategoryName = quizInfo.CategoryName;
+            }
+
+            var query = _context.StudentQuizzesForRoom
+                    .Where(q => q.QuizId == quizId)
+                    .Include(sqfr => sqfr.Student)
+                    .Include(sqfr => sqfr.Room);
+
+            var count = await query.CountAsync();
+
+            var studentData = await query
+                .OrderByDescending(s => s.StartedOn)
+                .Skip(startIndex)
+                .Take(pageSize)
+                .Select(q => new
+                {
+                    Name = q.Student.Name,
+                    RoomName = q.Room.Name,
+                    StartedOn = q.StartedOn,
+                    CompletedOn = q.CompletedOn,
+                    Status = q.Status,
+                    Total = q.Total
+                })
+                .ToArrayAsync();
+
+            var students = studentData.Select(s => new TeacherQuizStudentForRoomDto
+            {
+                Name = s.Name,
+                RoomName = s.RoomName,
+                StartedOn = s.StartedOn,
+                CompletedOn = s.CompletedOn,
+                Status = s.Status,
+                Total = s.Total
+            }).ToArray();
+
+            var pageResult = new PageResult<TeacherQuizStudentForRoomDto>(students, count);
+            result.Students = pageResult;
+            return result;
+        }
+
         public async Task<QuestionDto[]> GetQuestionsAsync(int userId, bool isAdmin)
         {
             IQueryable<Question> query = _context.Questions

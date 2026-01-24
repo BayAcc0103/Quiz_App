@@ -270,6 +270,31 @@ namespace BlazingQuiz.Api.Endpoints
                 return Results.Ok(result);
             }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
 
+            quizGroup.MapGet("{quizId:guid}/students-for-room", async (Guid quizId, int startIndex, int pageSize, bool fetchQuizInfo, QuizService service, HttpContext httpContext) =>
+            {
+                // Get the current user ID from the claims
+                var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdString, out var userId))
+                {
+                    return Results.BadRequest("Invalid user ID");
+                }
+
+                // Check user role to determine if they have permission to view quiz students
+                var userRole = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != nameof(UserRole.Admin) && userRole != nameof(UserRole.Teacher))
+                {
+                    return Results.Forbid();
+                }
+
+                var result = await service.GetQuizStudentsForRoomAsync(quizId, startIndex, pageSize, fetchQuizInfo, userId, userRole == nameof(UserRole.Admin));
+                if (result == null)
+                {
+                    return Results.NotFound("Quiz not found or you don't have permission to access student data.");
+                }
+
+                return Results.Ok(result);
+            }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
+
             // Add new endpoints for questions
             var questionGroup = app.MapGroup("/api/questions").RequireAuthorization();
             questionGroup.MapGet("", async (QuizService service, HttpContext httpContext) =>
