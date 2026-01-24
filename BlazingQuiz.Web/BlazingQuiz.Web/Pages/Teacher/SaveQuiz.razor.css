@@ -645,3 +645,208 @@ select.form-control:focus {
     border-bottom-left-radius: 12px !important;
     border-right: none !important;
 }
+
+/* Dark theme styles for Admin Create Quiz page */
+html.dark-theme .slider-card,
+html.dark-theme .slider-card .card-body {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: 3px solid silver !important;
+    color: silver !important;
+}
+
+html.dark-theme .card-header-3d {
+    background: linear-gradient(135deg, #2a5a8c, #1a3d6d) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .slider-container {
+    background: rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark-theme .form-control {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .form-control-lg {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .form-control-centered {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .custom-input-group-text {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .form-control.no-border-radius {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .input-group.correct-option .custom-input-group-text {
+    background-color: rgba(40, 167, 69, 0.3) !important;
+    border-color: #28a745 !important;
+}
+
+html.dark-theme .input-group.correct-option .form-control.no-border-radius {
+    background-color: rgba(40, 167, 69, 0.3) !important;
+    border-color: #28a745 !important;
+}
+
+html.dark-theme .option-delete-btn {
+    background-color: #dc3545 !important;
+    border: 3px solid silver !important;
+    color: white !important;
+}
+
+    html.dark-theme .option-delete-btn:hover {
+        background-color: #c82333 !important;
+    }
+
+html.dark-theme select.form-control {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .category-select-btn {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .category-dropdown-menu {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: 3px solid silver !important;
+    color: silver !important;
+}
+
+html.dark-theme .category-dropdown-item {
+    color: silver !important;
+}
+
+    html.dark-theme .category-dropdown-item:hover {
+        background-color: rgba(50, 50, 50, 0.7) !important;
+    }
+
+html.dark-theme .form-switch .form-check-input {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: 3px solid silver !important;
+}
+
+    html.dark-theme .form-switch .form-check-input:checked {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+    }
+
+html.dark-theme .form-check-input {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: 3px solid silver !important;
+}
+
+    html.dark-theme .form-check-input:checked {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+    }
+
+html.dark-theme .add-question-btn {
+    background: linear-gradient(135deg, #28a745, #218838) !important;
+    color: white !important;
+}
+
+    html.dark-theme .add-question-btn:hover {
+        background: linear-gradient(135deg, #218838, #1e7e34) !important;
+    }
+
+html.dark-theme .save-quiz-btn {
+    background: linear-gradient(135deg, #007bff, #0056b3) !important;
+    color: white !important;
+}
+
+    html.dark-theme .save-quiz-btn:hover {
+        background: linear-gradient(135deg, #0056b3, #004085) !important;
+    }
+
+html.dark-theme .delete-quiz-btn {
+    background: linear-gradient(135deg, #dc3545, #c82333) !important;
+    color: white !important;
+}
+
+    html.dark-theme .delete-quiz-btn:hover {
+        background: linear-gradient(135deg, #c82333, #bd2130) !important;
+    }
+
+html.dark-theme .btn-3d-primary {
+    background: linear-gradient(to bottom, #0d6efd, #0b5ed7) !important;
+    color: white !important;
+}
+
+    html.dark-theme .btn-3d-primary:hover:not(:active) {
+        background: linear-gradient(to bottom, #0b5ed7, #0a53be) !important;
+    }
+
+    html.dark-theme .btn-3d-primary:active {
+        background: linear-gradient(to bottom, #0a53be, #084298) !important;
+    }
+
+html.dark-theme .btn-3d-success {
+    background: linear-gradient(to bottom, #198754, #157347) !important;
+    color: white !important;
+}
+
+    html.dark-theme .btn-3d-success:hover:not(:active) {
+        background: linear-gradient(to bottom, #157347, #146c43) !important;
+    }
+
+    html.dark-theme .btn-3d-success:active {
+        background: linear-gradient(to bottom, #146c43, #12643f) !important;
+    }
+
+html.dark-theme .btn-3d-danger {
+    background: linear-gradient(to bottom, #dc3545, #bb2d3b) !important;
+    color: white !important;
+}
+
+    html.dark-theme .btn-3d-danger:hover:not(:active) {
+        background: linear-gradient(to bottom, #bb2d3b, #a92734) !important;
+    }
+
+    html.dark-theme .btn-3d-danger:active {
+        background: linear-gradient(to bottom, #a92734, #98222d) !important;
+    }
+
+html.dark-theme .nav-btn {
+    background: rgba(50, 50, 50, 0.7) !important;
+    color: silver !important;
+}
+
+    html.dark-theme .nav-btn:hover {
+        background: rgba(70, 70, 70, 0.8) !important;
+    }
+
+html.dark-theme .question-card-content {
+    color: silver !important;
+}
+
+html.dark-theme .btn-spinner-up,
+html.dark-theme .btn-spinner-down {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+    html.dark-theme .btn-spinner-up:hover,
+    html.dark-theme .btn-spinner-down:hover {
+        background-color: rgba(50, 50, 50, 0.7) !important;
+    }

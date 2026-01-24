@@ -241,3 +241,73 @@
     color: #666;
     cursor: not-allowed;
 }
+
+/* Dark theme styles for Room Results page */
+html.dark-theme .hanging-container {
+    color: silver !important;
+}
+
+html.dark-theme .hanging-content {
+    background: linear-gradient(135deg, #2a5a8c, #1a3d6d) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .hanging-content h3 {
+    color: silver !important;
+}
+
+html.dark-theme .card-3d-raised,
+html.dark-theme .card-3d-raised .card-body {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: 3px solid silver !important;
+    color: silver !important;
+}
+
+html.dark-theme .table-3d {
+    color: silver !important;
+}
+
+html.dark-theme .table-3d th {
+    color: silver !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark-theme .table-3d td {
+    color: silver !important;
+    border-color: silver !important;
+}
+
+html.dark-theme .btn-3d {
+    background: linear-gradient(135deg, #2a5a8c, #1a3d6d) !important;
+    border: 3px solid silver !important;
+    color: white !important;
+}
+
+html.dark-theme .btn-3d:hover {
+    background: linear-gradient(135deg, #1a4a7c, #0a2d5d) !important;
+}
+
+html.dark-theme .pagination .page-link {
+    background: linear-gradient(135deg, #2a5a8c, #1a3d6d) !important;
+    border: 3px solid silver !important;
+    color: white !important;
+}
+
+html.dark-theme .pagination .page-link:hover {
+    background: linear-gradient(135deg, #1a4a7c, #0a2d5d) !important;
+}
+
+html.dark-theme .pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #0a2d5d, #081a3a) !important;
+}
+
+html.dark-theme .pagination .page-item.disabled .page-link {
+    background: #444 !important;
+    color: #999 !important;
+}
+
+html.dark-theme .badge-room-rank {
+    background-color: #4a90e2 !important;
+    color: white !important;
+}

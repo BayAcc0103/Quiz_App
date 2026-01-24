@@ -154,6 +154,70 @@ input.form-control-join:focus {
     }
 }
 
+/* Dark theme styles for Teacher Profile page */
+html.dark-theme .hanging-container {
+    color: silver !important;
+}
+
+html.dark-theme .hanging-content {
+    background: linear-gradient(135deg, #2a5a8c, #1a3d6d) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .hanging-content h3 {
+    color: silver !important;
+}
+
+html.dark-theme .card-3d-raised,
+html.dark-theme .card-3d-raised .card-body {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: 3px solid silver !important;
+    color: silver !important;
+}
+
+html.dark-theme .form-control-join {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .form-control-lg {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .form-label {
+    color: silver !important;
+}
+
+html.dark-theme .form-text {
+    color: silver !important;
+}
+
+html.dark-theme .alert {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .btn-3d {
+    background-color: #0d6efd !important;
+    border: 3px solid silver !important;
+    color: white !important;
+}
+
+html.dark-theme .btn-3d:hover {
+    background-color: #0b5ed7 !important;
+}
+
+html.dark-theme .form-control-join:disabled {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    color: #aaa !important;
+    border-color: #666 !important;
+}
+
 .avatar-container {
     position: relative;
     overflow: hidden;

@@ -479,3 +479,154 @@ textarea#roomDescription:focus {
         box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.75), 0px 0px 0px rgba(0, 0, 0, 0.3) !important;
     }
 }
+
+/* Dark theme styles for Teacher Create Room page */
+html.dark-theme .hanging-container {
+    color: silver !important;
+}
+
+html.dark-theme .hanging-content {
+    background: linear-gradient(135deg, #2a5a8c, #1a3d6d) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .hanging-content h3 {
+    color: silver !important;
+}
+
+html.dark-theme .card-3d-raised,
+html.dark-theme .card-3d-raised-right,
+html.dark-theme .card-3d-raised .card-body,
+html.dark-theme .card-3d-raised-right .card-body {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: 3px solid silver !important;
+    color: silver !important;
+}
+
+html.dark-theme .form-control {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .form-control-right {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .form-label {
+    color: silver !important;
+}
+
+html.dark-theme .form-text {
+    color: silver !important;
+}
+
+html.dark-theme .alert {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .alert-success {
+    background-color: rgba(40, 167, 69, 0.2) !important;
+    border: 3px solid silver !important;
+    color: #d4edda !important;
+}
+
+html.dark-theme .btn-3d-primary {
+    background-color: #0d6efd !important;
+    border: 3px solid silver !important;
+    color: white !important;
+}
+
+html.dark-theme .btn-3d-primary:hover {
+    background-color: #0b5ed7 !important;
+}
+
+html.dark-theme .btn-3d-secondary {
+    background-color: #6c757d !important;
+    border: 3px solid silver !important;
+    color: white !important;
+}
+
+html.dark-theme .btn-3d-secondary:hover {
+    background-color: #5c636a !important;
+}
+
+html.dark-theme .btn-3d-primary-style {
+    background-color: #0d6efd !important;
+    border: 3px solid silver !important;
+    color: white !important;
+}
+
+html.dark-theme .btn-3d-primary-style:hover {
+    background-color: #0b5ed7 !important;
+}
+
+html.dark-theme .btn-3d-primary-style-no-radius {
+    background-color: #0d6efd !important;
+    border: 3px solid silver !important;
+    color: white !important;
+}
+
+html.dark-theme .btn-3d-primary-style-no-radius:hover {
+    background-color: #0b5ed7 !important;
+}
+
+html.dark-theme .btn-3d-clear-style {
+    background-color: #dc3545 !important;
+    border: 3px solid silver !important;
+    color: white !important;
+}
+
+html.dark-theme .btn-3d-clear-style:hover {
+    background-color: #bb2d3b !important;
+}
+
+html.dark-theme .btn-spinner-up {
+    background-color: #0d6efd !important;
+    border: 3px solid silver !important;
+    color: white !important;
+}
+
+html.dark-theme .btn-spinner-down {
+    background-color: #dc3545 !important;
+    border: 3px solid silver !important;
+    color: white !important;
+}
+
+html.dark-theme .selected-quiz-container {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: 3px solid silver !important;
+    color: silver !important;
+}
+
+html.dark-theme .quiz-title h5 {
+    color: silver !important;
+}
+
+html.dark-theme .quiz-detail-card {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border: 2px solid silver !important;
+    color: silver !important;
+}
+
+html.dark-theme .detail-value {
+    color: silver !important;
+}
+
+html.dark-theme .detail-label {
+    color: #ccc !important;
+}
+
+html.dark-theme .quiz-image-placeholder {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border: 2px solid silver !important;
+}
+
+html.dark-theme .quiz-placeholder-icon {
+    color: #aaa !important;
+}

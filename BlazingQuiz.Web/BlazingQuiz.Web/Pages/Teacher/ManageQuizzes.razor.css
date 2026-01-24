@@ -382,3 +382,106 @@
     font-style: italic;
     border-left: 3px solid #17a2b8;
 }
+
+/* Dark theme styles for Manage Quizzes page */
+html.dark-theme .hanging-container {
+    color: silver !important;
+}
+
+html.dark-theme .hanging-content {
+    background: linear-gradient(135deg, #2a5a8c, #1a3d6d) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .hanging-content h3 {
+    color: silver !important;
+}
+    html.dark-theme h3 {
+        color: silver !important;
+    }
+html.dark-theme .form-label {
+    color: silver !important;
+}
+html.dark-theme .quiz-card-3d,
+html.dark-theme .quiz-card-3d .card-body {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: 3px solid silver !important;
+    color: silver !important;
+}
+
+html.dark-theme .quiz-card-3d .card-title {
+    color: silver !important;
+}
+
+html.dark-theme .quiz-placeholder {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border: 1px dashed #666 !important;
+    color: #aaa !important;
+}
+
+html.dark-theme .mini-detail-card {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid rgba(200, 200, 200, 0.2) !important;
+    color: silver !important;
+}
+
+html.dark-theme .mini-detail-value {
+    color: silver !important;
+}
+
+html.dark-theme .mini-detail-label {
+    color: #ccc !important;
+}
+
+html.dark-theme .quiz-categories-section h6 {
+    color: silver !important;
+}
+
+html.dark-theme .btn-3d {
+    border: 3px solid silver !important;
+    color: white !important;
+}
+
+html.dark-theme .btn-3d-primary {
+    background: linear-gradient(to bottom, #0d6efd, #0b5ed7) !important;
+}
+
+html.dark-theme .btn-3d-info {
+    background: linear-gradient(to bottom, #17a2b8, #138496) !important;
+}
+
+html.dark-theme .btn-3d-success {
+    background: linear-gradient(to bottom, #28a745, #218838) !important;
+}
+
+html.dark-theme .btn-3d-warning {
+    background: linear-gradient(to bottom, #ffc107, #e0a800) !important;
+    color: #212529 !important;
+}
+
+html.dark-theme .btn-3d-secondary {
+    background: linear-gradient(to bottom, #6c757d, #5a6268) !important;
+}
+
+html.dark-theme .form-control {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .question-container {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid rgba(200, 200, 200, 0.2) !important;
+    border-left: 4px solid #007bff !important;
+}
+
+html.dark-theme .question-text {
+    color: silver !important;
+}
+
+html.dark-theme .answer-explanation {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border-left: 3px solid #17a2b8 !important;
+    color: #ccc !important;
+}

@@ -239,3 +239,77 @@
     font-size: 1.25rem;
     margin-bottom: 1rem;
 }
+
+/* Dark theme styles for Bookmarks page */
+html.dark-theme .quiz-card-3d,
+html.dark-theme .quiz-card-3d .card-body {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: 3px solid silver !important;
+    color: silver !important;
+}
+
+html.dark-theme .quiz-content {
+    color: silver !important;
+}
+
+html.dark-theme .stat-value {
+    color: silver !important;
+}
+
+html.dark-theme .stat-label {
+    color: #ccc !important;
+}
+
+html.dark-theme .quiz-stats {
+    border-top: 1px solid rgba(200, 200, 200, 0.2) !important;
+}
+
+html.dark-theme .btn-3d {
+    border: 3px solid silver !important;
+    color: white !important;
+}
+
+html.dark-theme .btn-3d-primary {
+    background: linear-gradient(to bottom, #0d6efd, #0b5ed7) !important;
+}
+
+html.dark-theme .btn-3d-info {
+    background: linear-gradient(to bottom, #17a2b8, #138496) !important;
+}
+
+html.dark-theme .btn-3d-success {
+    background: linear-gradient(to bottom, #28a745, #218838) !important;
+}
+
+html.dark-theme .btn-3d-warning {
+    background: linear-gradient(to bottom, #ffc107, #e0a800) !important;
+    color: #212529 !important;
+}
+
+html.dark-theme .empty-state {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: 1px solid silver !important;
+    color: silver !important;
+}
+
+html.dark-theme .empty-state h5 {
+    color: silver !important;
+}
+
+html.dark-theme .welcome-title {
+    color: silver !important;
+}
+
+html.dark-theme .btn-bookmark {
+    background: rgba(0, 0, 0, 0.5) !important;
+    color: silver !important;
+}
+
+html.dark-theme .btn-bookmark:hover {
+    background: rgba(50, 50, 50, 0.7) !important;
+}
+
+html.dark-theme .btn-bookmark.bookmarked {
+    background: rgba(255, 193, 7, 0.2) !important;
+    color: gold !important;
+}

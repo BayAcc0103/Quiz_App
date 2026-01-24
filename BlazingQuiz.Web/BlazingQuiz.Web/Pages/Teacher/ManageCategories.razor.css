@@ -416,3 +416,124 @@
     transform: translateY(2px);
     box-shadow: 0 0 0 0 #a71e2a, 0 1px 3px rgba(0, 0, 0, 0.2);
 }
+
+/* Dark theme styles for Manage Categories page */
+html.dark-theme .hanging-container {
+    color: silver !important;
+}
+
+html.dark-theme .hanging-content {
+    background: linear-gradient(135deg, #2a5a8c, #1a3d6d) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .hanging-content h3 {
+    color: silver !important;
+}
+html.dark-theme h3 {
+    color: silver !important;
+}
+html.dark-theme .form-check-label, html.dark-theme .form-label {
+    color: silver !important;
+}
+html.dark-theme .category-card-3d,
+html.dark-theme .category-card-3d .card-body {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: 3px solid silver !important;
+    color: silver !important;
+}
+
+html.dark-theme .category-card-3d .card-title {
+    color: silver !important;
+}
+
+html.dark-theme .category-card-3d .category-placeholder {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border: 1px dashed #666 !important;
+}
+
+html.dark-theme .btn-delete-x {
+    background: linear-gradient(to bottom, #dc3545, #bb2d3b) !important;
+    color: white !important;
+}
+
+html.dark-theme .btn-delete-x:hover {
+    background: linear-gradient(to bottom, #bb2d3b, #a92734) !important;
+}
+
+html.dark-theme .btn-edit-pencil {
+    background: linear-gradient(to bottom, #0d6efd, #0b5ed7) !important;
+    color: white !important;
+}
+
+html.dark-theme .btn-edit-pencil:hover {
+    background: linear-gradient(to bottom, #0b5ed7, #0a53be) !important;
+}
+
+html.dark-theme .pagination .page-link {
+    background: linear-gradient(to bottom, #2a2a2a, #1a1a1a) !important;
+    border: 3px solid silver !important;
+    color: white !important;
+}
+
+html.dark-theme .pagination .page-link:hover {
+    background: linear-gradient(to bottom, #3a3a3a, #2a2a2a) !important;
+}
+
+html.dark-theme .pagination .page-item.active .page-link {
+    background: linear-gradient(to bottom, #0d6efd, #0b5ed7) !important;
+    color: white !important;
+}
+
+html.dark-theme .pagination .page-item.active .page-link:hover {
+    background: linear-gradient(to bottom, #0b5ed7, #0a53be) !important;
+}
+
+html.dark-theme .pagination .page-item.disabled .page-link {
+    background: linear-gradient(to bottom, #333, #222) !important;
+    color: #999 !important;
+}
+
+html.dark-theme .form-select {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .form-control {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: silver !important;
+    border: 3px solid silver !important;
+}
+
+html.dark-theme .file-upload-btn {
+    background: linear-gradient(to bottom, #0d6efd, #0b5ed7) !important;
+    border: 3px solid silver !important;
+    color: white !important;
+}
+
+html.dark-theme .file-upload-btn:hover {
+    background: linear-gradient(to bottom, #0b5ed7, #0a53be) !important;
+}
+
+html.dark-theme .form-card-3d,
+html.dark-theme .form-card-3d .card-body {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: 3px solid silver !important;
+    color: silver !important;
+}
+
+html.dark-theme .form-check-input {
+    border: 3px solid silver !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+html.dark-theme .btn-remove-image {
+    background: linear-gradient(to bottom, #dc3545, #bb2d3b) !important;
+    color: white !important;
+}
+
+html.dark-theme .btn-remove-image:hover {
+    background: linear-gradient(to bottom, #bb2d3b, #a92734) !important;
+}

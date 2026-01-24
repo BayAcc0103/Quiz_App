@@ -222,3 +222,93 @@
     'GRAD' 0,
     'opsz' 24
 }
+
+/* Dark theme styles for Teacher Home page */
+html.dark-theme .dashboard-card-3d,
+html.dark-theme .dashboard-card-3d .card-body {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: 3px solid silver !important;
+    color: silver !important;
+}
+html.dark-theme h1 {
+    color: silver !important;
+}
+html.dark-theme .dashboard-card-3d .card-header {
+    background: linear-gradient(135deg, #2a5a8c, #1a3d6d) !important;
+    color: silver !important;
+    border-bottom: 3px solid silver !important;
+}
+
+html.dark-theme .dashboard-card-3d .card-value {
+    color: #6ea8fe !important;
+}
+
+html.dark-theme .dashboard-card-3d .card-subvalue {
+    color: #ccc !important;
+}
+
+html.dark-theme .dashboard-card-3d hr {
+    border-top: 1px solid rgba(200, 200, 200, 0.2) !important;
+}
+
+html.dark-theme .notification-card-3d,
+html.dark-theme .notification-card-3d .card-body {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: 3px solid silver !important;
+    color: silver !important;
+}
+
+html.dark-theme .notification-card-3d .card-header {
+    background: linear-gradient(135deg, #1a6d2d, #155a25) !important;
+    color: silver !important;
+    border-bottom: 3px solid silver !important;
+}
+
+html.dark-theme .notification-list-item {
+    border-bottom: 1px solid rgba(200, 200, 200, 0.2) !important;
+}
+
+html.dark-theme .notification-list-item.bg-light {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark-theme .notification-list-item.bg-white {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+html.dark-theme .notification-list-item:hover {
+    background-color: rgba(50, 50, 50, 0.7) !important;
+}
+
+html.dark-theme .notification-content {
+    color: silver !important;
+}
+
+html.dark-theme .notification-date {
+    color: #aaa !important;
+}
+
+html.dark-theme .badge-3d {
+    border: 2px solid silver !important;
+    color: white !important;
+}
+
+html.dark-theme .btn-3d {
+    background: linear-gradient(to bottom, #0d6efd, #0b5ed7) !important;
+    border: 3px solid silver !important;
+    color: white !important;
+}
+
+html.dark-theme .btn-3d:hover {
+    background: linear-gradient(to bottom, #0b5ed7, #0a53be) !important;
+}
+
+html.dark-theme .btn-outline-3d {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: 3px solid silver !important;
+    color: silver !important;
+}
+
+html.dark-theme .btn-outline-3d:hover {
+    background-color: rgba(50, 50, 50, 0.7) !important;
+}
