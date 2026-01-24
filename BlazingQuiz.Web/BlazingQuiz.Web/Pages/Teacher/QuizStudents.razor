@@ -21,17 +21,29 @@
                 <div class="rope right-rope"></div>
             </div>
 
-            <!-- Tabs -->
-            <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="individual-tab" data-bs-toggle="tab" data-bs-target="#individual" 
-                            type="button" role="tab" aria-controls="individual" aria-selected="true">Individual Attempts</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="room-tab" data-bs-toggle="tab" data-bs-target="#room" 
-                            type="button" role="tab" aria-controls="room" aria-selected="false">Room Attempts</button>
-                </li>
-            </ul>
+            <!-- 3D Tabs -->
+            <div class="tabs-3d-container">
+                <ul class="nav nav-tabs mb-3 tabs-3d" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link tab-3d active" id="individual-tab" data-bs-toggle="tab" data-bs-target="#individual"
+                                type="button" role="tab" aria-controls="individual" aria-selected="true">
+                            <span class="tab-content-wrapper">
+                                <span class="tab-icon material-symbols-outlined">person</span>
+                                <span class="tab-text">Individual Attempts</span>
+                            </span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link tab-3d" id="room-tab" data-bs-toggle="tab" data-bs-target="#room"
+                                type="button" role="tab" aria-controls="room" aria-selected="false">
+                            <span class="tab-content-wrapper">
+                                <span class="tab-icon material-symbols-outlined">meeting_room</span>
+                                <span class="tab-text">Room Attempts</span>
+                            </span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
 
             <div class="tab-content" id="myTabContent">
                 <!-- Individual Attempts Tab -->
