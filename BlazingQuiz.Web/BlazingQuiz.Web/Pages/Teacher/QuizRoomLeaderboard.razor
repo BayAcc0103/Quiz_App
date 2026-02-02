@@ -52,63 +52,18 @@
                         <!-- Top 3 Players Cards -->
                         @if (leaderboard.Any())
                         {
-                            <!-- First Place Card (Top Center) -->
-                            @if (leaderboard.Count >= 1)
-                            {
-                                var firstPlace = leaderboard[0];
-                                <div class="row mb-4">
-                                    <div class="col-md-6 offset-md-3">
-                                        <div class="hanging-container">
-                                            <div class="hanging-content">1st</div>
-                                            <div class="rope"></div>
-                                        </div>
-                                        <div class="card first-place-card text-center p-4 leaderboard-card">
-                                            <div class="mt-3">
-                                                <div class="d-flex justify-content-center">
-                                                    @if (!string.IsNullOrEmpty(firstPlace.StudentAvatarPath))
-                                                    {
-                                                        <img src="@firstPlace.StudentAvatarPath" alt="Avatar" class="rounded-circle border border-3 border-white" style="width: 80px; height: 80px; object-fit: cover;" />
-                                                    }
-                                                    else
-                                                    {
-                                                        <div class="bg-secondary rounded-circle border border-3 border-white d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                                                            <span class="text-white fs-3">@firstPlace.StudentName.Substring(0, 1).ToUpper()</span>
-                                                        </div>
-                                                    }
-                                                </div>
-                                                <h4 class="mt-3 mb-1 text-dark player-name">@firstPlace.StudentName</h4>
-                                                <div class="d-flex justify-content-center gap-3">
-                                                    <span class="badge bg-dark fs-5 score-badge">@firstPlace.Total điểm</span>
-                                                    <span class="medal-icon">🏆</span>
-                                                    <span class="badge bg-info fs-6">Nhất</span>
-                                                </div>
-                                                <div class="mt-2">
-                                                    @if (firstPlace.CompletionTime.HasValue)
-                                                    {
-                                                        <small class="text-dark">Thời gian: @firstPlace.CompletionTime.Value.ToString(@"mm\:ss")</small>
-                                                    }
-                                                    else
-                                                    {
-                                                        <small class="text-dark"><em>N/A</em></small>
-                                                    }
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-
-                            <!-- Second and Third Place Cards (Side by Side) -->
+                            <!-- First, Second, and Third Place Cards in 3 Column Layout with Bottom Alignment -->
                             <div class="row mb-4">
+                                <!-- Second Place (Left Column) -->
                                 @if (leaderboard.Count >= 2)
                                 {
                                     var secondPlace = leaderboard[1];
-                                    <div class="col-md-6 mb-3 mb-md-0">
-                                        <div class="hanging-container">
-                                            <div class="hanging-content">2nd</div>
-                                            <div class="rope"></div>
-                                        </div>
-                                        <div class="card second-place-card text-center p-3 leaderboard-card">
+                                    <div class="col-md-4 mb-3 mb-md-0 d-flex align-items-end">
+                                        <div class="card second-place-card text-center p-3 leaderboard-card w-100">
+                                            <div class="hanging-container">
+                                                <div class="hanging-content">2nd</div>
+                                                <div class="rope"></div>
+                                            </div>
                                             <div class="mt-3">
                                                 <div class="d-flex justify-content-center">
                                                     @if (!string.IsNullOrEmpty(secondPlace.StudentAvatarPath))
@@ -143,15 +98,60 @@
                                     </div>
                                 }
 
+                                <!-- First Place (Center Column - Taller) -->
+                                @if (leaderboard.Count >= 1)
+                                {
+                                    var firstPlace = leaderboard[0];
+                                    <div class="col-md-4 mb-3 mb-md-0 d-flex align-items-end">
+                                        <div class="card first-place-card text-center p-4 leaderboard-card w-100">
+                                            <div class="hanging-container">
+                                                <div class="hanging-content">1st</div>
+                                                <div class="rope"></div>
+                                            </div>
+                                            <div class="mt-3">
+                                                <div class="d-flex justify-content-center">
+                                                    @if (!string.IsNullOrEmpty(firstPlace.StudentAvatarPath))
+                                                    {
+                                                        <img src="@firstPlace.StudentAvatarPath" alt="Avatar" class="rounded-circle border border-3 border-white" style="width: 80px; height: 80px; object-fit: cover;" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="bg-secondary rounded-circle border border-3 border-white d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                                            <span class="text-white fs-3">@firstPlace.StudentName.Substring(0, 1).ToUpper()</span>
+                                                        </div>
+                                                    }
+                                                </div>
+                                                <h4 class="mt-3 mb-1 text-dark player-name">@firstPlace.StudentName</h4>
+                                                <div class="d-flex justify-content-center gap-3">
+                                                    <span class="badge bg-dark fs-5 score-badge">@firstPlace.Total điểm</span>
+                                                    <span class="medal-icon">🏆</span>
+                                                    <span class="badge bg-info fs-6">Nhất</span>
+                                                </div>
+                                                <div class="mt-2">
+                                                    @if (firstPlace.CompletionTime.HasValue)
+                                                    {
+                                                        <small class="text-dark">Thời gian: @firstPlace.CompletionTime.Value.ToString(@"mm\:ss")</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <small class="text-dark"><em>N/A</em></small>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+
+                                <!-- Third Place (Right Column) -->
                                 @if (leaderboard.Count >= 3)
                                 {
                                     var thirdPlace = leaderboard[2];
-                                    <div class="col-md-6">
-                                        <div class="hanging-container">
-                                            <div class="hanging-content">3rd</div>
-                                            <div class="rope"></div>
-                                        </div>
-                                        <div class="card third-place-card text-center p-3 leaderboard-card">
+                                    <div class="col-md-4 mb-3 mb-md-0 d-flex align-items-end">
+                                        <div class="card third-place-card text-center p-3 leaderboard-card w-100">
+                                            <div class="hanging-container">
+                                                <div class="hanging-content">3rd</div>
+                                                <div class="rope"></div>
+                                            </div>
                                             <div class="mt-3">
                                                 <div class="d-flex justify-content-center">
                                                     @if (!string.IsNullOrEmpty(thirdPlace.StudentAvatarPath))
