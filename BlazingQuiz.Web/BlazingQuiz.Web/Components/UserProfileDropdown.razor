@@ -7,18 +7,18 @@
 @inject NavigationManager NavigationManager
 @inject ProfileUpdateService ProfileUpdateService
 
-<div class="dropdown user-profile-dropdown">
-    <div class="d-flex align-items-center py-0 gap-2" type="button" id="profileDropdown" aria-expanded="false">
+<div class="user-profile-dropdown" @onclick="NavigateToProfile">
+    <div class="d-flex align-items-center py-0 gap-2">
         @if (!string.IsNullOrEmpty(_userDto?.AvatarPath))
         {
-            <img src="@UserAvatarService.GetImageUrl(_userDto.AvatarPath)" 
-                 alt="Avatar" 
+            <img src="@UserAvatarService.GetImageUrl(_userDto.AvatarPath)"
+                 alt="Avatar"
                  class="rounded-circle" />
         }
         else
         {
-            <img src="@UserAvatarService.GetImageUrl("images/user-avatars/default-avatar.svg")" 
-                 alt="Default Avatar" 
+            <img src="@UserAvatarService.GetImageUrl("images/user-avatars/default-avatar.svg")"
+                 alt="Default Avatar"
                  class="rounded-circle" />
         }
         <span class="text-black">@QuizAuthStateProvider.User?.Name</span>
@@ -71,6 +71,11 @@
             "admin" => "/admin/profile", // Assuming admin profile exists
             _ => "/auth/login"
         };
+    }
+
+    private void NavigateToProfile()
+    {
+        NavigationManager.NavigateTo(GetProfileUrl());
     }
 
     public void Dispose()

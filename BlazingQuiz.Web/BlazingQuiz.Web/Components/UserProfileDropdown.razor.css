@@ -2,14 +2,25 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white background */
+    backdrop-filter: blur(10px); /* Glassmorphism effect */
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle border */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+}
+
+.user-profile-dropdown:hover {
+    background-color: rgba(255, 255, 255, 0.3); /* More opaque on hover */
+    transform: translateY(-1px); /* Slight lift effect */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Stronger shadow on hover */
 }
 
 .user-profile-dropdown img {
     width: 32px;
     height: 32px;
     object-fit: cover;
-}
-
-.user-profile-dropdown .dropdown-toggle::after {
-    margin-left: 0.5rem;
+    border: 2px solid rgba(255, 255, 255, 0.5); /* Border around avatar */
 }
