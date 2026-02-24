@@ -320,6 +320,40 @@ a.category-item.card-3d-raised.card-light {
 
 /* Mobile-specific responsive styles for Student Home */
 @media (max-width: 576px) {
+    .student-home-background .container-fluid {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .category-section {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .category-section .card-3d-raised.card-light {
+        border-radius: 0 !important;
+        margin: 0 !important;
+    }
+
+    .category-section .card-body {
+        padding: 0.5rem !important;
+    }
+
+    .row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+    }
+
+    .col, .col-3, .col-4 {
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+    }
+
     .create-room, .join-room{
         height: 150px;
         width: 150px;
@@ -403,6 +437,159 @@ a.category-item.card-3d-raised.card-light {
     padding: 12px 6px;
 }
 
+/* Desktop-specific scaling - reduce component sizes */
+@media (min-width: 768px) {
+    /* Reduce category item size for 7 per row */
+    .category-item {
+        height: 100px;
+        padding: 6px 2px;
+    }
+
+    .category-image {
+        width: 45px;
+        height: 45px;
+    }
+
+    .category-placeholder {
+        width: 40px;
+        height: 40px;
+    }
+
+    .category-name {
+        font-size: 0.7rem;
+    }
+
+    .toggle-button {
+        height: 35px;
+        width: 35px;
+    }
+
+    /* Reduce room card images */
+    .create-room, .join-room {
+        height: 120px;
+        width: 120px;
+    }
+
+    /* Reduce hero section card padding */
+    .card-body {
+        padding: 0.75rem !important;
+    }
+
+    /* Reduce hero section headings */
+    .card-body h4 {
+        font-size: 0.95rem;
+    }
+
+    /* Reduce search input size */
+    .form-control-lg {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem !important;
+    }
+
+    /* Reduce section titles */
+    h1, h2, h3 {
+        font-size: 1.2rem;
+    }
+
+    /* 7 categories per row on desktop */
+    .col-lg-1 {
+        flex: 0 0 14.285714% !important;
+        max-width: 14.285714% !important;
+    }
+}
+
+/* Larger desktop - further reduce sizes */
+@media (min-width: 1200px) {
+    .category-item {
+        height: 90px;
+        padding: 5px 2px;
+    }
+
+    .category-image {
+        width: 40px;
+        height: 40px;
+    }
+
+    .category-placeholder {
+        width: 35px;
+        height: 35px;
+    }
+
+    .category-name {
+        font-size: 0.65rem;
+    }
+
+    .toggle-button {
+        height: 30px;
+        width: 30px;
+    }
+
+    .create-room, .join-room {
+        height: 100px;
+        width: 100px;
+    }
+
+    .card-body h4 {
+        font-size: 0.9rem;
+    }
+
+    h1, h2, h3 {
+        font-size: 1.1rem;
+    }
+
+    /* 7 categories per row on larger desktop */
+    .col-lg-1 {
+        flex: 0 0 14.285714% !important;
+        max-width: 14.285714% !important;
+    }
+}
+
+/* Extra large desktop - even smaller components */
+@media (min-width: 1600px) {
+    .category-item {
+        height: 85px;
+        padding: 4px 2px;
+    }
+
+    .category-image {
+        width: 38px;
+        height: 38px;
+    }
+
+    .category-placeholder {
+        width: 33px;
+        height: 33px;
+    }
+
+    .category-name {
+        font-size: 0.6rem;
+    }
+
+    .toggle-button {
+        height: 28px;
+        width: 28px;
+    }
+
+    .create-room, .join-room {
+        height: 90px;
+        width: 90px;
+    }
+
+    .card-body h4 {
+        font-size: 0.85rem;
+    }
+
+    h1, h2, h3 {
+        font-size: 1rem;
+    }
+
+    /* 7 categories per row on extra large desktop */
+    .col-lg-1 {
+        flex: 0 0 14.285714% !important;
+        max-width: 14.285714% !important;
+    }
+}
+
 .student-home-background {
     position: relative;
     overflow: hidden;
@@ -421,6 +608,93 @@ a.category-item.card-3d-raised.card-light {
     background-repeat: no-repeat;
     background-attachment: fixed;
     z-index: -1;
+}
+
+/* Desktop - constrain main container width and reduce overall layout size */
+@media (min-width: 768px) {
+    .student-home-background .container-fluid {
+        max-width: 90% !important;
+        margin: 0 auto;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    .category-section {
+        max-width: 95% !important;
+        margin: 0 auto 1rem auto !important;
+    }
+
+    /* Reduce spacing between sections */
+    .mb-3 {
+        margin-bottom: 0.75rem !important;
+    }
+
+    .mb-2 {
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Reduce padding on sections */
+    .px-2 {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    .px-3 {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+
+    /* Reduce hero section spacing */
+    .row.mb-3.px-3 {
+        max-width: 95% !important;
+        margin: 0 auto 0.75rem auto !important;
+    }
+
+    /* Reduce quiz section margins */
+    .quiz-slider-container {
+        margin: 1rem 0 !important;
+        max-width: 95% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+}
+
+/* Larger desktop - further constrain layout */
+@media (min-width: 1200px) {
+    .student-home-background .container-fluid {
+        max-width: 85% !important;
+    }
+
+    .category-section {
+        max-width: 90% !important;
+    }
+
+    .row.mb-3.px-3 {
+        max-width: 90% !important;
+    }
+
+    .quiz-slider-container {
+        max-width: 90% !important;
+    }
+}
+
+/* Extra large desktop - even more constrained */
+@media (min-width: 1600px) {
+    .student-home-background .container-fluid {
+        max-width: 75% !important;
+    }
+
+    .category-section {
+        max-width: 85% !important;
+    }
+
+    .row.mb-3.px-3 {
+        max-width: 85% !important;
+    }
+
+    .quiz-slider-container {
+        max-width: 85% !important;
+    }
 }
 
 /* Animation for additional categories container */

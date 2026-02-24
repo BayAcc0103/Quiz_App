@@ -24,6 +24,10 @@
     justify-content: center;
 }
 
+.slide-quiz-container {
+    gap: 1.5rem !important;
+}
+
 .quiz-card-container {
     height: 100%;
     padding: 10px;
@@ -302,6 +306,183 @@
     }
 }
 
+/* Desktop - smaller quiz cards */
+@media (min-width: 768px) {
+    .quiz-slider-container {
+        padding: 0 30px;
+        margin: 1.5rem 0;
+    }
+
+    .quiz-card-container {
+        min-width: 240px !important;
+        max-width: 320px !important;
+        padding: 8px;
+    }
+
+    .quiz-image, .quiz-image-placeholder {
+        height: 120px;
+    }
+
+    .quiz-content {
+        padding: 1rem;
+    }
+
+    .quiz-content h5 {
+        font-size: 0.9rem;
+    }
+
+    .stat-value {
+        font-size: 0.95rem;
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+    }
+
+    .btn-3d {
+        padding: 6px 8px;
+        font-size: 0.8rem;
+    }
+
+    .slider-nav-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.1rem;
+    }
+
+    .btn-bookmark {
+        width: 38px;
+        height: 38px;
+        top: 15px;
+        right: 15px;
+    }
+
+    .level-badge {
+        top: 10px;
+        left: 10px;
+        margin: 0;
+    }
+
+        .level-badge .badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+        }
+}
+
+/* Larger desktop - even smaller components */
+@media (min-width: 1200px) {
+    .quiz-slider-container {
+        padding: 0 25px;
+        margin: 1.25rem 0;
+    }
+
+    .quiz-card-container {
+        min-width: 220px !important;
+        max-width: 300px !important;
+        padding: 6px;
+    }
+
+    .quiz-image, .quiz-image-placeholder {
+        height: 100px;
+    }
+
+    .quiz-content {
+        padding: 0.85rem;
+    }
+
+    .quiz-content h5 {
+        font-size: 0.85rem;
+    }
+
+    .stat-value {
+        font-size: 0.9rem;
+    }
+
+    .stat-label {
+        font-size: 0.65rem;
+    }
+
+    .btn-3d {
+        padding: 5px 6px;
+        font-size: 0.75rem;
+    }
+
+    .slider-nav-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .btn-bookmark {
+        width: 36px;
+        height: 36px;
+        top: 12px;
+        right: 12px;
+    }
+
+    .level-badge .badge {
+        font-size: 0.65rem;
+        padding: 0.15rem 0.4rem;
+    }
+}
+
+/* Extra large desktop - smallest components */
+@media (min-width: 1600px) {
+    .quiz-slider-container {
+        padding: 0 20px;
+        margin: 1rem 0;
+    }
+
+    .quiz-card-container {
+        min-width: 500px !important;
+        max-width: 580px !important;
+        padding: 5px;
+    }
+
+    .quiz-image, .quiz-image-placeholder {
+        height: 90px;
+    }
+
+    .quiz-content {
+        padding: 0.75rem;
+    }
+
+    .quiz-content h5 {
+        font-size: 0.8rem;
+    }
+
+    .stat-value {
+        font-size: 0.85rem;
+    }
+
+    .stat-label {
+        font-size: 0.6rem;
+    }
+
+    .btn-3d {
+        padding: 4px 5px;
+        font-size: 0.7rem;
+    }
+
+    .slider-nav-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 0.95rem;
+    }
+
+    .btn-bookmark {
+        width: 34px;
+        height: 34px;
+        top: 10px;
+        right: 10px;
+    }
+
+    .level-badge .badge {
+        font-size: 0.6rem;
+        padding: 0.1rem 0.35rem;
+    }
+}
+
 @media (max-width: 992px) {
     .quiz-slider-container {
         padding: 0 15px;
@@ -389,7 +570,20 @@
 
 @media (max-width: 576px) {
     .quiz-slider-container {
-        padding: 0 5px;
+        padding: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .quiz-slider {
+        padding: 10px 0;
+        width: 100%;
+    }
+
+    .slide {
+        width: 100%;
+        display: flex;
+        justify-content: center;
     }
 
     /* Adjust each quiz card to full width on mobile */
@@ -397,12 +591,16 @@
         width: 100% !important;
         min-width: 100% !important;
         max-width: 100% !important;
-        padding: 5px;
+        padding: 8px;
+        flex: 0 0 100% !important;
     }
 
-    /* Adjust the flex container to stack items vertically */
+    /* Adjust the flex container to span full width */
     .slide-quiz-container {
         flex-direction: column !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        gap: 0.5rem !important;
     }
 
     .slider-nav-btn {

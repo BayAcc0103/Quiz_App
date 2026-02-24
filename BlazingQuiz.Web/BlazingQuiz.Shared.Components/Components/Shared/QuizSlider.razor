@@ -21,10 +21,10 @@
             {
                 <div class="slide">
                     <div class="d-flex flex-nowrap gap-3 justify-content-center slide-quiz-container">
-                        @for (int j = 0; j < 3 && (i * 3 + j) < QuizList.Length; j++)
+                        @for (int j = 0; j < 4 && (i * 4 + j) < QuizList.Length; j++)
                         {
-                            var quiz = QuizList[i * 3 + j];
-                            <div class="quiz-card-container flex-shrink-0" style="flex: 1; min-width: 340px; max-width: 420px;">
+                            var quiz = QuizList[i * 4 + j];
+                            <div class="quiz-card-container flex-shrink-0" style="flex: 1; min-width: 240px; max-width: 320px;">
                                 <div class="quiz-card-3d position-relative h-100">
                                     <!-- Quiz level badge -->
                                     <div class="level-badge position-absolute top-0 start-0 m-3">
@@ -173,14 +173,14 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        // Calculate slides - 3 quizzes per slide on desktop, 1 for mobile
+        // Calculate slides - 4 quizzes per slide on desktop, 1 for mobile
         // For now, we will determine the screen size and set accordingly
         _slides.Clear();
 
-        // For now, default to 3 per slide - we'll adjust this later with JavaScript
-        for (int i = 0; i < QuizList.Length; i += 3)
+        // For now, default to 4 per slide - we'll adjust this later with JavaScript
+        for (int i = 0; i < QuizList.Length; i += 4)
         {
-            var slide = QuizList.Skip(i).Take(3).ToArray();
+            var slide = QuizList.Skip(i).Take(4).ToArray();
             _slides.Add(slide);
         }
 
@@ -211,7 +211,7 @@
     {
         _slides.Clear();
 
-        int quizzesPerSlide = windowWidth <= 576 ? 1 : 3;
+        int quizzesPerSlide = windowWidth <= 576 ? 1 : 4;
 
         for (int i = 0; i < QuizList.Length; i += quizzesPerSlide)
         {

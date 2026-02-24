@@ -22,15 +22,15 @@
                 <div class="card-body">
                     @if (_visibleCategories.Length > 0)
                     {
-                        <!-- First row: 4 categories -->
+                        <!-- First row: 7 categories -->
                         <div class="row mb-2">
                             @{
                                 var displayedCategories = 0;
-                                var maxFirstRow = Math.Min(4, _visibleCategories.Length);
+                                var maxFirstRow = Math.Min(7, _visibleCategories.Length);
                                 for (int i = 0; i < maxFirstRow; i++)
                                 {
                                     var category = _visibleCategories[i];
-                                    <div class="col-3 col-sm-3 col-md-3 col-lg-2">
+                                    <div class="col col-sm-3 col-md-3 col-lg-1">
                                         <div @onclick="() => OnCategoryClick(category)" class="category-item">
                                             <div class="d-flex flex-column align-items-center justify-content-center text-center">
                                                 @if (!string.IsNullOrEmpty(category.ImagePath))
@@ -52,57 +52,60 @@
                             }
                         </div>
 
-                        <!-- Second row: up to 3 categories + expand button -->
+                        <!-- Second row: remaining categories + expand button -->
                         var remainingCategories = _visibleCategories.Length - displayedCategories;
                         var showExpandButton = remainingCategories > 0 && !_categoriesExpanded;
 
-                        <div class="row">
-                            @for (int i = displayedCategories; i < Math.Min(displayedCategories + 3, _visibleCategories.Length); i++)
-                            {
-                                var category = _visibleCategories[i];
-                                <div class="col-4 col-sm-4 col-md-4 col-lg-2">
-                                    <div @onclick="() => OnCategoryClick(category)" class="category-item">
-                                        <div class="d-flex flex-column align-items-center justify-content-center text-center">
-                                            @if (!string.IsNullOrEmpty(category.ImagePath))
-                                            {
-                                                <img src="@CategoryImageService.GetImageUrl(category.ImagePath)" alt="@category.Name" class="category-image img-fluid rounded mb-2" />
-                                            }
-                                            else
-                                            {
-                                                <div class="category-placeholder rounded mb-2 d-flex align-items-center justify-content-center">
-                                                    <i class="bi bi-folder fs-3 text-muted"></i>
-                                                </div>
-                                            }
-                                            <div class="category-name">@category.Name</div>
+                        @if (showExpandButton)
+                        {
+                            <div class="row">
+                                @for (int i = displayedCategories; i < Math.Min(displayedCategories + 6, _visibleCategories.Length); i++)
+                                {
+                                    var category = _visibleCategories[i];
+                                    <div class="col col-sm-3 col-md-3 col-lg-1">
+                                        <div @onclick="() => OnCategoryClick(category)" class="category-item">
+                                            <div class="d-flex flex-column align-items-center justify-content-center text-center">
+                                                @if (!string.IsNullOrEmpty(category.ImagePath))
+                                                {
+                                                    <img src="@CategoryImageService.GetImageUrl(category.ImagePath)" alt="@category.Name" class="category-image img-fluid rounded mb-2" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="category-placeholder rounded mb-2 d-flex align-items-center justify-content-center">
+                                                        <i class="bi bi-folder fs-3 text-muted"></i>
+                                                    </div>
+                                                }
+                                                <div class="category-name">@category.Name</div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            }
+                                }
 
-                            @if (showExpandButton)
-                            {
-                                <div class="col-4 col-sm-4 col-md-4 col-lg-2">
-                                    <div class="toggle-button text-center d-flex flex-column justify-content-center align-items-center" @onclick="ToggleCategoryContainer">
-                                        <svg class="google-arrow-icon" style="width: 24px; height: 24px; color: #495057;" viewBox="0 0 24 24">
-                                            <path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z" />
-                                        </svg>
+                                @if (remainingCategories > 6)
+                                {
+                                    <div class="col col-sm-3 col-md-3 col-lg-1">
+                                        <div class="toggle-button text-center d-flex flex-column justify-content-center align-items-center" @onclick="ToggleCategoryContainer">
+                                            <svg class="google-arrow-icon" style="width: 24px; height: 24px; color: #495057;" viewBox="0 0 24 24">
+                                                <path fill="currentColor" d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z" />
+                                            </svg>
+                                        </div>
                                     </div>
-                                </div>
-                            }
-                        </div>
+                                }
+                            </div>
+                        }
 
                         <!-- Additional categories container that starts hidden -->
                         <div id="additional-categories"
                              class="additional-categories-container mt-2"
                              style="@( _categoriesExpanded ? "" : "display: none;")">
                             <!-- Row 3 -->
-                            @if (_categoriesExpanded && displayedCategories + 3 < _visibleCategories.Length)
+                            @if (_categoriesExpanded && displayedCategories + 7 < _visibleCategories.Length)
                             {
                                 <div class="row mb-2">
-                                    @for (int i = displayedCategories + 3; i < Math.Min(displayedCategories + 6, _visibleCategories.Length); i++)
+                                    @for (int i = displayedCategories; i < Math.Min(displayedCategories + 7, _visibleCategories.Length); i++)
                                     {
                                         var category = _visibleCategories[i];
-                                        <div class="col-4 col-sm-4 col-md-4 col-lg-2">
+                                        <div class="col col-sm-3 col-md-3 col-lg-1">
                                             <div @onclick="() => OnCategoryClick(category)" class="category-item">
                                                 <div class="d-flex flex-column align-items-center justify-content-center text-center">
                                                     @if (!string.IsNullOrEmpty(category.ImagePath))
@@ -124,13 +127,13 @@
                             }
 
                             <!-- Row 4 -->
-                            @if (_categoriesExpanded && displayedCategories + 6 < _visibleCategories.Length)
+                            @if (_categoriesExpanded && displayedCategories + 14 < _visibleCategories.Length)
                             {
                                 <div class="row mb-2">
-                                    @for (int i = displayedCategories + 6; i < Math.Min(displayedCategories + 9, _visibleCategories.Length); i++)
+                                    @for (int i = displayedCategories + 7; i < Math.Min(displayedCategories + 14, _visibleCategories.Length); i++)
                                     {
                                         var category = _visibleCategories[i];
-                                        <div class="col-4 col-sm-4 col-md-4 col-lg-2">
+                                        <div class="col col-sm-3 col-md-3 col-lg-1">
                                             <div @onclick="() => OnCategoryClick(category)" class="category-item">
                                                 <div class="d-flex flex-column align-items-center justify-content-center text-center">
                                                     @if (!string.IsNullOrEmpty(category.ImagePath))
@@ -152,13 +155,13 @@
                             }
 
                             <!-- Row 5 -->
-                            @if (_categoriesExpanded && displayedCategories + 9 < _visibleCategories.Length)
+                            @if (_categoriesExpanded && displayedCategories + 21 < _visibleCategories.Length)
                             {
                                 <div class="row">
-                                    @for (int i = displayedCategories + 9; i < Math.Min(displayedCategories + 12, _visibleCategories.Length); i++)
+                                    @for (int i = displayedCategories + 14; i < Math.Min(displayedCategories + 21, _visibleCategories.Length); i++)
                                     {
                                         var category = _visibleCategories[i];
-                                        <div class="col-4 col-sm-4 col-md-4 col-lg-2">
+                                        <div class="col col-sm-3 col-md-3 col-lg-1">
                                             <div @onclick="() => OnCategoryClick(category)" class="category-item">
                                                 <div class="d-flex flex-column align-items-center justify-content-center text-center">
                                                     @if (!string.IsNullOrEmpty(category.ImagePath))
@@ -177,10 +180,10 @@
                                         </div>
                                     }
 
-                                    @if (displayedCategories + 9 >= _visibleCategories.Length)
+                                    @if (displayedCategories + 14 >= _visibleCategories.Length)
                                     {
                                         <!-- See All button when all categories are shown -->
-                                        <div class="col-4 col-sm-4 col-md-4 col-lg-2">
+                                        <div class="col col-sm-3 col-md-3 col-lg-1">
                                             <a href="/student/categories" class="category-item card-3d-raised card-light d-flex align-items-center justify-content-center text-center text-decoration-none">
                                                 <div class="d-flex flex-column align-items-center justify-content-center">
                                                     <div class="see-all-icon mb-2">
@@ -194,7 +197,7 @@
                                 </div>
                             }
 
-                            @if (displayedCategories + 12 < _visibleCategories.Length)
+                            @if (displayedCategories + 21 < _visibleCategories.Length)
                             {
                                 <!-- See All button when more categories are available -->
                                 <div class="row mt-2">
