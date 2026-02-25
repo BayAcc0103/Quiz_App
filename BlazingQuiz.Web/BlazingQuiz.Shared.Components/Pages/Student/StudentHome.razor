@@ -16,8 +16,8 @@
 
 <div class="student-home-background">
     <div class="container-fluid px-0">
-        <!-- Category Section for Visible Categories -->
-        <div class="mb-3 category-section px-2">
+        <!-- Category Section for Visible Categories (Hidden on mobile) -->
+        <div class="mb-3 category-section px-2 d-none d-md-block">
             <div class="card card-3d-raised card-light">
                 <div class="card-body">
                     @if (_visibleCategories.Length > 0)
@@ -206,6 +206,92 @@
                                     </div>
                                 </div>
                             }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <p class="text-muted">No categories available at the moment.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Category Container (Only visible on mobile) -->
+        <div class="d-block d-md-none mb-3 px-2">
+            <div class="card card-3d-raised card-light">
+                <div class="card-body">
+                    @if (_visibleCategories.Length > 0)
+                    {
+                        <!-- Row 1: 3 categories -->
+                        <div class="row mb-2">
+                            @{
+                                var mobileDisplayedCategories = 0;
+                                var maxMobileFirstRow = Math.Min(3, _visibleCategories.Length);
+                                for (int i = 0; i < maxMobileFirstRow; i++)
+                                {
+                                    var category = _visibleCategories[i];
+                                    <div class="col-4">
+                                        <div @onclick="() => OnCategoryClick(category)" class="category-item mobile-category-item">
+                                            <div class="d-flex flex-column align-items-center justify-content-center text-center">
+                                                @if (!string.IsNullOrEmpty(category.ImagePath))
+                                                {
+                                                    <img src="@CategoryImageService.GetImageUrl(category.ImagePath)" alt="@category.Name" class="category-image mobile-category-image rounded mb-2" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="category-placeholder mobile-category-placeholder rounded mb-2 d-flex align-items-center justify-content-center">
+                                                        <i class="bi bi-folder fs-3 text-muted"></i>
+                                                    </div>
+                                                }
+                                                <div class="category-name mobile-category-name">@category.Name</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    mobileDisplayedCategories++;
+                                }
+                            }
+                        </div>
+
+                        <!-- Row 2: 3 categories -->
+                        @if (mobileDisplayedCategories < _visibleCategories.Length)
+                        {
+                            <div class="row mb-2">
+                                @{
+                                    var maxMobileSecondRow = Math.Min(mobileDisplayedCategories + 3, _visibleCategories.Length);
+                                    for (int i = mobileDisplayedCategories; i < maxMobileSecondRow; i++)
+                                    {
+                                        var category = _visibleCategories[i];
+                                        <div class="col-4">
+                                            <div @onclick="() => OnCategoryClick(category)" class="category-item mobile-category-item">
+                                                <div class="d-flex flex-column align-items-center justify-content-center text-center">
+                                                    @if (!string.IsNullOrEmpty(category.ImagePath))
+                                                    {
+                                                        <img src="@CategoryImageService.GetImageUrl(category.ImagePath)" alt="@category.Name" class="category-image mobile-category-image rounded mb-2" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="category-placeholder mobile-category-placeholder rounded mb-2 d-flex align-items-center justify-content-center">
+                                                            <i class="bi bi-folder fs-3 text-muted"></i>
+                                                        </div>
+                                                    }
+                                                    <div class="category-name mobile-category-name">@category.Name</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        }
+
+                        <!-- See All Button -->
+                        <div class="row">
+                            <div class="col-12 d-flex justify-content-center">
+                                <a href="/student/categories" class="btn btn-outline-primary card-3d-raised card-light mobile-see-all-btn">
+                                    See All
+                                </a>
+                            </div>
                         </div>
                     }
                     else

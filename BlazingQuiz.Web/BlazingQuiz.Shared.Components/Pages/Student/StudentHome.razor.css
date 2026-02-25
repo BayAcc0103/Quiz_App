@@ -1018,3 +1018,108 @@ a.card-3d-raised.card-light:active {
         margin: 0.25rem auto 0.25rem auto; /* Position button */
     }
 }
+
+/* Mobile Category Container Styles */
+.mobile-category-item {
+    height: 110px;
+    padding: 6px 4px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.mobile-category-item:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.mobile-category-image {
+    width: 55px;
+    height: 55px;
+    object-fit: cover;
+}
+
+.mobile-category-placeholder {
+    width: 50px;
+    height: 50px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+}
+
+.mobile-category-name {
+    font-size: 0.85rem;
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mobile-see-all-btn {
+    padding: 0.5rem 2rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    min-width: 120px;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 576px) {
+    .mobile-category-item {
+        height: 100px;
+        padding: 5px 3px;
+    }
+
+    .mobile-category-image {
+        width: 50px;
+        height: 50px;
+    }
+
+    .mobile-category-placeholder {
+        width: 45px;
+        height: 45px;
+    }
+
+    .mobile-category-name {
+        font-size: 0.8rem;
+        max-width: 80px;
+    }
+
+    .mobile-see-all-btn {
+        padding: 0.4rem 1.5rem;
+        font-size: 0.85rem;
+        min-width: 100px;
+    }
+}
+
+/* Very small mobile devices */
+@media (max-width: 425px) {
+    .mobile-category-item {
+        height: 90px;
+        padding: 4px 2px;
+    }
+
+    .mobile-category-image {
+        width: 45px;
+        height: 45px;
+    }
+
+    .mobile-category-placeholder {
+        width: 40px;
+        height: 40px;
+    }
+
+    .mobile-category-name {
+        font-size: 0.75rem;
+        max-width: 70px;
+    }
+
+    .mobile-see-all-btn {
+        padding: 0.35rem 1rem;
+        font-size: 0.8rem;
+        min-width: 90px;
+    }
+}
