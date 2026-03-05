@@ -95,6 +95,11 @@ namespace BlazingQuiz.Shared.Components.Services.SignalR
                 OnRemovedFromRoom?.Invoke(roomCode, message);
             });
 
+            _hubConnection.On<string>("QuizDeleted", (roomCode) =>
+            {
+                OnQuizDeleted?.Invoke(roomCode);
+            });
+
             try
             {
                 await _hubConnection.StartAsync();
@@ -157,6 +162,7 @@ namespace BlazingQuiz.Shared.Components.Services.SignalR
         public event Action<object>? OnParticipantsListUpdated;
         public event Action<string, string, string>? OnUserRemovedFromRoom; // Event for when user is removed from room
         public event Action<string, string>? OnRemovedFromRoom; // Event for when user is removed from room with custom message
+        public event Action<string>? OnQuizDeleted; // Event for when quiz is deleted
 
         // Methods to call server-side hub methods
         public async Task JoinRoomAsync(string roomCode)
