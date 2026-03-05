@@ -1,4 +1,4 @@
-@page "/auth/login"
+﻿@page "/auth/login"
 @layout EmptyLayout
 @using BlazingQuiz.Web.Apis
 @using BlazingQuiz.Shared.DTOs
@@ -163,7 +163,10 @@
         try
         {
             AppState.ShowLoader("Logging in...");
+
+            //gọi API
             var authResponse = await AuthApi.LoginAsync(_model);
+
             if (authResponse.HasError)
             {
                 _errorMessage = authResponse.ErrorMessage;

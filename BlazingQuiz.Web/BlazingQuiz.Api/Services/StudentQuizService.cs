@@ -189,7 +189,6 @@ namespace BlazingQuiz.Api.Services
 
             if (isTextAnswer)
             {
-                // This is a text input question
                 // Always save the text answer, even if it's empty or null
                 studentQuizQuestion.TextAnswer = dto.TextAnswer;
                 

@@ -104,6 +104,11 @@
                                                         leaderboard
                                                     </span>
                                                 </button>
+                                                <button type="button" class="btn btn-3d btn-3d-success btn-xs ms-1" @onclick="() => ViewQuizResult(history.StudentQuizId)">
+                                                    <span class="material-symbols-outlined">
+                                                        assignment_turned_in
+                                                    </span>
+                                                </button>
                                             </td>
                                         </tr>
                                     }
@@ -340,5 +345,10 @@
     private void ViewLeaderboard(Guid roomId, Guid quizId)
     {
         NavigationManager.NavigateTo($"/student/quiz/{quizId}/room/{roomId}/leaderboard");
+    }
+
+    private void ViewQuizResult(int studentQuizId)
+    {
+        NavigationManager.NavigateTo($"/student/room-quiz-result/{studentQuizId}");
     }
 }

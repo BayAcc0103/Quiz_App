@@ -5,7 +5,7 @@ namespace BlazingQuiz.Shared.Components.Services
 {
     public class PythonRecommendationConfigService : IPythonRecommendationConfigService
     {
-        private string _baseUrl = "https://r0z08j4w-5000.asse.devtunnels.ms";
+        private string _baseUrl = "https://lz6kq85v-5000.asse.devtunnels.ms";
 
         public string GetBaseUrl()
         {

@@ -703,7 +703,8 @@ namespace BlazingQuiz.Api.Endpoints
                         CompletionTime = completionTime,
                         StartedOn = sqfr.StartedOn,
                         CompletedOn = sqfr.CompletedOn,
-                        Status = sqfr.Status
+                        Status = sqfr.Status,
+                        StudentQuizId = sqfr.Id
                     };
 
                     roomHistoryDtos.Add(roomHistory);
