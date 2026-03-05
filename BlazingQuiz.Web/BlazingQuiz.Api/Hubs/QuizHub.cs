@@ -102,6 +102,12 @@ namespace BlazingQuiz.Api.Hubs
             await Clients.Group(roomCode).SendAsync("ParticipantsListUpdated", participants);
         }
 
+        public async Task QuizDeleted(string roomCode)
+        {
+            // Notify all participants in the room that the quiz has been deleted
+            await Clients.Group(roomCode).SendAsync("QuizDeleted", roomCode);
+        }
+
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             // Clean up connections when a client disconnects

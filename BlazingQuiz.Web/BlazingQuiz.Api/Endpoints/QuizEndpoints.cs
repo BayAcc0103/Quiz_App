@@ -1,6 +1,8 @@
 ﻿using BlazingQuiz.Api.Services;
+using BlazingQuiz.Api.Hubs;
 using BlazingQuiz.Shared;
 using BlazingQuiz.Shared.DTOs;
+using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 
 namespace BlazingQuiz.Api.Endpoints
@@ -220,7 +222,7 @@ namespace BlazingQuiz.Api.Endpoints
                 return Results.Ok(QuizApiResponse.Success());
             }).RequireAuthorization(p => p.RequireRole(nameof(UserRole.Admin), nameof(UserRole.Teacher)));
 
-            quizGroup.MapDelete("{quizId:guid}", async (Guid quizId, QuizService service, HttpContext httpContext) =>
+            quizGroup.MapDelete("{quizId:guid}", async (Guid quizId, QuizService service, IHubContext<Hubs.QuizHub> hubContext, HttpContext httpContext) =>
             {
                 // Get the current user ID from the claims
                 var userIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -237,9 +239,15 @@ namespace BlazingQuiz.Api.Endpoints
                 }
 
                 var result = await service.DeleteQuizAsync(quizId, userId, userRole == nameof(UserRole.Admin));
-                if (!result)
+                if (!result.Success)
                 {
                     return Results.Ok(QuizApiResponse.Failure("Quiz not found or you don't have permission to delete it."));
+                }
+
+                // Notify all participants in affected rooms via SignalR that the quiz has been deleted
+                foreach (var roomCode in result.RoomCodes)
+                {
+                    await hubContext.Clients.Group(roomCode).SendAsync("QuizDeleted", roomCode);
                 }
 
                 return Results.Ok(QuizApiResponse.Success());

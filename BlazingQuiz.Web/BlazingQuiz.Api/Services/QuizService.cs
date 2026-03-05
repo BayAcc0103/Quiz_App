@@ -675,7 +675,7 @@ namespace BlazingQuiz.Api.Services
             return true;
         }
 
-        public async Task<bool> DeleteQuizAsync(Guid quizId, int userId, bool isAdmin)
+        public async Task<(bool Success, List<string> RoomCodes)> DeleteQuizAsync(Guid quizId, int userId, bool isAdmin)
         {
             var quiz = await _context.Quizzes
                 .Include(q => q.Questions)
@@ -687,7 +687,7 @@ namespace BlazingQuiz.Api.Services
 
             if (quiz == null)
             {
-                return false;
+                return (false, new List<string>());
             }
 
             // If the user is not an admin, ensure they can only delete quizzes they created
@@ -695,9 +695,13 @@ namespace BlazingQuiz.Api.Services
             {
                 if (quiz.CreatedBy != userId)
                 {
-                    return false; // Teacher didn't create this quiz, so can't delete it
+                    return (false, new List<string>()); // Teacher didn't create this quiz, so can't delete it
                 }
             }
+
+            // Get all room codes for rooms using this quiz BEFORE deleting them
+            var rooms = await _context.Rooms.Where(r => r.QuizId == quizId).ToListAsync();
+            var roomCodes = rooms.Select(r => r.Code).ToList();
 
             // Get all students who bookmarked this quiz before deleting the bookmarks
             var bookmarkedStudents = await _context.QuizBookmarks
@@ -716,7 +720,6 @@ namespace BlazingQuiz.Api.Services
             _context.QuizFeedbacks.RemoveRange(quizFeedbacks);
 
             // 3. Room - rooms that use this quiz (and their related data)
-            var rooms = await _context.Rooms.Where(r => r.QuizId == quizId).ToListAsync();
             foreach (var room in rooms)
             {
                 // Delete RoomAnswers associated with these rooms
@@ -784,7 +787,7 @@ namespace BlazingQuiz.Api.Services
             }
 
             await _context.SaveChangesAsync();
-            return true;
+            return (true, roomCodes);
         }
 
         public async Task<TeacherQuizStudentListDto> GetQuizStudentsAsync(Guid quizId, int startIndex, int pageSize, bool fetchQuizInfo, int userId, bool isAdmin)

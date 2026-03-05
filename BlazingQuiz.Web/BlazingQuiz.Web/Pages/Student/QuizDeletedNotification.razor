@@ -1,0 +1,55 @@
+@page "/student/quiz-deleted"
+@using BlazingQuiz.Web.Services.SignalR
+@inject NavigationManager NavigationManager
+@inject QuizHubService QuizHubService
+@inject IAppState AppState
+@inject QuizAuthStateProvider QuizAuthStateProvider
+
+@layout QuizPageLayout
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card card-3d-raised text-center">
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-exclamation-triangle text-warning" style="font-size: 5rem;"></i>
+                    </div>
+                    <h2 class="card-title text-warning mb-3">Quiz Deleted</h2>
+                    <p class="card-text mb-4">
+                        This quiz has been deleted by the teacher/host.
+                    </p>
+                    <p class="text-muted mb-4">
+                        You will be redirected to the home page shortly...
+                    </p>
+                    <div class="d-flex justify-content-center my-4">
+                        <div class="spinner-border text-warning" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="/student/home" class="btn btn-3d btn-3d-primary">
+                            Go to Home Page
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if user is logged in
+        if (!QuizAuthStateProvider.IsLoggedIn)
+        {
+            NavigationManager.NavigateTo("/auth/login", replace: true);
+            return;
+        }
+
+        // Redirect to home page after 10 seconds
+        await Task.Delay(10000);
+        NavigationManager.NavigateTo("/student/home", replace: true);
+    }
+}

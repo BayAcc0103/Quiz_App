@@ -253,6 +253,7 @@ else
     private bool isHost = false;
     private bool hasSubmitted = false;
     private bool showWaitingMessage = false;
+    private bool isQuizDeleted = false; // Flag to track if quiz has been deleted
     private string? errorMessage;
     private string? roomCode;
     private string? quizName;
@@ -316,7 +317,8 @@ else
             QuizHubService.OnQuizStarted += HandleQuizStarted;
             QuizHubService.OnQuizEnded += HandleQuizEnded; // Add event handler for when quiz ends for all
             QuizHubService.OnUserRemovedFromRoom += HandleUserRemovedFromRoom; // Add event handler for when user is removed from room
-            
+            QuizHubService.OnQuizDeleted += HandleQuizDeleted; // Add event handler for when quiz is deleted
+
             // Join the room in SignalR
             await QuizHubService.JoinRoomAsync(roomCode);
             
@@ -399,6 +401,22 @@ else
             {
                 // Show leaderboard to all participants
                 NavigationManager.NavigateTo($"/student/quiz/{QuizId}/room/{RoomId}/leaderboard", replace: true);
+            }
+        });
+    }
+
+    private void HandleQuizDeleted(string roomCode)
+    {
+        InvokeAsync(() =>
+        {
+            // Only handle the event if it's for this room
+            if (roomCode == this.roomCode)
+            {
+                // Set flag to prevent polling from redirecting to home
+                isQuizDeleted = true;
+                
+                // Redirect to quiz deleted notification page
+                NavigationManager.NavigateTo("/student/quiz-deleted", replace: true);
             }
         });
     }
@@ -792,6 +810,12 @@ else
         {
             await Task.Delay(5000); // Wait 5 seconds before checking again
 
+            // If quiz has been deleted, stop polling and don't redirect
+            if (isQuizDeleted)
+            {
+                break;
+            }
+
             try
             {
                 var participants = await RoomApi.GetRoomParticipantsAsync(RoomId);
@@ -811,7 +835,7 @@ else
                         // Navigate to home page
                         NavigationManager.NavigateTo("/student/home");
                     });
-                    
+
                     break; // Stop polling
                 }
             }

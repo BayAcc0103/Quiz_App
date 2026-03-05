@@ -555,13 +555,26 @@ namespace BlazingQuiz.Api.Endpoints
             }).RequireAuthorization(policy => policy.RequireClaim(ClaimTypes.Role, "Admin"));
 
             // Delete room - admin only
-            roomGroup.MapDelete("/{roomId:guid}", async (Guid roomId, RoomService service) =>
+            roomGroup.MapDelete("/{roomId:guid}", async (Guid roomId, RoomService service, IHubContext<Hubs.QuizHub> hubContext) =>
             {
+                // Get the room before deleting to get the room code
+                var room = await service.GetRoomByIdAsync(roomId);
+                if (room == null)
+                {
+                    return Results.NotFound("Room not found.");
+                }
+
+                var roomCode = room.Code;
+
+                // Delete the room
                 var success = await service.DeleteRoomAsync(roomId);
                 if (!success)
                 {
                     return Results.NotFound("Room not found.");
                 }
+
+                // Notify all participants in the room via SignalR that the quiz has been deleted
+                await hubContext.Clients.Group(roomCode).SendAsync("QuizDeleted", roomCode);
 
                 return Results.Ok(new { Message = "Room and all associated participants and answers deleted successfully." });
             }).RequireAuthorization(policy => policy.RequireClaim(ClaimTypes.Role, "Admin"));
