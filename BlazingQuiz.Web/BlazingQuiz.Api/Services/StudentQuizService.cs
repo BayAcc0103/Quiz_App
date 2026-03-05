@@ -94,7 +94,7 @@ namespace BlazingQuiz.Api.Services
                 .FirstOrDefaultAsync(s => s.Id == studentQuizId);
             if (studentQuiz == null)
             {
-                return QuizApiResponse<QuestionDto?>.Failure("Student quiz not found");
+                return QuizApiResponse<QuestionDto?>.Failure("Quiz has been removed. Please exit the test");
             }
             if(studentQuiz.StudentId != studentId)
             {
@@ -161,7 +161,7 @@ namespace BlazingQuiz.Api.Services
             if (studentQuiz == null)
             {
                 Console.WriteLine("Student quiz not found");
-                return QuizApiResponse.Failure("Student quiz not found");
+                return QuizApiResponse.Failure("Quiz has been removed. Please exit test");
             }
             if (studentQuiz.StudentId != studentId)
             {

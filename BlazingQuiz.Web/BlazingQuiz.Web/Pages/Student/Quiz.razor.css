@@ -16,7 +16,7 @@
     position: relative;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: center;.card-3d-raised[
     margin: 20px 0 30px 0;
 }
 
@@ -140,15 +140,23 @@
 .card {
     transition: all 0.3s ease !important;
 }
-
-.card-3d-raised {
+.card-3d-raised-alert {
     border: 3px solid #000 !important;
-    box-shadow:
-        -4px 4px 0px 0px rgba(0, 0, 0, 0.75),
-        0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
     transform: perspective(500px) rotateY(0deg);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    min-height: 500px;  /* Reduced height to make card more compact */
+    min-height: auto; /* Reduced height to make card more compact */
+    transform: perspective(500px) translateY(0px);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.card-3d-raised {
+    border: 3px solid #000 !important;
+    box-shadow: -4px 4px 0px 0px rgba(0, 0, 0, 0.75), 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(500px) rotateY(0deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-height: 500px; /* Reduced height to make card more compact */
     transform: perspective(500px) translateY(0px);
     width: 100%;
     display: flex;
