@@ -18,6 +18,7 @@ namespace BlazingQuiz.Api.Services
             {
                 var clientId = _configuration["GoogleOAuth:ClientId"];
                 
+                //check audience 
                 var validationSettings = new GoogleJsonWebSignature.ValidationSettings
                 {
                     Audience = new[] { clientId }
@@ -34,7 +35,7 @@ namespace BlazingQuiz.Api.Services
                         throw new InvalidOperationException("Google ID token has expired.");
                     }
                 }
-
+                // return the payload containing user information
                 return payload;
             }
             catch (InvalidJwtException ex)

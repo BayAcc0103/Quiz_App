@@ -90,10 +90,6 @@ namespace BlazingQuiz.Web.Auth
             }
         }
 
-        private void RedirectToLoginPage()
-        {
-            _navigationManager.NavigateTo("auth/login");
-        }
         private static bool IsTokenValid(string token)
         {
             if(string.IsNullOrWhiteSpace(token))
